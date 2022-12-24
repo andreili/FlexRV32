@@ -1,0 +1,87 @@
+[*]
+[*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
+[*] Sat Dec 24 03:15:10 2022
+[*]
+[dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
+[dumpfile_mtime] "Sat Dec 24 03:14:56 2022"
+[dumpfile_size] 31741
+[savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
+[timestart] 70
+[size] 1920 1017
+[pos] -9 -9
+*-2.710432 78 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.top.
+[sst_width] 212
+[signals_width] 302
+[sst_expanded] 1
+[sst_vpaned_height] 304
+@28
+TOP.top.i_clk
+TOP.top.w_reset_n
+@800200
+-WB
+@22
+TOP.top.u_rv.o_wb_adr[31:0]
+TOP.top.u_rv.o_wb_dat[31:0]
+TOP.top.u_rv.o_wb_sel[3:0]
+@28
+TOP.top.u_rv.o_wb_we
+TOP.top.u_rv.o_wb_stb
+TOP.top.u_rv.o_wb_cyc
+@22
+TOP.top.u_rv.i_wb_dat[31:0]
+@28
+TOP.top.u_rv.i_wb_ack
+@1000200
+-WB
+@800200
+-TCM
+@22
+TOP.top.u_tcm.i_addr[12:2]
+TOP.top.u_tcm.i_data[31:0]
+@28
+TOP.top.u_tcm.i_dev_sel
+@22
+TOP.top.u_tcm.i_sel[3:0]
+@28
+TOP.top.u_tcm.i_write
+TOP.top.u_tcm.o_ack
+@22
+TOP.top.u_tcm.o_data[31:0]
+@1000200
+-TCM
+@820
+TOP.top.u_rv.dbg_state[127:0]
+@800200
+-ST1 FETCH
+@22
+TOP.top.u_rv.fetch_pc[31:0]
+TOP.top.u_rv.fetch_pc_next[31:0]
+@28
+TOP.top.u_rv.fetch_ready
+@22
+TOP.top.u_rv.fetch_data_buf[31:0]
+TOP.top.u_rv.fetch_data[31:0]
+TOP.top.u_rv.fetch_bp_op[6:0]
+TOP.top.u_rv.fetch_bp_rd[4:0]
+@28
+TOP.top.u_rv.fetch_bp_b_sign
+TOP.top.u_rv.fetch_bp_is_b
+TOP.top.u_rv.fetch_bp_is_jal
+TOP.top.u_rv.fetch_bp_is_jalr
+@22
+TOP.top.u_rv.fetch_bp_b_offs[31:0]
+TOP.top.u_rv.fetch_bp_jalr_offs[31:0]
+TOP.top.u_rv.fetch_bp_jal_offs[31:0]
+TOP.top.u_rv.fetch_bp_b_addr[31:0]
+TOP.top.u_rv.fetch_bp_jalr_addr[31:0]
+TOP.top.u_rv.fetch_bp_jal_addr[31:0]
+@23
+TOP.top.u_rv.fetch_bp_addr[31:0]
+@28
+TOP.top.u_rv.fetch_bp_need
+@1000200
+-ST1 FETCH
+[pattern_trace] 1
+[pattern_trace] 0

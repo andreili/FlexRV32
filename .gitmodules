@@ -1,0 +1,3 @@
+[submodule "fw/riscv-arch-test"]
+	path = fw/riscv-arch-test
+	url = https://github.com/andreili/riscv-arch-test/
