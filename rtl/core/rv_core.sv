@@ -30,15 +30,17 @@ module rv_core
     localparam  STATE_FETCH = 0;
     localparam  STATE_RS = 1;
     localparam  STATE_ALU1 = 2;
-    localparam  STATE_MEM = 3;
-    localparam  STATE_WR = 4;
+    localparam  STATE_ALU2 = 3;
+    localparam  STATE_MEM = 4;
+    localparam  STATE_WR = 5;
 
     always_comb
     begin
         case (state_cur)
         STATE_FETCH: state_nxt = i_wb_ack ? STATE_RS : STATE_FETCH;
         STATE_RS: state_nxt = STATE_ALU1;
-        STATE_ALU1: state_nxt = STATE_MEM;
+        STATE_ALU1: state_nxt = STATE_ALU2;
+        STATE_ALU2: state_nxt = STATE_MEM;
         STATE_MEM: state_nxt = STATE_WR;
         STATE_WR: state_nxt = STATE_FETCH;
         default: state_nxt = STATE_FETCH;
@@ -511,17 +513,74 @@ module rv_core
         endcase
     end
 
-    rv_alu
-    u_alu
-    (
-        .i_src_a                        (alu_op1),
-        .i_src_b                        (alu_op2),
-        .i_ctrl                         (alu_ctrl),
-        .o_result                       (alu_result),
-        .o_zero                         (alu_zero)
-    );
+    logic       alu1_eq, alu1_lts, alu1_ltu;
+    logic[32:0] alu1_add;
+    logic[31:0] alu1_xor, alu1_or, alu1_and, alu1_shl;
+    logic[32:0] alu1_shr;
+    logic       alu1_cmp_result;
+    logic[31:0] alu1_ariph_result;
+    logic       alu1_carry;
+    logic       alu1_op_b_sel;
+    logic[31:0] alu1_op_b;
+    logic       alu1_negative;
+    logic       alu1_overflow;
 
-    //assign  alu_pc_next = alu_inst_jalr ? alu_reg_data1 : fetch_pc;
+    // adder - for all (add/sub/cmp)
+    assign  alu1_op_b_sel = (alu_ctrl[0] | (!alu_ctrl[3]));
+    assign  alu1_op_b     = alu1_op_b_sel ? (~alu_op2) : alu_op2;
+    assign  alu1_add      = alu_op1 + alu1_op_b + { {32{1'b0}}, alu1_op_b_sel};
+    assign  alu1_negative = alu1_add[31];
+    //assign  w_zero     = !(|w_add[31:0]);
+    assign  alu1_overflow = (alu_op1[31] ^ alu_op2[31]) & (alu_op1[31] ^ alu1_add[31]);
+    assign  alu1_carry    = alu1_add[32];
+
+    assign  alu1_eq  = (alu_op1 == alu_op2);//w_zero;
+    assign  alu1_lts = (alu1_negative ^ alu1_overflow);
+    assign  alu1_ltu = !alu1_carry;
+
+    assign  alu1_xor = alu_op1 ^ alu_op2;
+    assign  alu1_or  = alu_op1 | alu_op2;
+    assign  alu1_and = alu_op1 & alu_op2;
+    assign  alu1_shl = alu_op1 << alu_op2[4:0];
+    assign  alu1_shr = $signed({alu_ctrl[4] ? alu_op1[31] : 1'b0, alu_op1}) >>> alu_op2[4:0];
+
+    always_comb
+    begin
+        case (alu_ctrl[3:0])
+        `ALU_CMP_EQ:   alu1_cmp_result = alu1_eq;
+        `ALU_CMP_LTS:  alu1_cmp_result = alu1_lts;
+        `ALU_CMP_LTU:  alu1_cmp_result = alu1_ltu;
+        `ALU_CMP_NEQ:  alu1_cmp_result = !alu1_eq;
+        `ALU_CMP_NLTS: alu1_cmp_result = !alu1_lts;
+        `ALU_CMP_NLTU: alu1_cmp_result = !alu1_ltu;
+        default:       alu1_cmp_result = 'x;
+        endcase
+    end
+
+    always_comb
+    begin
+        case (alu_ctrl[3:0])
+        `ALU_CTRL_ADD: alu1_ariph_result = alu1_add[31:0];
+        `ALU_CTRL_SUB: alu1_ariph_result = alu1_add[31:0];
+        `ALU_CTRL_XOR: alu1_ariph_result = alu1_xor;
+        `ALU_CTRL_OR:  alu1_ariph_result = alu1_or;
+        `ALU_CTRL_AND: alu1_ariph_result = alu1_and;
+        `ALU_CTRL_SHL: alu1_ariph_result = alu1_shl;
+        `ALU_CTRL_SHR: alu1_ariph_result = alu1_shr[31:0];
+        default:       alu1_ariph_result = {32{alu1_shr[32]}};
+        endcase
+    end
+
+    always_comb
+    begin
+        case (alu_ctrl[3])
+        1'b0:   alu_result = { {31{1'b0}}, alu1_cmp_result };
+        1'b1:   alu_result = alu1_ariph_result;
+        endcase
+    end
+
+    assign  alu_zero = !(|alu_result);
+
     assign  alu_pc_select = /*(!fetch_bp_need) & */(alu_inst_jalr | alu_inst_jal | (alu_inst_branch & (alu_result[0])));
 
     logic[31:0] pc_jalr, pc_jal, pc_branch;
@@ -651,7 +710,8 @@ module rv_core
         case (state_cur)
         STATE_FETCH: dbg_state = "fetch";
         STATE_RS:    dbg_state = "rs";
-        STATE_ALU1:  dbg_state = "alu";
+        STATE_ALU1:  dbg_state = "alu#1";
+        STATE_ALU2:  dbg_state = "alu#2";
         STATE_MEM:   dbg_state = "mem";
         STATE_WR:    dbg_state = "wr";
         endcase
