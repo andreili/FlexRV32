@@ -9,7 +9,7 @@ module rv_alu
     output  wire                        o_zero
 );
 
-`include "rv_defines.vh"
+`include "../rv_defines.vh"
 
     wire        w_eq, w_lts, w_ltu;
     wire[32:0]  w_add;

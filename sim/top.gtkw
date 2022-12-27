@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sat Dec 24 05:52:35 2022
+[*] Tue Dec 27 14:58:38 2022
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Sat Dec 24 05:52:32 2022"
-[dumpfile_size] 62279
+[dumpfile_mtime] "Tue Dec 27 14:58:31 2022"
+[dumpfile_size] 8916671
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
 [timestart] 141
 [size] 1920 1017
@@ -39,7 +39,6 @@ TOP.top.u_rv.i_wb_ack
 @800200
 -TCM
 @22
-TOP.top.u_tcm.i_addr[12:2]
 TOP.top.u_tcm.i_data[31:0]
 @28
 TOP.top.u_tcm.i_dev_sel
@@ -64,28 +63,8 @@ TOP.top.u_rv.dbg_ascii_alu_ctrl[127:0]
 TOP.top.u_rv.fetch_pc[31:0]
 @22
 TOP.top.u_rv.fetch_pc_next[31:0]
-@28
-TOP.top.u_rv.fetch_ready
-@22
 TOP.top.u_rv.fetch_data_buf[31:0]
 TOP.top.u_rv.fetch_data[31:0]
-TOP.top.u_rv.fetch_bp_op[6:0]
-TOP.top.u_rv.fetch_bp_rd[4:0]
-@28
-TOP.top.u_rv.fetch_bp_b_sign
-TOP.top.u_rv.fetch_bp_is_b
-TOP.top.u_rv.fetch_bp_is_jal
-TOP.top.u_rv.fetch_bp_is_jalr
-@22
-TOP.top.u_rv.fetch_bp_b_offs[31:0]
-TOP.top.u_rv.fetch_bp_jalr_offs[31:0]
-TOP.top.u_rv.fetch_bp_jal_offs[31:0]
-TOP.top.u_rv.fetch_bp_b_addr[31:0]
-TOP.top.u_rv.fetch_bp_jalr_addr[31:0]
-TOP.top.u_rv.fetch_bp_jal_addr[31:0]
-TOP.top.u_rv.fetch_bp_addr[31:0]
-@28
-TOP.top.u_rv.fetch_bp_need
 @1000200
 -ST1 FETCH
 @c00200

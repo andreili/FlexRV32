@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 
-`include "rv_defines.vh"
+`include "../rv_defines.vh"
 `include "rv_opcodes.vh"
 
 /* verilator lint_off UNUSEDSIGNAL */
