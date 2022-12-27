@@ -1,17 +1,18 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sat Dec 24 04:42:14 2022
+[*] Sat Dec 24 05:52:35 2022
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Sat Dec 24 04:39:32 2022"
-[dumpfile_size] 19307
+[dumpfile_mtime] "Sat Dec 24 05:52:32 2022"
+[dumpfile_size] 62279
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 1828
+[timestart] 141
 [size] 1920 1017
-[pos] -9 -9
-*-2.710432 1848 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.710432 200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
+[treeopen] TOP.top.u_rv.
 [sst_width] 212
 [signals_width] 302
 [sst_expanded] 1
@@ -49,16 +50,19 @@ TOP.top.u_tcm.i_write
 TOP.top.u_tcm.o_ack
 @22
 TOP.top.u_tcm.o_data[31:0]
+@820
+TOP.top.u_tcm.o_data[31:0]
 @1000200
 -TCM
 @820
 TOP.top.u_rv.dbg_state[127:0]
 TOP.top.u_rv.dbg_ascii_instr[127:0]
 TOP.top.u_rv.dbg_ascii_alu_ctrl[127:0]
-@c00201
+@800200
 -ST1 FETCH
-@22
+@23
 TOP.top.u_rv.fetch_pc[31:0]
+@22
 TOP.top.u_rv.fetch_pc_next[31:0]
 @28
 TOP.top.u_rv.fetch_ready
@@ -82,7 +86,7 @@ TOP.top.u_rv.fetch_bp_jal_addr[31:0]
 TOP.top.u_rv.fetch_bp_addr[31:0]
 @28
 TOP.top.u_rv.fetch_bp_need
-@1401201
+@1000200
 -ST1 FETCH
 @c00200
 -ST2 DECODE
@@ -116,5 +120,45 @@ TOP.top.u_rv.alu_pc_next[31:0]
 TOP.top.u_rv.alu_pc_target[31:0]
 @1000200
 -ST3 ALU
+@800200
+-REGS
+@22
+TOP.top.u_rv.u_regs.i_data[31:0]
+@28
+TOP.top.u_rv.u_regs.i_write
+@22
+TOP.top.u_rv.u_regs.r_reg_file[1][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[2][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[3][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[4][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[5][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[6][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[7][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[8][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[9][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[10][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[11][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[12][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[13][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[14][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[15][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[16][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[17][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[18][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[19][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[20][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[21][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[22][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[23][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[24][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[25][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[26][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[27][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[28][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[29][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[30][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[31][31:0]
+@1000200
+-REGS
 [pattern_trace] 1
 [pattern_trace] 0

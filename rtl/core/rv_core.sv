@@ -3,6 +3,8 @@
 `include "rv_defines.vh"
 `include "rv_opcodes.vh"
 
+/* verilator lint_off UNUSEDSIGNAL */
+
 module rv_core
 #(
     parameter   RESET_ADDR = 32'h0000_0000
@@ -57,11 +59,11 @@ module rv_core
     logic[31:0] fetch_pc_next;
     logic[31:0] fetch_data_buf;
     logic[31:0] fetch_data;
-    logic       fetch_ready;
+    //logic       fetch_ready;
 `ifdef BRANCH_PREDICTION_SIMPLE
     logic[31:0] fetch_bp_lr;    // TODO
     logic[6:0]  fetch_bp_op;
-    logic[4:0]  fetch_bp_rd;
+    //logic[4:0]  fetch_bp_rd;
     logic[4:0]  fetch_bp_rs;
     logic       fetch_bp_b_sign;
     logic[31:0] fetch_bp_b_offs;
@@ -75,12 +77,14 @@ module rv_core
     logic       fetch_bp_is_jalr;
     logic       fetch_bp_is_jal;
     logic       fetch_bp_need;
+
+    assign  fetch_bp_lr = 32'h0000_0010;
 `endif
 
     assign  fetch_pc_next = 
         alu_pc_select ? alu_pc_target :
 `ifdef BRANCH_PREDICTION_SIMPLE
-        fetch_bp_need ? fetch_bp_addr :
+        //fetch_bp_need ? fetch_bp_addr :
 `endif
         fetch_pc + 4;
 
@@ -102,7 +106,7 @@ module rv_core
             fetch_data_buf <= i_wb_dat;
     end
 
-    always_ff @(posedge i_clk)
+    /*always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
             fetch_ready <= '0;
@@ -110,13 +114,13 @@ module rv_core
             fetch_ready <= '1;
         else
             fetch_ready <= '0;
-    end
+    end*/
 
     assign  fetch_data = (state_cur == STATE_RS) ? i_wb_dat : fetch_data_buf;
 
 `ifdef BRANCH_PREDICTION_SIMPLE
     assign  fetch_bp_op        = fetch_data[6:0];
-    assign  fetch_bp_rd        = fetch_data[11:7];
+    //assign  fetch_bp_rd        = fetch_data[11:7];
     assign  fetch_bp_rs        = fetch_data[19:15];
     assign  fetch_bp_b_sign    = fetch_data[31];
     assign  fetch_bp_b_offs    = { {20{fetch_data[31]}}, fetch_data[7], fetch_data[30:25], fetch_data[11:8], 1'b0 };
@@ -140,7 +144,7 @@ module rv_core
     end
 `endif
 
-    logic[6:0]  decode_op;
+    //logic[6:0]  decode_op;
     logic[4:0]  decode_rd;
     logic[2:0]  decode_funct3;
     logic[4:0]  decode_rs1, decode_rs2;
@@ -187,7 +191,7 @@ module rv_core
     logic   decode_inst_reg;
     logic   decode_inst_branch;
 
-    assign  decode_op      = fetch_data[6:0];
+    //assign  decode_op      = fetch_data[6:0];
     assign  decode_rd      = fetch_data[11:7];
     assign  decode_funct3  = fetch_data[14:12];
     assign  decode_rs1     = decode_inst_lui ? '0 : fetch_data[19:15];
@@ -485,8 +489,81 @@ module rv_core
     );
 
     assign  alu_pc_next = decode_inst_jalr ? alu_reg_data1 : fetch_pc;
-    assign  alu_pc_select = (!fetch_bp_need) & (decode_inst_jalr | decode_inst_jal | (decode_inst_branch & (alu_result[0])));
+    assign  alu_pc_select = /*(!fetch_bp_need) & */(decode_inst_jalr | decode_inst_jal | (decode_inst_branch & (alu_result[0])));
     assign  alu_pc_target = alu_pc_next + decode_imm;
+
+    logic[31:0] memory_wdata;
+    logic[3:0]  memory_sel;
+
+    always_comb
+    begin
+        case (decode_funct3[1:0])
+        2'b00:   memory_wdata = {4{alu_reg_data2[0+: 8]}};
+        2'b01:   memory_wdata = {2{alu_reg_data2[0+:16]}};
+        default: memory_wdata = alu_reg_data2;
+        endcase
+    end
+
+    always_comb
+    begin
+        case (decode_funct3[1:0])
+        2'b00: begin
+            case (alu_result[1:0])
+            2'b00: memory_sel = 4'b0001;
+            2'b01: memory_sel = 4'b0010;
+            2'b10: memory_sel = 4'b0100;
+            2'b11: memory_sel = 4'b1000;
+            endcase
+        end
+        2'b01: begin
+            case (alu_result[1])
+            1'b0: memory_sel = 4'b0011;
+            1'b1: memory_sel = 4'b1100;
+            endcase
+        end
+        default:  memory_sel = 4'b1111;
+        endcase
+    end
+
+    logic[7:0]  write_byte;
+    logic[15:0] write_half_word;
+    logic[31:0] write_rdata;
+    logic[31:0] write_data;
+
+    always_comb
+    begin
+        case (alu_result[1:0])
+        2'b00: write_byte = i_wb_dat[ 0+:8];
+        2'b01: write_byte = i_wb_dat[ 8+:8];
+        2'b10: write_byte = i_wb_dat[16+:8];
+        2'b11: write_byte = i_wb_dat[24+:8];
+        endcase
+    end
+
+    always_comb
+    begin
+        case (alu_result[1])
+        1'b0: write_half_word = i_wb_dat[ 0+:16];
+        1'b1: write_half_word = i_wb_dat[16+:16];
+        endcase
+    end
+
+    always_comb
+    begin
+        case (decode_funct3)
+        3'b000: write_rdata = { {24{write_byte[7]}}, write_byte};
+        3'b001: write_rdata = { {16{write_half_word[15]}}, write_half_word};
+        3'b010: write_rdata = i_wb_dat;
+        3'b100: write_rdata = { {24{1'b0}}, write_byte};
+        3'b101: write_rdata = { {16{1'b0}}, write_half_word};
+        default:write_rdata = '0;
+        endcase
+    end
+
+    assign  write_data = (decode_res_src == `RESULT_SRC_ALU) ? alu_result :
+                     (decode_res_src == `RESULT_SRC_MEMORY) ? write_rdata :
+                     (decode_res_src == `RESULT_SRC_PC_P4) ? (fetch_pc + 4) :
+                     '0;
 
     rv_regs
     u_regs
@@ -496,21 +573,19 @@ module rv_core
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
-        .i_write                        (1'b0/*reg_write*/),
-        .i_data                         ('0/*reg_wdata*/),
+        .i_write                        (decode_reg_write && (state_cur == STATE_WR)),
+        .i_data                         (write_data),
         .o_data1                        (reg_rdata1),
         .o_data2                        (reg_rdata2)
     );
 
-    assign o_wb_adr = fetch_pc;
-    assign o_wb_dat = '0;
-    assign o_wb_we = '0;
-    assign o_wb_sel = '0;
-    assign o_wb_stb = '0;
+    assign o_wb_adr = (state_cur == STATE_MEM) ? alu_result : fetch_pc;
+    assign o_wb_dat = memory_wdata;
+    assign o_wb_we = (state_cur == STATE_MEM) ? decode_inst_store : '0;
+    assign o_wb_sel = (state_cur == STATE_MEM) ? memory_sel : '1;
+    assign o_wb_stb = '1;
+    assign o_wb_cyc = '1;
     assign o_debug = '0;
-    assign o_wb_cyc = '0;
-
-    assign  fetch_bp_lr = 32'h0000_0010;
 
     logic[127:0] dbg_state;
     always_comb
@@ -525,3 +600,4 @@ module rv_core
     end
 
 endmodule
+/* verilator lint_on UNUSEDSIGNAL */
