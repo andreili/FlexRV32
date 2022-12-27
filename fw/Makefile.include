@@ -59,7 +59,7 @@ DEPFILES := $(OBJECTS:%.o=%.d)
 # All Target
 all: secondary-outputs
 
-$(WORK_DIR)/%.o: %.S
+$(WORK_DIR)/%.o: %.S $(WORK_DIR)
 	$(info Compile $<)
 	@$(GCC) -c $(ARCH_FLAGS_ALL) -o $@ $<
 #	@$(AS) $(ARCH_FLAGS_ALL) "$<" -o "$@"

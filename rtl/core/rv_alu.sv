@@ -19,11 +19,9 @@ module rv_alu
     logic       w_cmp_result;
     logic[31:0] w_ariph_result;
     logic       w_carry;
-    logic[31:0] w_inverted;
     logic       w_op_b_sel;
     logic[31:0] w_op_b;
     logic       w_negative;
-    logic       w_zero;
     logic       w_overflow;
 
     /*
@@ -81,7 +79,7 @@ module rv_alu
         `ALU_CTRL_AND: w_ariph_result = w_and;
         `ALU_CTRL_SHL: w_ariph_result = w_shl;
         `ALU_CTRL_SHR: w_ariph_result = w_shr[31:0];
-        default:       w_ariph_result = 'x;
+        default:       w_ariph_result = {32{w_shr[32]}};
         endcase
     end
 

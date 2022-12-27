@@ -1,5 +1,6 @@
 `timescale 1ps/1ps
 
+/* verilator lint_off UNUSEDSIGNAL */
 module top
 (
     input   wire                        i_clk,
@@ -169,3 +170,4 @@ begin
 end
 
 endmodule
+/* verilator lint_on UNUSEDSIGNAL */

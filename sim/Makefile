@@ -23,7 +23,7 @@ VERILATOR_FLAGS += --coverage
 #VERILATOR_FLAGS += --debug
 # Add this trace to get a backtrace in gdb
 #VERILATOR_FLAGS += --gdbbt 
-VERILATOR_FLAGS += --build --dump-graph --hierarchical
+VERILATOR_FLAGS += --build --hierarchical
 VERILATOR_FLAGS += -CFLAGS "-I../../vrf/tb/ -DTOP_NAME=$*" -DTO_SIM
 
 VERILATOR_INPUT = -f input.vc ../../vrf/$*.sv ../../vrf/tb/tb.cpp ../../vrf/tb/tb_$*.cpp

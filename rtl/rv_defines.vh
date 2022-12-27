@@ -1,7 +1,7 @@
 `define SLAVE_SEL_WIDTH                 4
-`define TCM_ADDR_WIDTH                  11
+`define TCM_ADDR_WIDTH                  13
 
-`define BRANCH_PREDICTION_SIMPLE
+//`define BRANCH_PREDICTION_SIMPLE
 
 `define RESULT_SRC_ALU      2'b00
 `define RESULT_SRC_MEMORY   2'b01
