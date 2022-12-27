@@ -65,7 +65,7 @@ module tcm
         if ($value$plusargs("TEST_FW=%s", fw_file))
             $readmemh(fw_file, r_mem);
         else
-            $readmemh("../sim/fw.vh", r_mem);
+            $readmemh("fw.vh", r_mem);
     `else
       `ifndef QUARTUS
             $readmemh("../sim/test_fw/out/risc.vh", r_mem);

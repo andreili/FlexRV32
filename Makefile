@@ -2,6 +2,7 @@ default: sim
 
 sim:
 ifneq ($(fw),)
+	@echo "--- Build FW ---"
 	make -C ./fw/$(fw) sim=1 clean all
 endif
 	make -C sim $(target)
@@ -15,3 +16,4 @@ clean:
 	make -C sim clean
 
 .PHONY: sim clean
+$(V).SILENT:

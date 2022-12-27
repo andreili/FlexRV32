@@ -92,7 +92,7 @@ $(BIN_FILE): $(EXECUTABLE)
 $(VH_FILE): $(BIN_FILE)
 	$(info VH $@)
 	$(OBJCOPY) --verilog-data-width=4 --reverse-bytes=4 -I binary -O verilog $(BIN_FILE) $(VH_FILE)
-	cp $(VH_FILE) ../../sim/fw.vh
+	cp $(VH_FILE) ../../sim/run/fw.vh
 
 $(MIF_FILE): $(BIN_FILE)
 	$(info MIF $@)

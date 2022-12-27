@@ -1,3 +1,6 @@
 [submodule "fw/riscv-arch-test"]
 	path = fw/riscv-arch-test
 	url = https://github.com/andreili/riscv-arch-test/
+[submodule "sim_common"]
+	path = sim_common
+	url = https://github.com/andreili/HDLSim

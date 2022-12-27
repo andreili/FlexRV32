@@ -1,2 +1,2 @@
 // This file typically lists flags required by a large project, e.g. include directories
-+librescan +libext+.v+.sv+.vh+.svh -y ../rtl/ -y ../rtl/peripheral/uart -y ../rtl/core/ -y ../vrf/ -y ../proj/core_test_c5/
+-y ../../rtl/ -y ../../rtl/peripheral/uart -y ../../rtl/core/ -y ../../vrf/
