@@ -3,15 +3,19 @@
 
 //`define BRANCH_PREDICTION_SIMPLE
 
+`define ALU_SRC_OP2_I       3'd0
+`define ALU_SRC_OP2_U       3'd1
+`define ALU_SRC_OP2_J       3'd2
+//`define ALU_SRC_OP2_B       3'd3
+`define ALU_SRC_OP2_S       3'd4
+`define ALU_SRC_OP2_REG     3'd5
+
 `define RESULT_SRC_ALU      2'b00
 `define RESULT_SRC_MEMORY   2'b01
 `define RESULT_SRC_PC_P4    2'b10
 
 `define ALU_SRC_OP1_REG     1'b0
 `define ALU_SRC_OP1_PC      1'b1
-
-`define ALU_SRC_OP2_REG     1'b0
-`define ALU_SRC_OP2_IMM     1'b1
 
 `define ALU_CMP_EQ          4'b0000
 `define ALU_CMP_LTS         4'b0001

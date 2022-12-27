@@ -144,7 +144,7 @@ module rv_core
     end
 `endif
 
-    //logic[6:0]  decode_op;
+    logic[6:0]  decode_op;
     logic[4:0]  decode_rd;
     logic[2:0]  decode_funct3;
     logic[4:0]  decode_rs1, decode_rs2;
@@ -152,11 +152,10 @@ module rv_core
     logic[11:0] decode_funct12;
 
     logic[31:0] decode_imm_i, decode_imm_s, decode_imm_b, decode_imm_u, decode_imm_j;
-    logic[31:0] decode_imm;
     logic       decode_reg_write;
     logic[1:0]  decode_res_src;
     logic       decode_alu_op1_sel;
-    logic       decode_alu_op2_sel;
+    logic[2:0]  decode_alu_op2_sel;
     logic[4:0]  decode_alu_ctrl;
 
     logic   decode_inst_full, decode_inst_none, decode_inst_supported;
@@ -191,7 +190,7 @@ module rv_core
     logic   decode_inst_reg;
     logic   decode_inst_branch;
 
-    //assign  decode_op      = fetch_data[6:0];
+    assign  decode_op      = fetch_data[6:0];
     assign  decode_rd      = fetch_data[11:7];
     assign  decode_funct3  = fetch_data[14:12];
     assign  decode_rs1     = decode_inst_lui ? '0 : fetch_data[19:15];
@@ -199,43 +198,40 @@ module rv_core
     assign  decode_funct7  = fetch_data[31:25];
     assign  decode_funct12 = fetch_data[31:20];
 
-    assign  decode_imm_i = { {21{fetch_data[31]}}, fetch_data[30:20] };
-    assign  decode_imm_s = { {21{fetch_data[31]}}, fetch_data[30:25], fetch_data[11:7] };
-    assign  decode_imm_b = { {20{fetch_data[31]}}, fetch_data[7], fetch_data[30:25], fetch_data[11:8], 1'b0 };
-    assign  decode_imm_u = { fetch_data[31:12], {12{1'b0}} };
-    assign  decode_imm_j = { {12{fetch_data[31]}}, fetch_data[19:12], fetch_data[20], fetch_data[30:21], 1'b0 };
+    //always_ff @(posedge i_clk)
+    //begin
+        assign decode_imm_i = { {21{fetch_data[31]}}, fetch_data[30:20] };
+        assign decode_imm_s = { {21{fetch_data[31]}}, fetch_data[30:25], fetch_data[11:7] };
+        assign decode_imm_b = { {20{fetch_data[31]}}, fetch_data[7], fetch_data[30:25], fetch_data[11:8], 1'b0 };
+        assign decode_imm_u = { fetch_data[31:12], {12{1'b0}} };
+        assign decode_imm_j = { {12{fetch_data[31]}}, fetch_data[19:12], fetch_data[20], fetch_data[30:21], 1'b0 };
+    //end
 
     always_comb
     begin
         case (1'b1)
-        decode_inst_jal:
-            decode_imm = decode_imm_j;
-        |{decode_inst_lui, decode_inst_auipc}:
-            decode_imm = decode_imm_u;
-        |{decode_inst_jalr, decode_inst_load, decode_inst_imm}:
-            decode_imm = decode_imm_i;
-        decode_inst_branch:
-            decode_imm = decode_imm_b;
-        decode_inst_store:
-            decode_imm = decode_imm_s;
-        default:decode_imm = 'x;
+        decode_inst_jal: decode_alu_op2_sel = `ALU_SRC_OP2_J;
+        |{decode_inst_lui, decode_inst_auipc}: decode_alu_op2_sel = `ALU_SRC_OP2_U;
+        |{decode_inst_jalr, decode_inst_load, decode_inst_imm}: decode_alu_op2_sel = `ALU_SRC_OP2_I;
+        decode_inst_store: decode_alu_op2_sel = `ALU_SRC_OP2_S;
+        default:decode_alu_op2_sel = `ALU_SRC_OP2_REG;
         endcase
     end
 
-    assign  decode_inst_full = (fetch_data[1:0] == RV32_OPC_DET);
-    assign  decode_inst_none = !(|fetch_data);
+    assign  decode_inst_full = (decode_op[1:0] == RV32_OPC_DET);
+    assign  decode_inst_none = !(|decode_op);
     // instructions groups
-    assign  decode_inst_grp_load     = (fetch_data[6:2] == RV32_OPC_LD)   & decode_inst_full;
-    assign  decode_inst_grp_misc_mem = (fetch_data[6:2] == RV32_OPC_MEM)  & decode_inst_full;
-    assign  decode_inst_grp_arif_imm = (fetch_data[6:2] == RV32_OPC_ARI)  & decode_inst_full;
-    assign  decode_inst_grp_auipc    = (fetch_data[6:2] == RV32_OPC_AUI)  & decode_inst_full;
-    assign  decode_inst_grp_store    = (fetch_data[6:2] == RV32_OPC_STR)  & decode_inst_full;
-    assign  decode_inst_grp_arif_reg = (fetch_data[6:2] == RV32_OPC_ARR)  & decode_inst_full;
-    assign  decode_inst_grp_lui      = (fetch_data[6:2] == RV32_OPC_LUI)  & decode_inst_full;
-    assign  decode_inst_grp_branch   = (fetch_data[6:2] == RV32_OPC_B)    & decode_inst_full;
-    assign  decode_inst_grp_jalr     = (fetch_data[6:2] == RV32_OPC_JALR) & decode_inst_full;
-    assign  decode_inst_grp_jal      = (fetch_data[6:2] == RV32_OPC_JAL)  & decode_inst_full;
-    assign  decode_inst_grp_system   = (fetch_data[6:2] == RV32_OPC_SYS)  & decode_inst_full;
+    assign  decode_inst_grp_load     = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full;
+    assign  decode_inst_grp_misc_mem = (decode_op[6:2] == RV32_OPC_MEM)  & decode_inst_full;
+    assign  decode_inst_grp_arif_imm = (decode_op[6:2] == RV32_OPC_ARI)  & decode_inst_full;
+    assign  decode_inst_grp_auipc    = (decode_op[6:2] == RV32_OPC_AUI)  & decode_inst_full;
+    assign  decode_inst_grp_store    = (decode_op[6:2] == RV32_OPC_STR)  & decode_inst_full;
+    assign  decode_inst_grp_arif_reg = (decode_op[6:2] == RV32_OPC_ARR)  & decode_inst_full;
+    assign  decode_inst_grp_lui      = (decode_op[6:2] == RV32_OPC_LUI)  & decode_inst_full;
+    assign  decode_inst_grp_branch   = (decode_op[6:2] == RV32_OPC_B)    & decode_inst_full;
+    assign  decode_inst_grp_jalr     = (decode_op[6:2] == RV32_OPC_JALR) & decode_inst_full;
+    assign  decode_inst_grp_jal      = (decode_op[6:2] == RV32_OPC_JAL)  & decode_inst_full;
+    assign  decode_inst_grp_system   = (decode_op[6:2] == RV32_OPC_SYS)  & decode_inst_full;
 
     assign  decode_inst_supported = 
             decode_inst_none |
@@ -322,16 +318,6 @@ module rv_core
             decode_alu_op1_sel = `ALU_SRC_OP1_PC;
         default:
             decode_alu_op1_sel = `ALU_SRC_OP1_REG;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        |{decode_inst_auipc,decode_inst_jal,decode_inst_jalr,decode_inst_lui,decode_inst_imm,decode_inst_load,decode_inst_store}:
-            decode_alu_op2_sel = `ALU_SRC_OP2_IMM;
-        default:
-            decode_alu_op2_sel = `ALU_SRC_OP2_REG;
         endcase
     end
 
@@ -464,51 +450,123 @@ module rv_core
     `endif
     end
 
+    logic[4:0]  alu_rs1;
+    logic[4:0]  alu_rs2;
+    logic[4:0]  alu_rd;
+    logic[31:0] alu_imm_i;
+    logic[31:0] alu_imm_u;
+    logic[31:0] alu_imm_j;
+    logic[31:0] alu_imm_b;
+    logic[31:0] alu_imm_s;
+    logic       alu_op1_sel;
+    logic[2:0]  alu_op2_sel;
+    logic[4:0]  alu_ctrl;
+    logic       alu_inst_jalr, alu_inst_jal, alu_inst_branch;
+    logic[2:0]  alu_funct3;
+    logic[1:0]  alu_res_src;
+    logic       alu_reg_write;
+
+    always_ff @(posedge i_clk)
+    begin
+        alu_rs1  <= decode_rs1;
+        alu_rs2  <= decode_rs2;
+        alu_rd   <= decode_rd;
+        alu_imm_i  <= decode_imm_i;
+        alu_imm_j  <= decode_imm_j;
+        alu_imm_u  <= decode_imm_u;
+        alu_imm_b  <= decode_imm_b;
+        alu_imm_s  <= decode_imm_s;
+        alu_ctrl <= decode_alu_ctrl;
+        alu_funct3  <= decode_funct3;
+        alu_res_src <= decode_res_src;
+        alu_op1_sel <= decode_alu_op1_sel;
+        alu_op2_sel <= decode_alu_op2_sel;
+        alu_reg_write   <= decode_reg_write;
+        alu_inst_jalr   <= decode_inst_jalr;
+        alu_inst_jal    <= decode_inst_jal;
+        alu_inst_branch <= decode_inst_branch;
+    end
+
     logic[31:0] alu_reg_data1, alu_reg_data2;
     logic[31:0] alu_op1, alu_op2;
     logic[31:0] alu_result;
     logic       alu_zero;
-    logic[31:0] alu_pc_next;
+    //logic[31:0] alu_pc_next;
     logic       alu_pc_select;
     logic[31:0] alu_pc_target;
 
-    assign  alu_reg_data1 = (|decode_rs1) ? reg_rdata1 : '0;
-    assign  alu_reg_data2 = (|decode_rs2) ? reg_rdata2 : '0;
+    assign  alu_reg_data1 = (|alu_rs1) ? reg_rdata1 : '0;
+    assign  alu_reg_data2 = (|alu_rs2) ? reg_rdata2 : '0;
 
-    assign  alu_op1 = (decode_alu_op1_sel == `ALU_SRC_OP1_PC)  ? fetch_pc : alu_reg_data1;
-    assign  alu_op2 = (decode_alu_op2_sel == `ALU_SRC_OP2_IMM) ? decode_imm : alu_reg_data2;
+    assign  alu_op1 = (alu_op1_sel == `ALU_SRC_OP1_PC)  ? fetch_pc : alu_reg_data1;
+
+    always_comb
+    begin
+        case (alu_op2_sel)
+        `ALU_SRC_OP2_I: alu_op2 = alu_imm_i;
+        `ALU_SRC_OP2_U: alu_op2 = alu_imm_u;
+        `ALU_SRC_OP2_J: alu_op2 = alu_imm_j;
+        `ALU_SRC_OP2_S: alu_op2 = alu_imm_s;
+        default: alu_op2 = alu_reg_data2;
+        endcase
+    end
 
     rv_alu
     u_alu
     (
         .i_src_a                        (alu_op1),
         .i_src_b                        (alu_op2),
-        .i_ctrl                         (decode_alu_ctrl),
+        .i_ctrl                         (alu_ctrl),
         .o_result                       (alu_result),
         .o_zero                         (alu_zero)
     );
 
-    assign  alu_pc_next = decode_inst_jalr ? alu_reg_data1 : fetch_pc;
-    assign  alu_pc_select = /*(!fetch_bp_need) & */(decode_inst_jalr | decode_inst_jal | (decode_inst_branch & (alu_result[0])));
-    assign  alu_pc_target = alu_pc_next + decode_imm;
+    //assign  alu_pc_next = alu_inst_jalr ? alu_reg_data1 : fetch_pc;
+    assign  alu_pc_select = /*(!fetch_bp_need) & */(alu_inst_jalr | alu_inst_jal | (alu_inst_branch & (alu_result[0])));
 
-    logic[31:0] memory_wdata;
-    logic[3:0]  memory_sel;
+    logic[31:0] pc_jalr, pc_jal, pc_branch;
+
+    assign  pc_jalr   = alu_reg_data1 + alu_imm_i;
+    assign  pc_jal    = fetch_pc + alu_imm_j;
+    assign  pc_branch = fetch_pc + alu_imm_b;
 
     always_comb
     begin
-        case (decode_funct3[1:0])
-        2'b00:   memory_wdata = {4{alu_reg_data2[0+: 8]}};
-        2'b01:   memory_wdata = {2{alu_reg_data2[0+:16]}};
-        default: memory_wdata = alu_reg_data2;
+        case (1'b1)
+        alu_inst_jalr:   alu_pc_target = pc_jalr;
+        alu_inst_jal:    alu_pc_target = pc_jal;
+        alu_inst_branch: alu_pc_target = pc_branch;
+        default:         alu_pc_target = fetch_pc;
+        endcase
+    end
+
+    logic[2:0]  memory_funct3;
+    logic[31:0] memory_alu_result;
+    logic[31:0] memory_reg_data2;
+    logic[31:0] memory_wdata;
+    logic[3:0]  memory_sel;
+
+    always_ff @(posedge i_clk)
+    begin
+        memory_funct3  <= alu_funct3;
+        memory_reg_data2 <= alu_reg_data2;
+        memory_alu_result <= alu_result;
+    end
+
+    always_comb
+    begin
+        case (memory_funct3[1:0])
+        2'b00:   memory_wdata = {4{memory_reg_data2[0+: 8]}};
+        2'b01:   memory_wdata = {2{memory_reg_data2[0+:16]}};
+        default: memory_wdata = memory_reg_data2;
         endcase
     end
 
     always_comb
     begin
-        case (decode_funct3[1:0])
+        case (memory_funct3[1:0])
         2'b00: begin
-            case (alu_result[1:0])
+            case (memory_alu_result[1:0])
             2'b00: memory_sel = 4'b0001;
             2'b01: memory_sel = 4'b0010;
             2'b10: memory_sel = 4'b0100;
@@ -516,7 +574,7 @@ module rv_core
             endcase
         end
         2'b01: begin
-            case (alu_result[1])
+            case (memory_alu_result[1])
             1'b0: memory_sel = 4'b0011;
             1'b1: memory_sel = 4'b1100;
             endcase
@@ -532,7 +590,7 @@ module rv_core
 
     always_comb
     begin
-        case (alu_result[1:0])
+        case (memory_alu_result[1:0])
         2'b00: write_byte = i_wb_dat[ 0+:8];
         2'b01: write_byte = i_wb_dat[ 8+:8];
         2'b10: write_byte = i_wb_dat[16+:8];
@@ -542,7 +600,7 @@ module rv_core
 
     always_comb
     begin
-        case (alu_result[1])
+        case (memory_alu_result[1])
         1'b0: write_half_word = i_wb_dat[ 0+:16];
         1'b1: write_half_word = i_wb_dat[16+:16];
         endcase
@@ -550,7 +608,7 @@ module rv_core
 
     always_comb
     begin
-        case (decode_funct3)
+        case (alu_funct3)
         3'b000: write_rdata = { {24{write_byte[7]}}, write_byte};
         3'b001: write_rdata = { {16{write_half_word[15]}}, write_half_word};
         3'b010: write_rdata = i_wb_dat;
@@ -560,9 +618,9 @@ module rv_core
         endcase
     end
 
-    assign  write_data = (decode_res_src == `RESULT_SRC_ALU) ? alu_result :
-                     (decode_res_src == `RESULT_SRC_MEMORY) ? write_rdata :
-                     (decode_res_src == `RESULT_SRC_PC_P4) ? (fetch_pc + 4) :
+    assign  write_data = (alu_res_src == `RESULT_SRC_ALU) ? memory_alu_result :
+                     (alu_res_src == `RESULT_SRC_MEMORY) ? write_rdata :
+                     (alu_res_src == `RESULT_SRC_PC_P4) ? (fetch_pc + 4) :
                      '0;
 
     rv_regs
@@ -572,14 +630,14 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
-        .i_rd                           (decode_rd),
-        .i_write                        (decode_reg_write && (state_cur == STATE_WR)),
+        .i_rd                           (alu_rd),
+        .i_write                        (alu_reg_write && (state_cur == STATE_WR)),
         .i_data                         (write_data),
         .o_data1                        (reg_rdata1),
         .o_data2                        (reg_rdata2)
     );
 
-    assign o_wb_adr = (state_cur == STATE_MEM) ? alu_result : fetch_pc;
+    assign o_wb_adr = (state_cur == STATE_MEM) ? memory_alu_result : fetch_pc;
     assign o_wb_dat = memory_wdata;
     assign o_wb_we = (state_cur == STATE_MEM) ? decode_inst_store : '0;
     assign o_wb_sel = (state_cur == STATE_MEM) ? memory_sel : '1;

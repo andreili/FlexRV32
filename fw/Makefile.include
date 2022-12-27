@@ -64,7 +64,7 @@ $(WORK_DIR)/%.o: %.S $(WORK_DIR)
 	$(GCC) -c $(ARCH_FLAGS_ALL) -o $@ $<
 #	@$(AS) $(ARCH_FLAGS_ALL) "$<" -o "$@"
 
-$(WORK_DIR)/%.o: %.c
+$(WORK_DIR)/%.o: %.c $(WORK_DIR)
 	$(info CC $<)
 	$(GCC) $(C_FLAGS) $(INC_DIR) -MF "$(WORK_DIR)/$*.d" -c "$<" -o "$@"
 

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Tue Dec 27 14:58:38 2022
+[*] Tue Dec 27 21:45:29 2022
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Tue Dec 27 14:58:31 2022"
-[dumpfile_size] 8916671
+[dumpfile_mtime] "Tue Dec 27 21:45:26 2022"
+[dumpfile_size] 54056
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 141
+[timestart] 842
 [size] 1920 1017
 [pos] -1 -1
-*-2.710432 200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.603854 880 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
@@ -22,8 +22,44 @@ TOP.top.i_clk
 TOP.top.w_reset_n
 @800200
 -WB
-@22
+@c00022
 TOP.top.u_rv.o_wb_adr[31:0]
+@28
+(0)TOP.top.u_rv.o_wb_adr[31:0]
+(1)TOP.top.u_rv.o_wb_adr[31:0]
+(2)TOP.top.u_rv.o_wb_adr[31:0]
+(3)TOP.top.u_rv.o_wb_adr[31:0]
+(4)TOP.top.u_rv.o_wb_adr[31:0]
+(5)TOP.top.u_rv.o_wb_adr[31:0]
+(6)TOP.top.u_rv.o_wb_adr[31:0]
+(7)TOP.top.u_rv.o_wb_adr[31:0]
+(8)TOP.top.u_rv.o_wb_adr[31:0]
+(9)TOP.top.u_rv.o_wb_adr[31:0]
+(10)TOP.top.u_rv.o_wb_adr[31:0]
+(11)TOP.top.u_rv.o_wb_adr[31:0]
+(12)TOP.top.u_rv.o_wb_adr[31:0]
+(13)TOP.top.u_rv.o_wb_adr[31:0]
+(14)TOP.top.u_rv.o_wb_adr[31:0]
+(15)TOP.top.u_rv.o_wb_adr[31:0]
+(16)TOP.top.u_rv.o_wb_adr[31:0]
+(17)TOP.top.u_rv.o_wb_adr[31:0]
+(18)TOP.top.u_rv.o_wb_adr[31:0]
+(19)TOP.top.u_rv.o_wb_adr[31:0]
+(20)TOP.top.u_rv.o_wb_adr[31:0]
+(21)TOP.top.u_rv.o_wb_adr[31:0]
+(22)TOP.top.u_rv.o_wb_adr[31:0]
+(23)TOP.top.u_rv.o_wb_adr[31:0]
+(24)TOP.top.u_rv.o_wb_adr[31:0]
+(25)TOP.top.u_rv.o_wb_adr[31:0]
+(26)TOP.top.u_rv.o_wb_adr[31:0]
+(27)TOP.top.u_rv.o_wb_adr[31:0]
+(28)TOP.top.u_rv.o_wb_adr[31:0]
+(29)TOP.top.u_rv.o_wb_adr[31:0]
+(30)TOP.top.u_rv.o_wb_adr[31:0]
+(31)TOP.top.u_rv.o_wb_adr[31:0]
+@1401200
+-group_end
+@22
 TOP.top.u_rv.o_wb_dat[31:0]
 TOP.top.u_rv.o_wb_sel[3:0]
 @28
@@ -36,7 +72,7 @@ TOP.top.u_rv.i_wb_dat[31:0]
 TOP.top.u_rv.i_wb_ack
 @1000200
 -WB
-@800200
+@c00200
 -TCM
 @22
 TOP.top.u_tcm.i_data[31:0]
@@ -51,7 +87,7 @@ TOP.top.u_tcm.o_ack
 TOP.top.u_tcm.o_data[31:0]
 @820
 TOP.top.u_tcm.o_data[31:0]
-@1000200
+@1401200
 -TCM
 @820
 TOP.top.u_rv.dbg_state[127:0]
@@ -59,9 +95,8 @@ TOP.top.u_rv.dbg_ascii_instr[127:0]
 TOP.top.u_rv.dbg_ascii_alu_ctrl[127:0]
 @800200
 -ST1 FETCH
-@23
-TOP.top.u_rv.fetch_pc[31:0]
 @22
+TOP.top.u_rv.fetch_pc[31:0]
 TOP.top.u_rv.fetch_pc_next[31:0]
 TOP.top.u_rv.fetch_data_buf[31:0]
 TOP.top.u_rv.fetch_data[31:0]
@@ -78,9 +113,10 @@ TOP.top.u_rv.reg_rdata2[31:0]
 TOP.top.u_rv.decode_alu_ctrl[4:0]
 @28
 TOP.top.u_rv.decode_alu_op1_sel
-TOP.top.u_rv.decode_alu_op2_sel
 TOP.top.u_rv.decode_reg_write
 TOP.top.u_rv.decode_res_src[1:0]
+@22
+TOP.top.u_rv.decode_imm_s[31:0]
 @1401200
 -ST2 DECODE
 @800200
@@ -88,17 +124,28 @@ TOP.top.u_rv.decode_res_src[1:0]
 @22
 TOP.top.u_rv.alu_reg_data1[31:0]
 TOP.top.u_rv.alu_reg_data2[31:0]
+@28
+TOP.top.u_rv.alu_op1_sel
+@22
 TOP.top.u_rv.alu_op1[31:0]
+@28
+TOP.top.u_rv.alu_op2_sel[2:0]
+@22
 TOP.top.u_rv.alu_op2[31:0]
 TOP.top.u_rv.alu_result[31:0]
 @28
 TOP.top.u_rv.alu_zero
 TOP.top.u_rv.alu_pc_select
 @22
-TOP.top.u_rv.alu_pc_next[31:0]
 TOP.top.u_rv.alu_pc_target[31:0]
+TOP.top.u_rv.alu_imm_s[31:0]
+TOP.top.u_rv.alu_imm_b[31:0]
+@28
+TOP.top.u_rv.alu_funct3[2:0]
 @1000200
 -ST3 ALU
+@22
+TOP.top.u_rv.write_rdata[31:0]
 @800200
 -REGS
 @22
