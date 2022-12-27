@@ -76,7 +76,6 @@ module cmsdk_wb_uart (
   // Internal wires
   // --------------------------------------------------------------------------
 // Signals for read/write controls
-wire          read_enable;
 wire          write_enable;
 wire          write_enable00; // Write enable for data register
 wire          write_enable04; // Write enable for Status register
@@ -126,11 +125,11 @@ wire    [1:0] intr_stat_clear; // Clear TX/RX interrupt
 
   // transmit
 reg     [3:0] tx_state;    // Transmit FSM state
-reg     [4:0] nxt_tx_state;
+reg     [3:0] nxt_tx_state;
 wire          tx_state_update;
 wire          tx_state_inc; // Bit pulse
 reg     [3:0] tx_tick_cnt;  // Transmit Tick counter
-wire    [4:0] nxt_tx_tick_cnt;
+wire    [3:0] nxt_tx_tick_cnt;
 reg     [7:0] tx_shift_buf;      // Transmit shift register
 wire    [7:0] nxt_tx_shift_buf;  // next state    for tx_shift_buf
 wire          tx_buf_ctrl_shift; // shift control for tx_shift_buf
@@ -150,10 +149,10 @@ wire          rx_shift_in; // Shift Register Input
 
   // Receiver
 reg     [3:0] rx_state;   // Receiver FSM state
-reg     [4:0] nxt_rx_state;
+reg     [3:0] nxt_rx_state;
 wire          rx_state_update;
 reg     [3:0] rx_tick_cnt; // Receiver Tick counter
-wire    [4:0] nxt_rx_tick_cnt;
+wire    [3:0] nxt_rx_tick_cnt;
 wire          update_rx_tick_cnt;
 wire          rx_state_inc;// Bit pulse
 reg     [6:0] rx_shift_buf;// Receiver shift data register
@@ -166,7 +165,6 @@ wire    [7:0] nxt_rx_buf;
 
 // Start of main code
 // Read and write control signals
-assign  read_enable  = i_dev_sel & (~i_wb_we); // assert for whole APB read transfer
 assign  write_enable = i_dev_sel & i_wb_cyc & i_wb_we; // assert for 1st cycle of write transfer
 assign  write_enable00 = write_enable & (i_wb_adr[11:2] == 10'h000);
 assign  write_enable04 = write_enable & (i_wb_adr[11:2] == 10'h001);
@@ -336,8 +334,8 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
   end
 
   // Increment TickCounter
-  assign nxt_tx_tick_cnt = ((tx_state==4'h1) & reg_baud_tick) ? {5{1'b0}} :
-                        tx_tick_cnt + {{3{1'b0}},reg_baud_tick};
+  assign nxt_tx_tick_cnt = ((tx_state==4'h1) & reg_baud_tick) ? {4{1'b0}} :
+                        tx_tick_cnt + {{2{1'b0}},reg_baud_tick};
 
   // Registering TickCounter
   always @(posedge i_clk)
@@ -363,17 +361,17 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
   begin
   case (tx_state)
     0: begin
-       nxt_tx_state = (tx_buf_full & reg_ctrl[0]) ? 5'h01 : 5'h00;  // New data is written to buffer
+       nxt_tx_state = (tx_buf_full & reg_ctrl[0]) ? 4'h01 : 4'h00;  // New data is written to buffer
        end
     1,                         // State 1   : Wait for next Tick
     2,3,4,5,6,7,8,9,10: begin  // State 2-10: Start bit, D0 - D7
-       nxt_tx_state = tx_state + {3'b000,tx_state_inc};
+       nxt_tx_state = tx_state + {2'b00,tx_state_inc};
        end
     11: begin // Stop bit , goto next start bit or Idle
-       nxt_tx_state = (tx_state_inc) ? ( tx_buf_full ? 5'h02:5'h00) : {1'b0, tx_state};
+       nxt_tx_state = (tx_state_inc) ? ( tx_buf_full ? 4'h02:4'h00) : {tx_state};
        end
     default:
-       nxt_tx_state = {5{1'bx}};
+       nxt_tx_state = {4{1'bx}};
   endcase
   end
 
@@ -464,8 +462,8 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
 // Receive
 
   // Increment TickCounter
-  assign nxt_rx_tick_cnt = ((rx_state==4'h0) & (~rx_shift_in)) ? 5'h08 :
-                        rx_tick_cnt + {{3{1'b0}},reg_baud_tick};
+  assign nxt_rx_tick_cnt = ((rx_state==4'h0) & (~rx_shift_in)) ? 4'h08 :
+                        rx_tick_cnt + {{2{1'b0}},reg_baud_tick};
 
   assign update_rx_tick_cnt = ((rx_state==4'h0) & (~rx_shift_in)) | reg_baud_tick;
 
@@ -501,17 +499,17 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
   begin
   case (rx_state)
     0: begin
-       nxt_rx_state = ((~rx_shift_in) & reg_ctrl[1]) ? 5'h01 : 5'h00;  // Wait for Start bit
+       nxt_rx_state = ((~rx_shift_in) & reg_ctrl[1]) ? 4'h01 : 4'h00;  // Wait for Start bit
        end
     1,                      // State 1  : Wait for middle of start bit
     2,3,4,5,6,7,8,9: begin  // State 2-9: D0 - D7
-       nxt_rx_state = rx_state + {3'b000,rx_state_inc};
+       nxt_rx_state = rx_state + {2'b00,rx_state_inc};
        end
     10: begin // Stop bit , goto back to Idle
-       nxt_rx_state = (rx_state_inc) ? 5'h00 : 5'h0A;
+       nxt_rx_state = (rx_state_inc) ? 4'h00 : 4'h0A;
        end
     default:
-       nxt_rx_state = {5{1'bx}};
+       nxt_rx_state = {4{1'bx}};
   endcase
   end
 
