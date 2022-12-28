@@ -683,15 +683,32 @@ module rv_core
         3'b000: write_rdata = { {24{write_byte[7]}}, write_byte};
         3'b001: write_rdata = { {16{write_half_word[15]}}, write_half_word};
         3'b010: write_rdata = i_wb_dat;
+        3'b011: write_rdata = '0;
         3'b100: write_rdata = { {24{1'b0}}, write_byte};
         3'b101: write_rdata = { {16{1'b0}}, write_half_word};
-        default:write_rdata = '0;
+        3'b110: write_rdata = '0;
+        3'b111: write_rdata = '0;
         endcase
     end
 
-    assign  write_data = (alu_res_src == `RESULT_SRC_ALU) ? memory_alu_result :
-                     (alu_res_src == `RESULT_SRC_MEMORY) ? write_rdata :
-                     (alu_res_src == `RESULT_SRC_PC_P4) ? (fetch_pc + 4) :
+    logic   write_req;
+    logic[31:0] write_wdata;
+    logic[31:0] write_alu_result;
+    logic[31:0] write_pc;
+    logic[1:0]  write_res_src;
+    
+    always_ff @(posedge i_clk)
+    begin
+        write_req <= alu_reg_write && (state_cur == STATE_WR);
+        write_wdata <= write_rdata;
+        write_alu_result <= memory_alu_result;
+        write_pc <= fetch_pc;
+        write_res_src <= alu_res_src;
+    end
+
+    assign  write_data = (write_res_src == `RESULT_SRC_ALU) ? write_alu_result :
+                     (write_res_src == `RESULT_SRC_MEMORY) ? write_wdata :
+                     (write_res_src == `RESULT_SRC_PC_P4) ? (write_pc + 4) :
                      '0;
 
     rv_regs
@@ -702,7 +719,7 @@ module rv_core
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
         .i_rd                           (alu_rd),
-        .i_write                        (alu_reg_write && (state_cur == STATE_WR)),
+        .i_write                        (write_req),
         .i_data                         (write_data),
         .o_data1                        (reg_rdata1),
         .o_data2                        (reg_rdata2)
