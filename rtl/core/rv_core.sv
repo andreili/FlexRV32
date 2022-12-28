@@ -161,17 +161,6 @@ module rv_core
     logic[4:0]  decode_alu_ctrl;
 
     logic   decode_inst_full, decode_inst_none, decode_inst_supported;
-    logic   decode_inst_grp_load;
-    logic   decode_inst_grp_arif_imm;
-    logic   decode_inst_grp_auipc;
-    logic   decode_inst_grp_store;
-    logic   decode_inst_grp_arif_reg;
-    logic   decode_inst_grp_lui;
-    logic   decode_inst_grp_branch;
-    logic   decode_inst_grp_jalr;
-    logic   decode_inst_grp_jal;
-    logic   decode_inst_grp_misc_mem;
-    logic   decode_inst_grp_system;
 
     logic   decode_inst_lb, decode_inst_lh, decode_inst_lw, decode_inst_lbu, decode_inst_lhu;
     logic   decode_inst_addi, decode_inst_slli, decode_inst_slti, decode_inst_sltiu;
@@ -222,18 +211,6 @@ module rv_core
 
     assign  decode_inst_full = (decode_op[1:0] == RV32_OPC_DET);
     assign  decode_inst_none = !(|decode_op);
-    // instructions groups
-    assign  decode_inst_grp_load     = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full;
-    assign  decode_inst_grp_misc_mem = (decode_op[6:2] == RV32_OPC_MEM)  & decode_inst_full;
-    assign  decode_inst_grp_arif_imm = (decode_op[6:2] == RV32_OPC_ARI)  & decode_inst_full;
-    assign  decode_inst_grp_auipc    = (decode_op[6:2] == RV32_OPC_AUI)  & decode_inst_full;
-    assign  decode_inst_grp_store    = (decode_op[6:2] == RV32_OPC_STR)  & decode_inst_full;
-    assign  decode_inst_grp_arif_reg = (decode_op[6:2] == RV32_OPC_ARR)  & decode_inst_full;
-    assign  decode_inst_grp_lui      = (decode_op[6:2] == RV32_OPC_LUI)  & decode_inst_full;
-    assign  decode_inst_grp_branch   = (decode_op[6:2] == RV32_OPC_B)    & decode_inst_full;
-    assign  decode_inst_grp_jalr     = (decode_op[6:2] == RV32_OPC_JALR) & decode_inst_full;
-    assign  decode_inst_grp_jal      = (decode_op[6:2] == RV32_OPC_JAL)  & decode_inst_full;
-    assign  decode_inst_grp_system   = (decode_op[6:2] == RV32_OPC_SYS)  & decode_inst_full;
 
     assign  decode_inst_supported = 
             decode_inst_none |
@@ -252,64 +229,62 @@ module rv_core
             ;
 
     // memory read operations
-    assign  decode_inst_lb       = decode_inst_grp_load & (decode_funct3 == 3'b000);
-    assign  decode_inst_lh       = decode_inst_grp_load & (decode_funct3 == 3'b001);
-    assign  decode_inst_lw       = decode_inst_grp_load & (decode_funct3 == 3'b010);
-    assign  decode_inst_lbu      = decode_inst_grp_load & (decode_funct3 == 3'b100);
-    assign  decode_inst_lhu      = decode_inst_grp_load & (decode_funct3 == 3'b101);
+    assign  decode_inst_lb       = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full & (decode_funct3 == 3'b000);
+    assign  decode_inst_lh       = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full & (decode_funct3 == 3'b001);
+    assign  decode_inst_lw       = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full & (decode_funct3 == 3'b010);
+    assign  decode_inst_lbu      = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full & (decode_funct3 == 3'b100);
+    assign  decode_inst_lhu      = (decode_op[6:2] == RV32_OPC_LD)   & decode_inst_full & (decode_funct3 == 3'b101);
     // arifmetical with immediate
-    assign  decode_inst_addi     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b000);
-    assign  decode_inst_slli     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b001);
-    assign  decode_inst_slti     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b010);
-    assign  decode_inst_sltiu    = decode_inst_grp_arif_imm & (decode_funct3 == 3'b011);
-    assign  decode_inst_xori     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b100);
-    assign  decode_inst_srli     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_srai     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0100000);
-    assign  decode_inst_ori      = decode_inst_grp_arif_imm & (decode_funct3 == 3'b110);
-    assign  decode_inst_andi     = decode_inst_grp_arif_imm & (decode_funct3 == 3'b111);
+    assign  decode_inst_addi     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b000);
+    assign  decode_inst_slli     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b001);
+    assign  decode_inst_slti     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b010);
+    assign  decode_inst_sltiu    = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b011);
+    assign  decode_inst_xori     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b100);
+    assign  decode_inst_srli     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_srai     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0100000);
+    assign  decode_inst_ori      = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b110);
+    assign  decode_inst_andi     = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full & (decode_funct3 == 3'b111);
     // add upper immediate to PC
-    assign  decode_inst_auipc    = decode_inst_grp_auipc;
+    assign  decode_inst_auipc    = (decode_op[6:2] == RV32_OPC_AUI) & decode_inst_full;
     // memory write operations
-    assign  decode_inst_sb       = decode_inst_grp_store & (decode_funct3 == 3'b000);
-    assign  decode_inst_sh       = decode_inst_grp_store & (decode_funct3 == 3'b001);
-    assign  decode_inst_sw       = decode_inst_grp_store & (decode_funct3 == 3'b010);
+    assign  decode_inst_sb       = (decode_op[6:2] == RV32_OPC_STR) & decode_inst_full & (decode_funct3 == 3'b000);
+    assign  decode_inst_sh       = (decode_op[6:2] == RV32_OPC_STR) & decode_inst_full & (decode_funct3 == 3'b001);
+    assign  decode_inst_sw       = (decode_op[6:2] == RV32_OPC_STR) & decode_inst_full & (decode_funct3 == 3'b010);
     // arifmetical with register
-    assign  decode_inst_add      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b000) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_sub      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b000) & (decode_funct7 == 7'b0100000);
-    assign  decode_inst_sll      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b001) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_slt      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b010) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_sltu     = decode_inst_grp_arif_reg & (decode_funct3 == 3'b011) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_xor      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b100) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_srl      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_sra      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0100000);
-    assign  decode_inst_or       = decode_inst_grp_arif_reg & (decode_funct3 == 3'b110) & (decode_funct7 == 7'b0000000);
-    assign  decode_inst_and      = decode_inst_grp_arif_reg & (decode_funct3 == 3'b111) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_add      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_sub      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct7 == 7'b0100000);
+    assign  decode_inst_sll      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b001) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_slt      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b010) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_sltu     = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b011) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_xor      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b100) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_srl      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_sra      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b101) & (decode_funct7 == 7'b0100000);
+    assign  decode_inst_or       = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b110) & (decode_funct7 == 7'b0000000);
+    assign  decode_inst_and      = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full & (decode_funct3 == 3'b111) & (decode_funct7 == 7'b0000000);
     // load upper immediate
-    assign  decode_inst_lui      = decode_inst_grp_lui;
+    assign  decode_inst_lui      = (decode_op[6:2] == RV32_OPC_LUI) & decode_inst_full;
     // branches
-    assign  decode_inst_beq      = decode_inst_grp_branch & (decode_funct3 == 3'b000);
-    assign  decode_inst_bne      = decode_inst_grp_branch & (decode_funct3 == 3'b001);
-    assign  decode_inst_blt      = decode_inst_grp_branch & (decode_funct3 == 3'b100);
-    assign  decode_inst_bge      = decode_inst_grp_branch & (decode_funct3 == 3'b101);
-    assign  decode_inst_bltu     = decode_inst_grp_branch & (decode_funct3 == 3'b110);
-    assign  decode_inst_bgeu     = decode_inst_grp_branch & (decode_funct3 == 3'b111);
+    assign  decode_inst_beq      = (decode_op[6:2] == RV32_OPC_B) & decode_inst_full & (decode_funct3 == 3'b000);
+    assign  decode_inst_bne      = (decode_op[6:2] == RV32_OPC_B) & decode_inst_full & (decode_funct3 == 3'b001);
+    assign  decode_inst_blt      = (decode_op[6:2] == RV32_OPC_B) & decode_inst_full & (decode_funct3 == 3'b100);
+    assign  decode_inst_bge      = (decode_op[6:2] == RV32_OPC_B) & decode_inst_full & (decode_funct3 == 3'b101);
+    assign  decode_inst_bltu     = (decode_op[6:2] == RV32_OPC_B) & decode_inst_full & (decode_funct3 == 3'b110);
+    assign  decode_inst_bgeu     = (decode_op[6:2] == RV32_OPC_B) & decode_inst_full & (decode_funct3 == 3'b111);
     // jumps
-    assign  decode_inst_jalr     = decode_inst_grp_jalr & (decode_funct3 == 3'b000);
-    assign  decode_inst_jal      = decode_inst_grp_jal;
+    assign  decode_inst_jalr     = (decode_op[6:2] == RV32_OPC_JALR) & decode_inst_full & (decode_funct3 == 3'b000);
+    assign  decode_inst_jal      = (decode_op[6:2] == RV32_OPC_JAL)  & decode_inst_full;
     // fence
-    assign  decode_inst_fence    = decode_inst_grp_misc_mem & (decode_funct3 == 3'b000);
-    assign  decode_inst_fence_i  = decode_inst_grp_misc_mem & (decode_funct3 == 3'b001);
+    assign  decode_inst_fence    = (decode_op[6:2] == RV32_OPC_MEM) & decode_inst_full & (decode_funct3 == 3'b000);
+    assign  decode_inst_fence_i  = (decode_op[6:2] == RV32_OPC_MEM) & decode_inst_full & (decode_funct3 == 3'b001);
     // system
-    assign  decode_inst_ecall    = decode_inst_grp_system & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000000);
-    assign  decode_inst_ebreak   = decode_inst_grp_system & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000001);
+    assign  decode_inst_ecall    = (decode_op[6:2] == RV32_OPC_SYS) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000000);
+    assign  decode_inst_ebreak   = (decode_op[6:2] == RV32_OPC_SYS) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000001);
 
-    assign  decode_inst_load = decode_inst_lb | decode_inst_lh | decode_inst_lw | decode_inst_lbu | decode_inst_lhu;
-    assign  decode_inst_store = decode_inst_sb | decode_inst_sh | decode_inst_sw;
-    assign  decode_inst_imm  = decode_inst_addi  | decode_inst_slli | decode_inst_slti | decode_inst_sltiu |
-                decode_inst_xori  | decode_inst_srli | decode_inst_srai | decode_inst_ori   | decode_inst_andi;
-    assign  decode_inst_reg  = decode_inst_add   | decode_inst_sub  | decode_inst_sll  | decode_inst_slt   | decode_inst_sltu |
-                decode_inst_xor   | decode_inst_srl  | decode_inst_sra  | decode_inst_or    | decode_inst_and;
-    assign  decode_inst_branch =  decode_inst_beq   | decode_inst_bne  | decode_inst_blt  | decode_inst_bge   | decode_inst_bltu | decode_inst_bgeu;
+    assign  decode_inst_load   = (decode_op[6:2] == RV32_OPC_LD)  & decode_inst_full;
+    assign  decode_inst_store  = (decode_op[6:2] == RV32_OPC_STR) & decode_inst_full;
+    assign  decode_inst_imm    = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full;
+    assign  decode_inst_reg    = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full;
+    assign  decode_inst_branch = (decode_op[6:2] == RV32_OPC_B)   & decode_inst_full;
 
     assign  decode_reg_write = decode_inst_load | decode_inst_imm | decode_inst_auipc | decode_inst_reg | decode_inst_lui | decode_inst_jalr | decode_inst_jal;
 
@@ -518,7 +493,7 @@ module rv_core
     logic[32:0] alu1_shr;
     logic       alu1_cmp_result;
     logic[31:0] alu1_bits_result;
-    logic[31:0] alu1_ariph_result;
+    //logic[31:0] alu1_ariph_result;
     logic       alu1_carry;
     logic       alu1_op_b_sel;
     logic[31:0] alu1_op_b;
@@ -564,7 +539,7 @@ module rv_core
         endcase
     end
 
-    always_comb
+    /*always_comb
     begin
         case (alu_ctrl[1:0])
         `ALU_ARIPH_ADD: alu1_ariph_result = alu1_add[31:0];
@@ -573,18 +548,35 @@ module rv_core
         `ALU_ARIPH_SHR: alu1_ariph_result = alu1_shr[31:0];
         default:        alu1_ariph_result = {32{alu1_shr[32]}};
         endcase
-    end
+    end*/
 
     logic       alu2_cmp_result;
     logic[31:0] alu2_bits_result;
     logic[31:0] alu2_ariph_result;
+    logic[31:0] alu2_add;
+    logic[31:0] alu2_shl;
+    logic[32:0] alu2_shr;
     logic[31:0] alu2_result;
 
     always_ff @(posedge i_clk)
     begin
         alu2_cmp_result  <= alu1_cmp_result;
         alu2_bits_result <= alu1_bits_result;
-        alu2_ariph_result <= alu1_ariph_result;
+        //alu2_ariph_result <= alu1_ariph_result;
+        alu2_add <= alu1_add[31:0];
+        alu2_shl <= alu1_shl;
+        alu2_shr <= alu1_shr;
+    end
+
+    always_comb
+    begin
+        case (alu_ctrl[1:0])
+        `ALU_ARIPH_ADD: alu2_ariph_result = alu2_add;
+        `ALU_ARIPH_SUB: alu2_ariph_result = alu2_add;
+        `ALU_ARIPH_SHL: alu2_ariph_result = alu2_shl;
+        `ALU_ARIPH_SHR: alu2_ariph_result = alu2_shr[31:0];
+        default:        alu2_ariph_result = {32{alu2_shr[32]}};
+        endcase
     end
 
     always_comb
