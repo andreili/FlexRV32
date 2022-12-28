@@ -622,12 +622,14 @@ module rv_core
     logic[31:0] memory_reg_data2;
     logic[31:0] memory_wdata;
     logic[3:0]  memory_sel;
+    logic       memory_inst_store;
 
     always_ff @(posedge i_clk)
     begin
         memory_funct3  <= alu_funct3;
         memory_reg_data2 <= alu_reg_data2;
         memory_alu_result <= alu2_result;
+        memory_inst_store <= decode_inst_store;
     end
 
     always_comb
@@ -716,7 +718,7 @@ module rv_core
 
     assign o_wb_adr = (state_cur == STATE_MEM) ? memory_alu_result : fetch_pc;
     assign o_wb_dat = memory_wdata;
-    assign o_wb_we = (state_cur == STATE_MEM) ? decode_inst_store : '0;
+    assign o_wb_we = (state_cur == STATE_MEM) ? memory_inst_store : '0;
     assign o_wb_sel = (state_cur == STATE_MEM) ? memory_sel : '1;
     assign o_wb_stb = '1;
     assign o_wb_cyc = '1;
