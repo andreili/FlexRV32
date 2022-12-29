@@ -155,10 +155,6 @@ module rv_core
 
     logic[31:0] decode_imm_i, decode_imm_s, decode_imm_b, decode_imm_u, decode_imm_j;
     logic       decode_reg_write;
-    logic[1:0]  decode_res_src;
-    logic       decode_alu_op1_sel;
-    logic[2:0]  decode_alu_op2_sel;
-    logic[4:0]  decode_alu_ctrl;
 
     logic   decode_inst_full, decode_inst_none, decode_inst_supported;
 
@@ -197,17 +193,6 @@ module rv_core
         assign decode_imm_u = { fetch_data[31:12], {12{1'b0}} };
         assign decode_imm_j = { {12{fetch_data[31]}}, fetch_data[19:12], fetch_data[20], fetch_data[30:21], 1'b0 };
     //end
-
-    always_comb
-    begin
-        case (1'b1)
-        decode_inst_jal: decode_alu_op2_sel = `ALU_SRC_OP2_J;
-        |{decode_inst_lui, decode_inst_auipc}: decode_alu_op2_sel = `ALU_SRC_OP2_U;
-        |{decode_inst_jalr, decode_inst_load, decode_inst_imm}: decode_alu_op2_sel = `ALU_SRC_OP2_I;
-        decode_inst_store: decode_alu_op2_sel = `ALU_SRC_OP2_S;
-        default:decode_alu_op2_sel = `ALU_SRC_OP2_REG;
-        endcase
-    end
 
     assign  decode_inst_full = (decode_op[1:0] == RV32_OPC_DET);
     assign  decode_inst_none = !(|decode_op);
@@ -280,71 +265,57 @@ module rv_core
     assign  decode_inst_ecall    = (decode_op[6:2] == RV32_OPC_SYS) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000000);
     assign  decode_inst_ebreak   = (decode_op[6:2] == RV32_OPC_SYS) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000001);
 
+    logic   decode_inst_slts;
     assign  decode_inst_load   = (decode_op[6:2] == RV32_OPC_LD)  & decode_inst_full;
     assign  decode_inst_store  = (decode_op[6:2] == RV32_OPC_STR) & decode_inst_full;
     assign  decode_inst_imm    = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full;
     assign  decode_inst_reg    = (decode_op[6:2] == RV32_OPC_ARR) & decode_inst_full;
     assign  decode_inst_branch = (decode_op[6:2] == RV32_OPC_B)   & decode_inst_full;
+    assign  decode_inst_slts   = ((decode_op[6:2] == RV32_OPC_ARI) |
+                                  ( (decode_op[6:2] == RV32_OPC_ARR) & (decode_funct7 == 7'b0000000)))
+                                  & decode_inst_full & (decode_funct3[2:1] == 2'b01);
 
     assign  decode_reg_write = decode_inst_load | decode_inst_imm | decode_inst_auipc | decode_inst_reg | decode_inst_lui | decode_inst_jalr | decode_inst_jal;
 
-    always_comb
-    begin
-        case (1'b1)
-        |{decode_inst_auipc,decode_inst_jal}:
-            decode_alu_op1_sel = `ALU_SRC_OP1_PC;
-        default:
-            decode_alu_op1_sel = `ALU_SRC_OP1_REG;
-        endcase
-    end
+    src_op1_t   decode_alu_op1_sel;
+    assign      decode_alu_op1_sel.pc = |{decode_inst_auipc,decode_inst_jal};
+    assign      decode_alu_op1_sel.r  = !(|{decode_inst_auipc,decode_inst_jal});
 
-    always_comb
-    begin
-        case (1'b1)
-        decode_inst_load:
-            decode_res_src = `RESULT_SRC_MEMORY;
-        |{decode_inst_jalr,decode_inst_jal}:
-            decode_res_src = `RESULT_SRC_PC_P4;
-        default:
-            decode_res_src = `RESULT_SRC_ALU;
-        endcase
-    end
+    src_op2_t   decode_alu_op2_sel;
+    assign      decode_alu_op2_sel.j = decode_inst_jal;
+    assign      decode_alu_op2_sel.u = |{decode_inst_lui, decode_inst_auipc};
+    assign      decode_alu_op2_sel.i = |{decode_inst_jalr, decode_inst_load, decode_inst_imm};
+    assign      decode_alu_op2_sel.s = decode_inst_store;
+    assign      decode_alu_op2_sel.r = !(|{decode_inst_jal,decode_inst_lui, decode_inst_auipc,decode_inst_jalr, decode_inst_load, decode_inst_imm,decode_inst_store});
 
-    assign  decode_alu_ctrl[4] = |{decode_inst_srai,decode_inst_sra};
+    res_src_t   decode_res_src;
+    assign      decode_res_src.memory = decode_inst_load;
+    assign      decode_res_src.pc_p4  = |{decode_inst_jalr,decode_inst_jal};
+    assign      decode_res_src.alu    = !(|{decode_inst_load,decode_inst_jalr,decode_inst_jal});
 
-    always_comb
-    begin
-        case (1'b1)
-        decode_inst_beq:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_CMP, `ALU_CMP_NIN, `ALU_CMP_EQ };
-        |{decode_inst_slti,decode_inst_slt,decode_inst_blt}:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_CMP, `ALU_CMP_NIN, `ALU_CMP_LTS };
-        |{decode_inst_sltiu,decode_inst_bltu,decode_inst_sltu}:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_CMP, `ALU_CMP_NIN, `ALU_CMP_LTU };
-        decode_inst_bne:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_CMP, `ALU_CMP_INV, `ALU_CMP_EQ };
-        decode_inst_bge:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_CMP, `ALU_CMP_INV, `ALU_CMP_LTS };
-        decode_inst_bgeu:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_CMP, `ALU_CMP_INV, `ALU_CMP_LTU };
-        decode_inst_sub:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_ARIPH, `ALU_ARIPH_SUB };
-        decode_inst_slli | decode_inst_sll:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_ARIPH, `ALU_ARIPH_SHL };
-        decode_inst_srli | decode_inst_srl | decode_inst_srai | decode_inst_sra:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_ARIPH, `ALU_ARIPH_SHR };
-        decode_inst_xori | decode_inst_xor:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_BITS, `ALU_BITS_XOR };
-        decode_inst_ori | decode_inst_or:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_BITS, `ALU_BITS_OR };
-        decode_inst_andi | decode_inst_and:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_BITS, `ALU_BITS_AND };
-        default:
-            decode_alu_ctrl[3:0] = { `ALU_GRP_ARIPH, `ALU_ARIPH_ADD };
-        endcase
-    end
+    alu_ctrl_t  decode_alu_ctrl;
 
-    logic [127:0] dbg_ascii_alu_ctrl;
+    assign      decode_alu_ctrl.res_cmp = |{decode_inst_branch,decode_inst_slts};
+    assign      decode_alu_ctrl.res_bits = |{decode_inst_andi,decode_inst_and,
+                                             decode_inst_ori,decode_inst_or,
+                                             decode_inst_xori,decode_inst_xor};
+    assign      decode_alu_ctrl.res_arith = |{decode_inst_slli,decode_inst_sll,
+                                              decode_inst_srli,decode_inst_srl,decode_inst_srai,decode_inst_sra,
+                                              decode_inst_sub, decode_inst_add};
+    assign      decode_alu_ctrl.cmp_eq  = |{decode_inst_beq,decode_inst_bne};
+    assign      decode_alu_ctrl.cmp_lts = |{decode_inst_slti,decode_inst_slt,decode_inst_blt,decode_inst_bge};
+    assign      decode_alu_ctrl.cmp_ltu = |{decode_inst_sltiu,decode_inst_sltu,decode_inst_bltu,decode_inst_bgeu};
+    assign      decode_alu_ctrl.cmp_inversed = decode_funct3[0];
+    assign      decode_alu_ctrl.bits_and = |{decode_inst_andi,decode_inst_and};
+    assign      decode_alu_ctrl.bits_or  = |{decode_inst_ori,decode_inst_or};
+    assign      decode_alu_ctrl.bits_xor = |{decode_inst_xori,decode_inst_xor};
+    assign      decode_alu_ctrl.arith_shl = |{decode_inst_slli,decode_inst_sll};
+    assign      decode_alu_ctrl.arith_shr = |{decode_inst_srli,decode_inst_srl,decode_inst_srai,decode_inst_sra};
+    assign      decode_alu_ctrl.arith_sub = decode_inst_sub;
+    assign      decode_alu_ctrl.arith_add = decode_inst_add;
+    assign      decode_alu_ctrl.shift_arithmetical = |{decode_inst_srai,decode_inst_sra};
+
+    /*logic [127:0] dbg_ascii_alu_ctrl;
     always @* begin
         dbg_ascii_alu_ctrl = '0;
         if (decode_alu_ctrl[3:0] == { `ALU_GRP_CMP, `ALU_CMP_NIN, `ALU_CMP_EQ })  dbg_ascii_alu_ctrl = "EQ";
@@ -361,7 +332,7 @@ module rv_core
         if (decode_alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_XOR }) dbg_ascii_alu_ctrl = "XOR";
         if (decode_alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_OR })  dbg_ascii_alu_ctrl = "OR";
         if (decode_alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_AND }) dbg_ascii_alu_ctrl = "AND";
-    end
+    end*/
 
     logic [127:0] dbg_ascii_instr;
     always @* begin
@@ -435,12 +406,12 @@ module rv_core
     logic[31:0] alu_imm_j;
     logic[31:0] alu_imm_b;
     logic[31:0] alu_imm_s;
-    logic       alu_op1_sel;
-    logic[2:0]  alu_op2_sel;
-    logic[4:0]  alu_ctrl;
+    src_op1_t   alu_op1_sel;
+    src_op2_t   alu_op2_sel;
+    alu_ctrl_t  alu_ctrl;
     logic       alu_inst_jalr, alu_inst_jal, alu_inst_branch;
     logic[2:0]  alu_funct3;
-    logic[1:0]  alu_res_src;
+    res_src_t   alu_res_src;
     logic       alu_reg_write;
 
     always_ff @(posedge i_clk)
@@ -474,16 +445,22 @@ module rv_core
     assign  alu_reg_data1 = (|alu_rs1) ? reg_rdata1 : '0;
     assign  alu_reg_data2 = (|alu_rs2) ? reg_rdata2 : '0;
 
-    assign  alu_op1 = (alu_op1_sel == `ALU_SRC_OP1_PC)  ? fetch_pc : alu_reg_data1;
+    always_comb
+    begin
+        case (1'b1)
+        alu_op1_sel.pc: alu_op1 = fetch_pc;
+        default:        alu_op1 = alu_reg_data1;
+        endcase
+    end
 
     always_comb
     begin
-        case (alu_op2_sel)
-        `ALU_SRC_OP2_I: alu_op2 = alu_imm_i;
-        `ALU_SRC_OP2_U: alu_op2 = alu_imm_u;
-        `ALU_SRC_OP2_J: alu_op2 = alu_imm_j;
-        `ALU_SRC_OP2_S: alu_op2 = alu_imm_s;
-        default: alu_op2 = alu_reg_data2;
+        case (1'b1)
+        alu_op2_sel.i: alu_op2 = alu_imm_i;
+        alu_op2_sel.u: alu_op2 = alu_imm_u;
+        alu_op2_sel.j: alu_op2 = alu_imm_j;
+        alu_op2_sel.s: alu_op2 = alu_imm_s;
+        default:       alu_op2 = alu_reg_data2;
         endcase
     end
 
@@ -501,7 +478,7 @@ module rv_core
     logic       alu1_overflow;
 
     // adder - for all (add/sub/cmp)
-    assign  alu1_op_b_sel = (alu_ctrl[0] | (!alu_ctrl[3]));
+    assign  alu1_op_b_sel = (alu_ctrl.arith_sub | alu_ctrl.res_cmp);
     assign  alu1_op_b     = alu1_op_b_sel ? (~alu_op2) : alu_op2;
     assign  alu1_add      = alu_op1 + alu1_op_b + { {32{1'b0}}, alu1_op_b_sel};
     assign  alu1_negative = alu1_add[31];
@@ -509,46 +486,33 @@ module rv_core
     assign  alu1_overflow = (alu_op1[31] ^ alu_op2[31]) & (alu_op1[31] ^ alu1_add[31]);
     assign  alu1_carry    = alu1_add[32];
 
-    assign  alu1_eq  = alu_ctrl[2] ^ (alu_op1 == alu_op2);//w_zero;
-    assign  alu1_lts = alu_ctrl[2] ^ (alu1_negative ^ alu1_overflow);
-    assign  alu1_ltu = alu_ctrl[2] ^ (!alu1_carry);
+    assign  alu1_eq  = alu_ctrl.cmp_inversed ^ (alu_op1 == alu_op2);//w_zero;
+    assign  alu1_lts = alu_ctrl.cmp_inversed ^ (alu1_negative ^ alu1_overflow);
+    assign  alu1_ltu = alu_ctrl.cmp_inversed ^ (!alu1_carry);
 
     assign  alu1_xor = alu_op1 ^ alu_op2;
     assign  alu1_or  = alu_op1 | alu_op2;
     assign  alu1_and = alu_op1 & alu_op2;
     assign  alu1_shl = alu_op1 << alu_op2[4:0];
-    assign  alu1_shr = $signed({alu_ctrl[4] ? alu_op1[31] : 1'b0, alu_op1}) >>> alu_op2[4:0];
+    assign  alu1_shr = $signed({alu_ctrl.shift_arithmetical ? alu_op1[31] : 1'b0, alu_op1}) >>> alu_op2[4:0];
 
     always_comb
     begin
-        case (alu_ctrl[1:0])
-        `ALU_CMP_EQ:  alu1_cmp_result = alu1_eq;
-        `ALU_CMP_LTS: alu1_cmp_result = alu1_lts;
-        `ALU_CMP_LTU: alu1_cmp_result = alu1_ltu;
-        default:      alu1_cmp_result = 'x;
+        case (1'b1)
+        alu_ctrl.cmp_lts: alu1_cmp_result = alu1_lts;
+        alu_ctrl.cmp_ltu: alu1_cmp_result = alu1_ltu;
+        default:          alu1_cmp_result = alu1_eq;
         endcase
     end
 
     always_comb
     begin
-        case (alu_ctrl[1:0])
-        `ALU_BITS_XOR: alu1_bits_result = alu1_xor;
-        `ALU_BITS_OR:  alu1_bits_result = alu1_or;
-        `ALU_BITS_AND: alu1_bits_result = alu1_and;
-        default:       alu1_bits_result = 'x;
+        case (1'b1)
+        alu_ctrl.bits_xor: alu1_bits_result = alu1_xor;
+        alu_ctrl.bits_or:  alu1_bits_result = alu1_or;
+        default:           alu1_bits_result = alu1_and;
         endcase
     end
-
-    /*always_comb
-    begin
-        case (alu_ctrl[1:0])
-        `ALU_ARIPH_ADD: alu1_ariph_result = alu1_add[31:0];
-        `ALU_ARIPH_SUB: alu1_ariph_result = alu1_add[31:0];
-        `ALU_ARIPH_SHL: alu1_ariph_result = alu1_shl;
-        `ALU_ARIPH_SHR: alu1_ariph_result = alu1_shr[31:0];
-        default:        alu1_ariph_result = {32{alu1_shr[32]}};
-        endcase
-    end*/
 
     logic       alu2_cmp_result;
     logic[31:0] alu2_bits_result;
@@ -557,35 +521,34 @@ module rv_core
     logic[31:0] alu2_shl;
     logic[32:0] alu2_shr;
     logic[31:0] alu2_result;
+    alu_ctrl_t  alu2_ctrl;
 
     always_ff @(posedge i_clk)
     begin
         alu2_cmp_result  <= alu1_cmp_result;
         alu2_bits_result <= alu1_bits_result;
-        //alu2_ariph_result <= alu1_ariph_result;
         alu2_add <= alu1_add[31:0];
         alu2_shl <= alu1_shl;
         alu2_shr <= alu1_shr;
+        alu2_ctrl <= alu_ctrl;
     end
 
     always_comb
     begin
-        case (alu_ctrl[1:0])
-        `ALU_ARIPH_ADD: alu2_ariph_result = alu2_add;
-        `ALU_ARIPH_SUB: alu2_ariph_result = alu2_add;
-        `ALU_ARIPH_SHL: alu2_ariph_result = alu2_shl;
-        `ALU_ARIPH_SHR: alu2_ariph_result = alu2_shr[31:0];
-        default:        alu2_ariph_result = {32{alu2_shr[32]}};
+        case (1'b1)
+        alu2_ctrl.arith_sub: alu2_ariph_result = alu2_add[31:0];
+        alu2_ctrl.arith_shl: alu2_ariph_result = alu2_shl;
+        alu2_ctrl.arith_shr: alu2_ariph_result = alu2_shr[31:0];
+        default:             alu2_ariph_result = alu2_add[31:0];
         endcase
     end
 
     always_comb
     begin
-        case (alu_ctrl[3:2])
-        {`ALU_GRP_CMP, 1'b0}: alu2_result = { {31{1'b0}}, alu2_cmp_result };
-        {`ALU_GRP_CMP, 1'b1}: alu2_result = { {31{1'b0}}, alu2_cmp_result };
-        `ALU_GRP_ARIPH:       alu2_result = alu2_ariph_result;
-        `ALU_GRP_BITS:        alu2_result = alu2_bits_result;
+        case (1'b1)
+        alu2_ctrl.res_cmp:  alu2_result = { {31{1'b0}}, alu2_cmp_result };
+        alu2_ctrl.res_bits: alu2_result = alu2_bits_result;
+        default:            alu2_result = alu2_ariph_result;
         endcase
     end
 
@@ -695,7 +658,7 @@ module rv_core
     logic[31:0] write_wdata;
     logic[31:0] write_alu_result;
     logic[31:0] write_pc;
-    logic[1:0]  write_res_src;
+    res_src_t   write_res_src;
     
     always_ff @(posedge i_clk)
     begin
@@ -706,10 +669,14 @@ module rv_core
         write_res_src <= alu_res_src;
     end
 
-    assign  write_data = (write_res_src == `RESULT_SRC_ALU) ? write_alu_result :
-                     (write_res_src == `RESULT_SRC_MEMORY) ? write_wdata :
-                     (write_res_src == `RESULT_SRC_PC_P4) ? (write_pc + 4) :
-                     '0;
+    always_comb
+    begin
+        case (1'b1)
+        write_res_src.memory: write_data = write_wdata;
+        write_res_src.pc_p4:  write_data = (write_pc + 4);
+        default:              write_data = write_alu_result;
+        endcase
+    end
 
     rv_regs
     u_regs

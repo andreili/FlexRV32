@@ -3,36 +3,53 @@
 
 //`define BRANCH_PREDICTION_SIMPLE
 
-`define ALU_SRC_OP2_I       3'd0
-`define ALU_SRC_OP2_U       3'd1
-`define ALU_SRC_OP2_J       3'd2
-//`define ALU_SRC_OP2_B       3'd3
-`define ALU_SRC_OP2_S       3'd4
-`define ALU_SRC_OP2_REG     3'd5
+typedef struct packed
+{
+    logic                   memory;
+    logic                   pc_p4;
+    // always latest - it's default
+    logic                   alu;
+} res_src_t;
 
-`define RESULT_SRC_ALU      2'b00
-`define RESULT_SRC_MEMORY   2'b01
-`define RESULT_SRC_PC_P4    2'b10
+typedef struct packed
+{
+    logic                   i;
+    logic                   u;
+    logic                   j;
+    logic                   s;
+    // always latest - it's default
+    logic                   r;
+} src_op2_t;
 
-`define ALU_SRC_OP1_REG     1'b0
-`define ALU_SRC_OP1_PC      1'b1
+typedef struct packed
+{
+    logic                   pc;
+    // always latest - it's default
+    logic                   r;
+} src_op1_t;
 
-`define ALU_GRP_CMP         1'b0
-`define ALU_CMP_NIN         1'b0
-`define ALU_CMP_INV         1'b1
-`define ALU_CMP_EQ          2'b00
-`define ALU_CMP_LTS         2'b01
-`define ALU_CMP_LTU         2'b10
-//2'b11
+typedef struct packed
+{
+    logic                   res_cmp;
+    logic                   res_bits;
+    // always latest of result - it's default
+    logic                   res_arith;
 
-`define ALU_GRP_ARIPH       2'b10
-`define ALU_ARIPH_ADD       2'b00
-`define ALU_ARIPH_SUB       2'b01
-`define ALU_ARIPH_SHL       2'b10
-`define ALU_ARIPH_SHR       2'b11
+    logic                   cmp_lts;
+    logic                   cmp_ltu;
+    // always latest of compare - it's default
+    logic                   cmp_eq;
+    logic                   cmp_inversed;
 
-`define ALU_GRP_BITS        2'b11
-`define ALU_BITS_XOR        2'b00
-`define ALU_BITS_OR         2'b01
-`define ALU_BITS_AND        2'b10
-//2'b11
+    logic                   bits_or;
+    logic                   bits_xor;
+    // always latest of bits - it's default
+    logic                   bits_and;
+
+    logic                   arith_shl;
+    logic                   arith_shr;
+    logic                   arith_sub;
+    // always latest of arithmetical - it's default
+    logic                   arith_add;
+    logic                   shift_arithmetical;
+} alu_ctrl_t;
