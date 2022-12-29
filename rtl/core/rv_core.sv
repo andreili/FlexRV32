@@ -86,7 +86,7 @@ module rv_core
 `endif
 
     assign  fetch_pc_next = 
-        alu_pc_select ? alu_pc_target :
+        alu3_pc_select ? alu3_pc_target :
 `ifdef BRANCH_PREDICTION_SIMPLE
         //fetch_bp_need ? fetch_bp_addr :
 `endif
@@ -98,7 +98,7 @@ module rv_core
         begin
             fetch_pc <= RESET_ADDR;
         end
-        else if (state_nxt == STATE_FETCH)
+        else if (state_cur == STATE_ALU3)
         begin
             fetch_pc <= fetch_pc_next;
         end
@@ -106,8 +106,10 @@ module rv_core
 
     always_ff @(posedge i_clk)
     begin
-        if (state_cur == STATE_RS)
+        if ((state_cur == STATE_FETCH) && (i_reset_n))
             fetch_data_buf <= i_wb_dat;
+        else
+            fetch_data_buf <= '0;
     end
 
     /*always_ff @(posedge i_clk)
@@ -120,7 +122,8 @@ module rv_core
             fetch_ready <= '0;
     end*/
 
-    assign  fetch_data = (state_cur == STATE_RS) ? i_wb_dat : fetch_data_buf;
+    //assign  fetch_data = (state_cur == STATE_RS) ? i_wb_dat : fetch_data_buf;
+    assign  fetch_data = fetch_data_buf;
 
 `ifdef BRANCH_PREDICTION_SIMPLE
     assign  fetch_bp_op        = fetch_data[6:0];
@@ -154,6 +157,12 @@ module rv_core
     logic[4:0]  decode_rs1, decode_rs2;
     logic[6:0]  decode_funct7;
     logic[11:0] decode_funct12;
+    logic[31:0] decode_pc;
+
+    always_ff @(posedge i_clk)
+    begin
+        decode_pc <= fetch_pc;
+    end
 
     logic[31:0] decode_imm_i, decode_imm_s, decode_imm_b, decode_imm_u, decode_imm_j;
     logic       decode_reg_write;
@@ -416,8 +425,10 @@ module rv_core
     alu_ctrl_t  alu_ctrl;
     logic       alu_inst_jalr, alu_inst_jal, alu_inst_branch;
     logic[2:0]  alu_funct3;
+    logic       alu_store;
     res_src_t   alu_res_src;
     logic       alu_reg_write;
+    logic[31:0] alu_pc;
 
     always_ff @(posedge i_clk)
     begin
@@ -438,22 +449,37 @@ module rv_core
         alu_inst_jalr   <= decode_inst_jalr;
         alu_inst_jal    <= decode_inst_jal;
         alu_inst_branch <= decode_inst_branch;
+        alu_store <= decode_inst_store;
+        alu_pc <= decode_pc;
     end
 
     logic[31:0] alu_reg_data1, alu_reg_data2;
     logic[31:0] alu_op1, alu_op2;
-    logic       alu_zero;
-    //logic[31:0] alu_pc_next;
-    logic       alu_pc_select;
     logic[31:0] alu_pc_target;
 
     assign  alu_reg_data1 = (|alu_rs1) ? reg_rdata1 : '0;
     assign  alu_reg_data2 = (|alu_rs2) ? reg_rdata2 : '0;
 
+    logic[31:0] pc_jalr, pc_jal, pc_branch;
+
+    assign  pc_jalr   = alu_reg_data1 + alu_imm_i;
+    assign  pc_jal    = alu_pc + alu_imm_j;
+    assign  pc_branch = alu_pc + alu_imm_b;
+
     always_comb
     begin
         case (1'b1)
-        alu_op1_sel.pc: alu_op1 = fetch_pc;
+        alu_inst_jalr:   alu_pc_target = pc_jalr;
+        alu_inst_jal:    alu_pc_target = pc_jal;
+        alu_inst_branch: alu_pc_target = pc_branch;
+        default:         alu_pc_target = alu_pc;
+        endcase
+    end
+
+    always_comb
+    begin
+        case (1'b1)
+        alu_op1_sel.pc: alu_op1 = alu_pc;
         default:        alu_op1 = alu_reg_data1;
         endcase
     end
@@ -482,12 +508,32 @@ module rv_core
     logic       alu2_negative;
     logic       alu2_overflow;
     alu_ctrl_t  alu2_ctrl;
+    logic       alu2_store;
+    logic       alu2_reg_write;
+    logic[4:0]  alu2_rd;
+    logic       alu2_inst_jalr, alu2_inst_jal, alu2_inst_branch;
+    logic[31:0] alu2_pc;
+    logic[31:0] alu2_pc_target;
+    res_src_t   alu2_res_src;
+    logic[2:0]  alu2_funct3;
+    logic[31:0] alu2_reg_data2;
     
     always_ff @(posedge i_clk)
     begin
         alu2_op1 <= alu_op1;
         alu2_op2 <= alu_op2;
         alu2_ctrl <= alu_ctrl;
+        alu2_store <= alu_store;
+        alu2_reg_write <= alu_reg_write;
+        alu2_rd <= alu_rd;
+        alu2_inst_jalr   <= alu_inst_jalr;
+        alu2_inst_jal    <= alu_inst_jal;
+        alu2_inst_branch <= alu_inst_branch;
+        alu2_pc <= alu_pc;
+        alu2_pc_target <= alu_pc_target;
+        alu2_res_src <= alu_res_src;
+        alu2_funct3 <= alu_funct3;
+        alu2_reg_data2 <= alu_reg_data2;
     end
 
     // adder - for all (add/sub/cmp)
@@ -534,6 +580,15 @@ module rv_core
     logic[32:0] alu3_shr;
     logic[31:0] alu3_result;
     alu_ctrl_t  alu3_ctrl;
+    logic       alu3_store;
+    logic       alu3_reg_write;
+    logic[4:0]  alu3_rd;
+    logic       alu3_inst_jalr, alu3_inst_jal, alu3_inst_branch;
+    logic[31:0] alu3_pc;
+    logic[31:0] alu3_pc_target;
+    res_src_t   alu3_res_src;
+    logic[2:0]  alu3_funct3;
+    logic[31:0] alu3_reg_data2;
 
     always_ff @(posedge i_clk)
     begin
@@ -543,6 +598,17 @@ module rv_core
         alu3_shl <= alu2_shl;
         alu3_shr <= alu2_shr;
         alu3_ctrl <= alu2_ctrl;
+        alu3_store <= alu2_store;
+        alu3_reg_write <= alu2_reg_write;
+        alu3_rd <= alu2_rd;
+        alu3_inst_jalr   <= alu2_inst_jalr;
+        alu3_inst_jal    <= alu2_inst_jal;
+        alu3_inst_branch <= alu2_inst_branch;
+        alu3_pc <= alu2_pc;
+        alu3_pc_target <= alu2_pc_target;
+        alu3_res_src <= alu2_res_src;
+        alu3_funct3 <= alu2_funct3;
+        alu3_reg_data2 <= alu2_reg_data2;
     end
 
     always_comb
@@ -564,25 +630,8 @@ module rv_core
         endcase
     end
 
-    assign  alu_zero = !(|alu3_result);
-
-    assign  alu_pc_select = /*(!fetch_bp_need) & */(alu_inst_jalr | alu_inst_jal | (alu_inst_branch & (alu3_result[0])));
-
-    logic[31:0] pc_jalr, pc_jal, pc_branch;
-
-    assign  pc_jalr   = alu_reg_data1 + alu_imm_i;
-    assign  pc_jal    = fetch_pc + alu_imm_j;
-    assign  pc_branch = fetch_pc + alu_imm_b;
-
-    always_comb
-    begin
-        case (1'b1)
-        alu_inst_jalr:   alu_pc_target = pc_jalr;
-        alu_inst_jal:    alu_pc_target = pc_jal;
-        alu_inst_branch: alu_pc_target = pc_branch;
-        default:         alu_pc_target = fetch_pc;
-        endcase
-    end
+    logic   alu3_pc_select;
+    assign  alu3_pc_select = /*(!fetch_bp_need) & */(alu3_inst_jalr | alu3_inst_jal | (alu3_inst_branch & (alu3_result[0])));
 
     logic[2:0]  memory_funct3;
     logic[31:0] memory_alu_result;
@@ -590,13 +639,21 @@ module rv_core
     logic[31:0] memory_wdata;
     logic[3:0]  memory_sel;
     logic       memory_inst_store;
+    logic       memory_reg_write;
+    logic[4:0]  memory_rd;
+    res_src_t   memory_res_src;
+    logic[31:0] memory_pc;
 
     always_ff @(posedge i_clk)
     begin
-        memory_funct3  <= alu_funct3;
-        memory_reg_data2 <= alu_reg_data2;
+        memory_funct3  <= alu3_funct3;
+        memory_reg_data2 <= alu3_reg_data2;
         memory_alu_result <= alu3_result;
-        memory_inst_store <= decode_inst_store;
+        memory_inst_store <= alu3_store;
+        memory_reg_write <= alu3_reg_write;
+        memory_rd <= alu3_rd;
+        memory_res_src <= alu3_res_src;
+        memory_pc <= alu3_pc;
     end
 
     always_comb
@@ -629,6 +686,25 @@ module rv_core
         endcase
     end
 
+    //logic[31:0] write_wdata;
+    logic[31:0] write_alu_result;
+    logic[31:0] write_pc;
+    res_src_t   write_res_src;
+    logic       write_reg_write;
+    logic[4:0]  write_rd;
+    logic[2:0]  write_funct3;
+    
+    always_ff @(posedge i_clk)
+    begin
+        //write_wdata <= write_rdata;
+        write_alu_result <= memory_alu_result;
+        write_pc <= memory_pc;
+        write_res_src <= memory_res_src;
+        write_reg_write <= memory_reg_write;
+        write_rd <= memory_rd;
+        write_funct3 <= memory_funct3;
+    end
+
     logic[7:0]  write_byte;
     logic[15:0] write_half_word;
     logic[31:0] write_rdata;
@@ -636,7 +712,7 @@ module rv_core
 
     always_comb
     begin
-        case (memory_alu_result[1:0])
+        case (write_alu_result[1:0])
         2'b00: write_byte = i_wb_dat[ 0+:8];
         2'b01: write_byte = i_wb_dat[ 8+:8];
         2'b10: write_byte = i_wb_dat[16+:8];
@@ -646,7 +722,7 @@ module rv_core
 
     always_comb
     begin
-        case (memory_alu_result[1])
+        case (write_alu_result[1])
         1'b0: write_half_word = i_wb_dat[ 0+:16];
         1'b1: write_half_word = i_wb_dat[16+:16];
         endcase
@@ -654,7 +730,7 @@ module rv_core
 
     always_comb
     begin
-        case (alu_funct3)
+        case (write_funct3)
         3'b000: write_rdata = { {24{write_byte[7]}}, write_byte};
         3'b001: write_rdata = { {16{write_half_word[15]}}, write_half_word};
         3'b010: write_rdata = i_wb_dat;
@@ -666,25 +742,10 @@ module rv_core
         endcase
     end
 
-    logic   write_req;
-    logic[31:0] write_wdata;
-    logic[31:0] write_alu_result;
-    logic[31:0] write_pc;
-    res_src_t   write_res_src;
-    
-    always_ff @(posedge i_clk)
-    begin
-        write_req <= alu_reg_write && (state_cur == STATE_WR);
-        write_wdata <= write_rdata;
-        write_alu_result <= memory_alu_result;
-        write_pc <= fetch_pc;
-        write_res_src <= alu_res_src;
-    end
-
     always_comb
     begin
         case (1'b1)
-        write_res_src.memory: write_data = write_wdata;
+        write_res_src.memory: write_data = write_rdata;
         write_res_src.pc_p4:  write_data = (write_pc + 4);
         default:              write_data = write_alu_result;
         endcase
@@ -697,8 +758,8 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
-        .i_rd                           (alu_rd),
-        .i_write                        (write_req),
+        .i_rd                           (write_rd),
+        .i_write                        (write_reg_write),
         .i_data                         (write_data),
         .o_data1                        (reg_rdata1),
         .o_data2                        (reg_rdata2)
