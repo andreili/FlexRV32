@@ -31,8 +31,9 @@ module rv_core
     localparam  STATE_RS = 1;
     localparam  STATE_ALU1 = 2;
     localparam  STATE_ALU2 = 3;
-    localparam  STATE_MEM = 4;
-    localparam  STATE_WR = 5;
+    localparam  STATE_ALU3 = 4;
+    localparam  STATE_MEM = 5;
+    localparam  STATE_WR = 6;
 
     always_comb
     begin
@@ -40,7 +41,8 @@ module rv_core
         STATE_FETCH: state_nxt = i_wb_ack ? STATE_RS : STATE_FETCH;
         STATE_RS: state_nxt = STATE_ALU1;
         STATE_ALU1: state_nxt = STATE_ALU2;
-        STATE_ALU2: state_nxt = STATE_MEM;
+        STATE_ALU2: state_nxt = STATE_ALU3;
+        STATE_ALU3: state_nxt = STATE_MEM;
         STATE_MEM: state_nxt = STATE_WR;
         STATE_WR: state_nxt = STATE_FETCH;
         default: state_nxt = STATE_FETCH;
@@ -266,6 +268,7 @@ module rv_core
     assign  decode_inst_ebreak   = (decode_op[6:2] == RV32_OPC_SYS) & decode_inst_full & (decode_funct3 == 3'b000) & (decode_funct12 == 12'b000000000001);
 
     logic   decode_inst_slts;
+    logic   decode_inst_ltu;
     assign  decode_inst_load   = (decode_op[6:2] == RV32_OPC_LD)  & decode_inst_full;
     assign  decode_inst_store  = (decode_op[6:2] == RV32_OPC_STR) & decode_inst_full;
     assign  decode_inst_imm    = (decode_op[6:2] == RV32_OPC_ARI) & decode_inst_full;
@@ -274,6 +277,8 @@ module rv_core
     assign  decode_inst_slts   = ((decode_op[6:2] == RV32_OPC_ARI) |
                                   ( (decode_op[6:2] == RV32_OPC_ARR) & (decode_funct7 == 7'b0000000)))
                                   & decode_inst_full & (decode_funct3[2:1] == 2'b01);
+    assign  decode_inst_ltu    = ((((decode_op[6:2] == RV32_OPC_ARI) | ((decode_op[6:2] == RV32_OPC_ARR) & (decode_funct7 == 7'b0000000))) & (decode_funct3 == 3'b011)) |
+        ((decode_op[6:2] == RV32_OPC_B) & (decode_funct3[2:1] == 2'b11))) & decode_inst_full;
 
     assign  decode_reg_write = decode_inst_load | decode_inst_imm | decode_inst_auipc | decode_inst_reg | decode_inst_lui | decode_inst_jalr | decode_inst_jal;
 
@@ -304,7 +309,7 @@ module rv_core
                                               decode_inst_sub, decode_inst_add};
     assign      decode_alu_ctrl.cmp_eq  = |{decode_inst_beq,decode_inst_bne};
     assign      decode_alu_ctrl.cmp_lts = |{decode_inst_slti,decode_inst_slt,decode_inst_blt,decode_inst_bge};
-    assign      decode_alu_ctrl.cmp_ltu = |{decode_inst_sltiu,decode_inst_sltu,decode_inst_bltu,decode_inst_bgeu};
+    assign      decode_alu_ctrl.cmp_ltu = decode_inst_ltu;
     assign      decode_alu_ctrl.cmp_inversed = decode_funct3[0];
     assign      decode_alu_ctrl.bits_and = |{decode_inst_andi,decode_inst_and};
     assign      decode_alu_ctrl.bits_or  = |{decode_inst_ori,decode_inst_or};
@@ -464,97 +469,104 @@ module rv_core
         endcase
     end
 
-    logic       alu1_eq, alu1_lts, alu1_ltu;
-    logic[32:0] alu1_add;
-    logic[31:0] alu1_xor, alu1_or, alu1_and, alu1_shl;
-    logic[32:0] alu1_shr;
-    logic       alu1_cmp_result;
-    logic[31:0] alu1_bits_result;
-    //logic[31:0] alu1_ariph_result;
-    logic       alu1_carry;
-    logic       alu1_op_b_sel;
-    logic[31:0] alu1_op_b;
-    logic       alu1_negative;
-    logic       alu1_overflow;
-
-    // adder - for all (add/sub/cmp)
-    assign  alu1_op_b_sel = (alu_ctrl.arith_sub | alu_ctrl.res_cmp);
-    assign  alu1_op_b     = alu1_op_b_sel ? (~alu_op2) : alu_op2;
-    assign  alu1_add      = alu_op1 + alu1_op_b + { {32{1'b0}}, alu1_op_b_sel};
-    assign  alu1_negative = alu1_add[31];
-    //assign  w_zero     = !(|w_add[31:0]);
-    assign  alu1_overflow = (alu_op1[31] ^ alu_op2[31]) & (alu_op1[31] ^ alu1_add[31]);
-    assign  alu1_carry    = alu1_add[32];
-
-    assign  alu1_eq  = alu_ctrl.cmp_inversed ^ (alu_op1 == alu_op2);//w_zero;
-    assign  alu1_lts = alu_ctrl.cmp_inversed ^ (alu1_negative ^ alu1_overflow);
-    assign  alu1_ltu = alu_ctrl.cmp_inversed ^ (!alu1_carry);
-
-    assign  alu1_xor = alu_op1 ^ alu_op2;
-    assign  alu1_or  = alu_op1 | alu_op2;
-    assign  alu1_and = alu_op1 & alu_op2;
-    assign  alu1_shl = alu_op1 << alu_op2[4:0];
-    assign  alu1_shr = $signed({alu_ctrl.shift_arithmetical ? alu_op1[31] : 1'b0, alu_op1}) >>> alu_op2[4:0];
-
-    always_comb
-    begin
-        case (1'b1)
-        alu_ctrl.cmp_lts: alu1_cmp_result = alu1_lts;
-        alu_ctrl.cmp_ltu: alu1_cmp_result = alu1_ltu;
-        default:          alu1_cmp_result = alu1_eq;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        alu_ctrl.bits_xor: alu1_bits_result = alu1_xor;
-        alu_ctrl.bits_or:  alu1_bits_result = alu1_or;
-        default:           alu1_bits_result = alu1_and;
-        endcase
-    end
-
+    logic[31:0] alu2_op1, alu2_op2;
+    logic       alu2_eq, alu2_lts, alu2_ltu;
+    logic[32:0] alu2_add;
+    logic[31:0] alu2_xor, alu2_or, alu2_and, alu2_shl;
+    logic[32:0] alu2_shr;
     logic       alu2_cmp_result;
     logic[31:0] alu2_bits_result;
-    logic[31:0] alu2_ariph_result;
-    logic[31:0] alu2_add;
-    logic[31:0] alu2_shl;
-    logic[32:0] alu2_shr;
-    logic[31:0] alu2_result;
+    logic       alu2_carry;
+    logic       alu2_op_b_sel;
+    logic[31:0] alu2_op_b;
+    logic       alu2_negative;
+    logic       alu2_overflow;
     alu_ctrl_t  alu2_ctrl;
-
+    
     always_ff @(posedge i_clk)
     begin
-        alu2_cmp_result  <= alu1_cmp_result;
-        alu2_bits_result <= alu1_bits_result;
-        alu2_add <= alu1_add[31:0];
-        alu2_shl <= alu1_shl;
-        alu2_shr <= alu1_shr;
+        alu2_op1 <= alu_op1;
+        alu2_op2 <= alu_op2;
         alu2_ctrl <= alu_ctrl;
     end
 
+    // adder - for all (add/sub/cmp)
+    assign  alu2_op_b_sel = (alu2_ctrl.arith_sub | alu2_ctrl.res_cmp);
+    assign  alu2_op_b     = alu2_op_b_sel ? (~alu2_op2) : alu2_op2;
+    assign  alu2_add      = alu2_op1 + alu2_op_b + { {32{1'b0}}, alu2_op_b_sel};
+    assign  alu2_negative = alu2_add[31];
+    assign  alu2_overflow = (alu2_op1[31] ^ alu2_op2[31]) & (alu2_op1[31] ^ alu2_add[31]);
+    assign  alu2_carry    = alu2_add[32];
+
+    assign  alu2_eq  = alu2_ctrl.cmp_inversed ^ (alu2_op1 == alu2_op2);
+    assign  alu2_lts = alu2_ctrl.cmp_inversed ^ (alu2_negative ^ alu2_overflow);
+    assign  alu2_ltu = alu2_ctrl.cmp_inversed ^ (!alu2_carry);
+
+    assign  alu2_xor = alu2_op1 ^ alu2_op2;
+    assign  alu2_or  = alu2_op1 | alu2_op2;
+    assign  alu2_and = alu2_op1 & alu2_op2;
+    assign  alu2_shl = alu2_op1 << alu2_op2[4:0];
+    assign  alu2_shr = $signed({alu2_ctrl.shift_arithmetical ? alu2_op1[31] : 1'b0, alu2_op1}) >>> alu2_op2[4:0];
+
     always_comb
     begin
         case (1'b1)
-        alu2_ctrl.arith_sub: alu2_ariph_result = alu2_add[31:0];
-        alu2_ctrl.arith_shl: alu2_ariph_result = alu2_shl;
-        alu2_ctrl.arith_shr: alu2_ariph_result = alu2_shr[31:0];
-        default:             alu2_ariph_result = alu2_add[31:0];
+        alu2_ctrl.cmp_lts: alu2_cmp_result = alu2_lts;
+        alu2_ctrl.cmp_ltu: alu2_cmp_result = alu2_ltu;
+        default:           alu2_cmp_result = alu2_eq;
         endcase
     end
 
     always_comb
     begin
         case (1'b1)
-        alu2_ctrl.res_cmp:  alu2_result = { {31{1'b0}}, alu2_cmp_result };
-        alu2_ctrl.res_bits: alu2_result = alu2_bits_result;
-        default:            alu2_result = alu2_ariph_result;
+        alu2_ctrl.bits_xor: alu2_bits_result = alu2_xor;
+        alu2_ctrl.bits_or:  alu2_bits_result = alu2_or;
+        default:            alu2_bits_result = alu2_and;
         endcase
     end
 
-    assign  alu_zero = !(|alu2_result);
+    logic       alu3_cmp_result;
+    logic[31:0] alu3_bits_result;
+    logic[31:0] alu3_ariph_result;
+    logic[31:0] alu3_add;
+    logic[31:0] alu3_shl;
+    logic[32:0] alu3_shr;
+    logic[31:0] alu3_result;
+    alu_ctrl_t  alu3_ctrl;
 
-    assign  alu_pc_select = /*(!fetch_bp_need) & */(alu_inst_jalr | alu_inst_jal | (alu_inst_branch & (alu2_result[0])));
+    always_ff @(posedge i_clk)
+    begin
+        alu3_cmp_result  <= alu2_cmp_result;
+        alu3_bits_result <= alu2_bits_result;
+        alu3_add <= alu2_add[31:0];
+        alu3_shl <= alu2_shl;
+        alu3_shr <= alu2_shr;
+        alu3_ctrl <= alu2_ctrl;
+    end
+
+    always_comb
+    begin
+        case (1'b1)
+        alu3_ctrl.arith_sub: alu3_ariph_result = alu3_add[31:0];
+        alu3_ctrl.arith_shl: alu3_ariph_result = alu3_shl;
+        alu3_ctrl.arith_shr: alu3_ariph_result = alu3_shr[31:0];
+        default:             alu3_ariph_result = alu3_add[31:0];
+        endcase
+    end
+
+    always_comb
+    begin
+        case (1'b1)
+        alu3_ctrl.res_cmp:  alu3_result = { {31{1'b0}}, alu3_cmp_result };
+        alu3_ctrl.res_bits: alu3_result = alu3_bits_result;
+        default:            alu3_result = alu3_ariph_result;
+        endcase
+    end
+
+    assign  alu_zero = !(|alu3_result);
+
+    assign  alu_pc_select = /*(!fetch_bp_need) & */(alu_inst_jalr | alu_inst_jal | (alu_inst_branch & (alu3_result[0])));
 
     logic[31:0] pc_jalr, pc_jal, pc_branch;
 
@@ -583,7 +595,7 @@ module rv_core
     begin
         memory_funct3  <= alu_funct3;
         memory_reg_data2 <= alu_reg_data2;
-        memory_alu_result <= alu2_result;
+        memory_alu_result <= alu3_result;
         memory_inst_store <= decode_inst_store;
     end
 
@@ -708,6 +720,7 @@ module rv_core
         STATE_RS:    dbg_state = "rs";
         STATE_ALU1:  dbg_state = "alu#1";
         STATE_ALU2:  dbg_state = "alu#2";
+        STATE_ALU3:  dbg_state = "alu#3";
         STATE_MEM:   dbg_state = "mem";
         STATE_WR:    dbg_state = "wr";
         endcase
