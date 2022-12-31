@@ -27,6 +27,8 @@ module rv_core
     output  wire                        o_wb_cyc
 );
 
+    logic   instr_cyc;
+
     logic[3:0]  state_cur, state_nxt;
     localparam  STATE_FETCH = 0;
     localparam  STATE_RS = 1;
@@ -59,6 +61,7 @@ module rv_core
     end
 
     logic[31:0] reg_rdata1, reg_rdata2;
+    logic[31:0] fetch_addr;
 
     fetch_bus_t fetch_bus;
     decode_bus_t decode_bus;
@@ -74,8 +77,11 @@ module rv_core
         .i_pc_target                    (alu3_pc_target),
         .i_pc_select                    (alu3_pc_select),
         .i_pc_inc                       (state_cur == STATE_ALU3),
-        .i_data_latch                   (state_cur == STATE_FETCH),
+        //.i_data_latch                   (state_cur == STATE_FETCH),
         .i_instruction                  (i_wb_dat),
+        .i_ack                          (state_cur == STATE_FETCH),//(1'b1),
+        .o_addr                         (fetch_addr),
+        .o_cyc                          (instr_cyc),
         .o_bus                          (fetch_bus)
     );
 
@@ -439,7 +445,7 @@ module rv_core
         .o_data2                        (reg_rdata2)
     );
 
-    assign o_wb_adr = (state_cur == STATE_ALU3) ? alu3_add : fetch_bus.pc;
+    assign o_wb_adr = (state_cur == STATE_ALU3) ? alu3_add : fetch_addr;
     assign o_wb_dat = memory_wdata;
     assign o_wb_we = (state_cur == STATE_ALU3) ? alu3_store : '0;
     assign o_wb_sel = (state_cur == STATE_ALU3) ? memory_sel : '1;
