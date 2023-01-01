@@ -8,6 +8,7 @@ module rv_fetch_buf
     input   wire                        i_reset_n,
     input   wire                        i_pc_select,
     input   wire                        i_ack,
+    input   wire                        i_decode_ready,
     input   wire[31:0]                  i_data,
     input   wire                        i_fetch_pc1,
     input   wire[31:0]                  i_fetch_pc_next,
@@ -19,13 +20,14 @@ module rv_fetch_buf
 
     logic[`INSTR_BUF_SIZE_BITS-1:0] buffer[`INSTR_BUF_SIZE];
     logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt;
+    logic[`INSTR_BUF_ADDR_SIZE:0] cnt;
     logic   nearfull;
     logic   full;
     logic   free_dword_or_more;
     logic   empty;
     logic[31:0] pc;
 
-    assign  free_dword_or_more  = (free_cnt > 1);
+    assign  free_dword_or_more  = (free_cnt_next > 1);
     assign  nearfull     = (free_cnt == 1);
     assign  full         = !(|free_cnt);
     assign  empty        = free_cnt[`INSTR_BUF_ADDR_SIZE];
@@ -57,28 +59,30 @@ module rv_fetch_buf
 
     //assign  next = { buffer[3], buffer[1], i_data[31:16], i_data[15:0] };
     assign  next[0] = ((!i_reset_n) | i_pc_select) ? '0 :
-                        (push_word & empty) ? i_data[31:16] :
-                        (push_double_word & empty) ? i_data[15:0] :
+                        (push_word & (free_cnt==4)) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==4)) ? i_data[15:0] :
                         pop_word ? buffer[1] :
                         pop_double_word ? buffer[2] :
                         buffer[0];
     //assign  next[1] = ((!i_reset_n) | i_pc_select) ? '0 : i_data[31:16];
     assign  next[1] = ((!i_reset_n) | i_pc_select) ? '0 :
-                        (push_word & (free_cnt==(`INSTR_BUF_SIZE-1))) ? i_data[31:16] :
+                        (push_word & (free_cnt==3)) ? i_data[31:16] :
                         (push_double_word & empty) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-1))) ? i_data[15:0] :
+                        (push_double_word & (free_cnt==3)) ? i_data[15:0] :
                         pop_word ? buffer[2] :
                         pop_double_word ? buffer[3] :
                         buffer[1];
-    assign  next[2] = (push_word & (free_cnt==(`INSTR_BUF_SIZE-2))) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-1))) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-2))) ? i_data[15:0] :
+    assign  next[2] = ((!i_reset_n) | i_pc_select) ? '0 :
+                        (push_word & (free_cnt==2)) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==3)) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==2)) ? i_data[15:0] :
                         pop_word ? buffer[3] :
                         pop_double_word ? '0 :
                         buffer[2];
-    assign  next[3] = (push_word & (free_cnt==(`INSTR_BUF_SIZE-3))) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-2))) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-3))) ? i_data[15:0] :
+    assign  next[3] = ((!i_reset_n) | i_pc_select) ? '0 :
+                        (push_word & (free_cnt==1)) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==2)) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==1)) ? i_data[15:0] :
                         (pop_word | pop_double_word) ? '0 :
                         buffer[3];
     assign  pc_next = ((!i_reset_n) | i_pc_select) ? i_fetch_pc_next :
@@ -98,6 +102,7 @@ module rv_fetch_buf
     begin
         buffer <= next;
         free_cnt <= free_cnt_next;
+        cnt <= `INSTR_BUF_SIZE - free_cnt_next;
         pc <= pc_next;
     end
 
@@ -108,13 +113,15 @@ module rv_fetch_buf
         if (!i_reset_n)
             move <= '0;
         else
-            move <= i_ack & (push_double_word | push_word);
+            move <= i_decode_ready & have_valid_instr;
     end
 
     logic[1:0]  out_type;
     logic       out_comp;
+    logic       have_valid_instr;
     assign  out_type = buffer[0][1:0];
     assign  out_comp = !(&out_type);
+    assign  have_valid_instr = (out_comp & (!empty)) | ((!out_comp) & (cnt > 1));
 
     assign  o_pc_incr = (empty & instr_comp & i_fetch_pc1) ? 2 : 4;
     assign  o_free_dword_or_more = free_dword_or_more;

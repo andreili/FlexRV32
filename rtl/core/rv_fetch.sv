@@ -57,19 +57,24 @@ module rv_fetch
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
-        begin
             fetch_pc <= RESET_ADDR;
-            bus_cyc <= '1;
-        end
-        else if (i_pc_inc && (free_dword_or_more))
-        begin
+        else if (i_ack && (free_dword_or_more))
             fetch_pc <= fetch_pc_next;
-            bus_cyc <= '1;
-        end
-        else if (bus_cyc & i_ack)
-        begin
+    end
+
+    /*always_ff @(posedge i_clk)
+    begin
+        if ((!i_reset_n) | (!free_dword_or_more))
             bus_cyc <= '0;
-        end
+        else
+            bus_cyc <= '1;
+    end*/
+    assign  bus_cyc = i_reset_n & free_dword_or_more;
+
+    logic   ack_sync;
+    always_ff @(posedge i_clk)
+    begin
+        ack_sync <= i_ack & (!i_pc_select);
     end
 
     rv_fetch_buf
@@ -78,7 +83,8 @@ module rv_fetch
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_pc_select                    (i_pc_select),
-        .i_ack                          (i_ack),
+        .i_ack                          (ack_sync),
+        .i_decode_ready                 (i_pc_inc),
         .i_data                         (i_instruction),
         .i_fetch_pc1                    (fetch_pc[1]),
         .i_fetch_pc_next                (fetch_pc_next),
