@@ -1,5 +1,9 @@
 `define SLAVE_SEL_WIDTH                 4
-`define TCM_ADDR_WIDTH                  13
+`ifdef TO_SIM
+    `define TCM_ADDR_WIDTH              21
+`else
+    `define TCM_ADDR_WIDTH              13
+`endif
 
 `define INSTR_BUF_ADDR_SIZE 2
 `define INSTR_BUF_SIZE (2 ** `INSTR_BUF_ADDR_SIZE)
