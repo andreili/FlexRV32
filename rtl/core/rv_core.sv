@@ -312,7 +312,7 @@ module rv_core
     end
 
     logic   alu3_pc_select;
-    assign  alu3_pc_select = /*(!fetch_bp_need) & */(alu3_inst_jalr | alu3_inst_jal | (alu3_inst_branch & (alu3_result[0])));
+    assign  alu3_pc_select = /*(!fetch_bp_need) & */(alu3_inst_jalr | alu3_inst_jal | (alu3_inst_branch & (alu3_cmp_result)));
 
     always_comb
     begin
