@@ -19,14 +19,11 @@ module rv_fetch
     output  fetch_bus_t                 o_bus
 );
 
-`define INSTR_BUF_ADDR_SIZE 3
-`define INSTR_BUF_SIZE (2 ** `INSTR_BUF_ADDR_SIZE)
-`define INSTR_BUF_SIZE_BITS (16)
-
     logic       bus_cyc;
     logic[31:0] fetch_pc;
     logic[31:0] fetch_pc_next;
     logic[31:0] fetch_pc_incr;
+    logic       buf_free_1dword;
     //logic       fetch_ready;
 `ifdef BRANCH_PREDICTION_SIMPLE
     logic[31:0] fetch_bp_lr;    // TODO
@@ -64,7 +61,7 @@ module rv_fetch
             fetch_pc <= RESET_ADDR;
             bus_cyc <= '1;
         end
-        else if (i_pc_inc && (!instr_buf_free_1dword))
+        else if (i_pc_inc && (!buf_free_1dword))
         begin
             fetch_pc <= fetch_pc_next;
             bus_cyc <= '1;
@@ -75,74 +72,21 @@ module rv_fetch
         end
     end
 
-    logic[`INSTR_BUF_SIZE_BITS-1:0] instr_buf[`INSTR_BUF_SIZE];
-    logic[`INSTR_BUF_ADDR_SIZE:0] instr_buf_free_cnt;
-    logic   instr_buf_nearfull;
-    logic   instr_buf_full;
-    logic   instr_buf_free_1dword;
-    logic   instr_buf_empty;
-    logic[31:0] instr_buf_pc;
-
-    assign  instr_buf_free_1dword  = (instr_buf_free_cnt == 2);
-    assign  instr_buf_nearfull     = (instr_buf_free_cnt == 1);
-    assign  instr_buf_full         = !(|instr_buf_free_cnt);
-    assign  instr_buf_empty        = instr_buf_free_cnt[`INSTR_BUF_ADDR_SIZE];
-
-    logic[1:0]  instr_type;
-    logic       instr_comp;
-
-    assign  instr_type = i_instruction[1:0];
-    assign  instr_comp = !(&instr_type);
-
-    assign  fetch_pc_incr = (instr_buf_empty & instr_comp & fetch_pc[1]) ? 2 : 4;
-
-    always_ff @(posedge i_clk)
-    begin
-        if (!i_reset_n | i_pc_select)
-        begin
-            instr_buf_free_cnt <= `INSTR_BUF_SIZE;
-            instr_buf[0] <= '0;
-            instr_buf[1] <= '0;
-            instr_buf_pc <= fetch_pc_next;
-        end
-        else if (i_ack & (!instr_buf_full) && (!instr_buf_nearfull) & (!fetch_pc[1]))
-        begin
-            { instr_buf[`INSTR_BUF_SIZE-instr_buf_free_cnt+1], instr_buf[`INSTR_BUF_SIZE-instr_buf_free_cnt] } <= i_instruction;
-            instr_buf_free_cnt <= instr_buf_free_cnt - 2;
-        end
-        else if (i_ack & (!instr_buf_full) & instr_comp)
-        begin
-            instr_buf[`INSTR_BUF_SIZE-instr_buf_free_cnt] <= fetch_pc[1] ? i_instruction[31:16] : i_instruction[15:0];
-            instr_buf_free_cnt <= instr_buf_free_cnt - 1;
-        end
-        else if (instr_buf_move & instr_buf_comp & (!instr_buf_empty))
-        begin
-            instr_buf_free_cnt <= instr_buf_free_cnt + 1;
-            instr_buf_pc <= instr_buf_pc + 2;
-            instr_buf[0:`INSTR_BUF_SIZE-2] <= instr_buf[1:`INSTR_BUF_SIZE-1];
-        end
-        else if (instr_buf_move & (!instr_buf_comp) & (!instr_buf_empty))
-        begin
-            instr_buf_free_cnt <= instr_buf_free_cnt + 2;
-            instr_buf_pc <= instr_buf_pc + 4;
-            instr_buf[0:`INSTR_BUF_SIZE-3] <= instr_buf[2:`INSTR_BUF_SIZE-1];
-        end
-    end
-
-    logic       instr_buf_move;
-
-    always_ff @(posedge i_clk)
-    begin
-        if (!i_reset_n)
-            instr_buf_move <= '0;
-        else
-            instr_buf_move <= i_ack;
-    end
-
-    logic[1:0]  instr_buf_type;
-    logic       instr_buf_comp;
-    assign  instr_buf_type = instr_buf[0][1:0];
-    assign  instr_buf_comp = !(&instr_buf_type);
+    rv_fetch_buf
+    u_buf
+    (
+        .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
+        .i_pc_select                    (i_pc_select),
+        .i_ack                          (i_ack),
+        .i_data                         (i_instruction),
+        .i_fetch_pc1                    (fetch_pc[1]),
+        .i_fetch_pc_next                (fetch_pc_next),
+        .o_free_1dword                  (buf_free_1dword),
+        .o_pc_incr                      (fetch_pc_incr),
+        .o_pc                           (o_bus.pc),
+        .o_instruction                  (o_bus.instruction)
+    );
 
 `ifdef BRANCH_PREDICTION_SIMPLE
     assign  fetch_bp_op        = fetch_data_buf[6:0];
@@ -172,7 +116,5 @@ module rv_fetch
 
     assign  o_addr = fetch_pc;
     assign  o_cyc = bus_cyc;
-    assign  o_bus.pc = instr_buf_pc;
-    assign  o_bus.instruction = instr_buf_move ? {instr_buf[1], instr_buf[0] } : '0;
 
 endmodule
