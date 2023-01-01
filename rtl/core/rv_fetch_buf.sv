@@ -11,7 +11,7 @@ module rv_fetch_buf
     input   wire[31:0]                  i_data,
     input   wire                        i_fetch_pc1,
     input   wire[31:0]                  i_fetch_pc_next,
-    output  wire                        o_free_1dword,
+    output  wire                        o_free_dword_or_more,
     output  wire[31:0]                  o_pc_incr,
     output  wire[31:0]                  o_pc,
     output  wire[31:0]                  o_instruction
@@ -21,11 +21,11 @@ module rv_fetch_buf
     logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt;
     logic   nearfull;
     logic   full;
-    logic   free_1dword;
+    logic   free_dword_or_more;
     logic   empty;
     logic[31:0] pc;
 
-    assign  free_1dword  = (free_cnt == 2);
+    assign  free_dword_or_more  = (free_cnt > 1);
     assign  nearfull     = (free_cnt == 1);
     assign  full         = !(|free_cnt);
     assign  empty        = free_cnt[`INSTR_BUF_ADDR_SIZE];
@@ -41,8 +41,8 @@ module rv_fetch_buf
     logic   pop_double_word;
     logic   pop_word;
 
-    assign  push_double_word = i_ack & (!full) & (!instr_comp) & (!nearfull) & (!i_fetch_pc1);
-    assign  push_word        = i_ack & (!full) & instr_comp;
+    assign  push_double_word = i_ack & (!full) & (!nearfull) & (!i_fetch_pc1);
+    assign  push_word        = i_ack & (!full) & instr_comp & i_fetch_pc1;
     assign  pop_double_word  = move & (!out_comp) & (!empty);
     assign  pop_word         = move & out_comp & (!empty);
 
@@ -56,10 +56,31 @@ module rv_fetch_buf
     logic[31:0] pc_next;
 
     //assign  next = { buffer[3], buffer[1], i_data[31:16], i_data[15:0] };
-    assign  next[0] = i_data[15:0];
-    assign  next[1] = i_data[31:16];
-    assign  next[2] = buffer[2];
-    assign  next[3] = buffer[3];
+    assign  next[0] = ((!i_reset_n) | i_pc_select) ? '0 :
+                        (push_word & empty) ? i_data[31:16] :
+                        (push_double_word & empty) ? i_data[15:0] :
+                        pop_word ? buffer[1] :
+                        pop_double_word ? buffer[2] :
+                        buffer[0];
+    //assign  next[1] = ((!i_reset_n) | i_pc_select) ? '0 : i_data[31:16];
+    assign  next[1] = ((!i_reset_n) | i_pc_select) ? '0 :
+                        (push_word & (free_cnt==(`INSTR_BUF_SIZE-1))) ? i_data[31:16] :
+                        (push_double_word & empty) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-1))) ? i_data[15:0] :
+                        pop_word ? buffer[2] :
+                        pop_double_word ? buffer[3] :
+                        buffer[1];
+    assign  next[2] = (push_word & (free_cnt==(`INSTR_BUF_SIZE-2))) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-1))) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-2))) ? i_data[15:0] :
+                        pop_word ? buffer[3] :
+                        pop_double_word ? '0 :
+                        buffer[2];
+    assign  next[3] = (push_word & (free_cnt==(`INSTR_BUF_SIZE-3))) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-2))) ? i_data[31:16] :
+                        (push_double_word & (free_cnt==(`INSTR_BUF_SIZE-3))) ? i_data[15:0] :
+                        (pop_word | pop_double_word) ? '0 :
+                        buffer[3];
     assign  pc_next = ((!i_reset_n) | i_pc_select) ? i_fetch_pc_next :
                                 (pop_double_word) ? pc + 4 :
                                 (pop_word) ? pc + 2 :
@@ -87,7 +108,7 @@ module rv_fetch_buf
         if (!i_reset_n)
             move <= '0;
         else
-            move <= i_ack;
+            move <= i_ack & (push_double_word | push_word);
     end
 
     logic[1:0]  out_type;
@@ -96,7 +117,7 @@ module rv_fetch_buf
     assign  out_comp = !(&out_type);
 
     assign  o_pc_incr = (empty & instr_comp & i_fetch_pc1) ? 2 : 4;
-    assign  o_free_1dword = free_1dword;
+    assign  o_free_dword_or_more = free_dword_or_more;
 
     assign  o_pc = pc;
     assign  o_instruction = move ? {buffer[1], buffer[0] } : '0;

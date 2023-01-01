@@ -23,7 +23,7 @@ module rv_fetch
     logic[31:0] fetch_pc;
     logic[31:0] fetch_pc_next;
     logic[31:0] fetch_pc_incr;
-    logic       buf_free_1dword;
+    logic       free_dword_or_more;
     //logic       fetch_ready;
 `ifdef BRANCH_PREDICTION_SIMPLE
     logic[31:0] fetch_bp_lr;    // TODO
@@ -61,7 +61,7 @@ module rv_fetch
             fetch_pc <= RESET_ADDR;
             bus_cyc <= '1;
         end
-        else if (i_pc_inc && (!buf_free_1dword))
+        else if (i_pc_inc && (free_dword_or_more))
         begin
             fetch_pc <= fetch_pc_next;
             bus_cyc <= '1;
@@ -82,7 +82,7 @@ module rv_fetch
         .i_data                         (i_instruction),
         .i_fetch_pc1                    (fetch_pc[1]),
         .i_fetch_pc_next                (fetch_pc_next),
-        .o_free_1dword                  (buf_free_1dword),
+        .o_free_dword_or_more           (free_dword_or_more),
         .o_pc_incr                      (fetch_pc_incr),
         .o_pc                           (o_bus.pc),
         .o_instruction                  (o_bus.instruction)
