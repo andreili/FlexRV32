@@ -114,3 +114,5 @@ secondary-outputs: size.stdout $(LIST_FILE) $(VH_FILE)
 
 include $(DEPFILES)
 
+$(V).SILENT:
+
