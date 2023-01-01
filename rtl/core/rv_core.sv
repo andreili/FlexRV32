@@ -445,10 +445,15 @@ module rv_core
         .o_data2                        (reg_rdata2)
     );
 
-    assign o_wb_adr = (state_cur == STATE_ALU3) ? alu3_add : fetch_addr;
+    logic   instr_ack;
+    logic   bus_data;
+
+    assign  bus_data = (state_cur == STATE_ALU3) & (alu3_res_src.memory | alu3_store);
+
+    assign o_wb_adr = bus_data ? alu3_add : fetch_addr;
     assign o_wb_dat = memory_wdata;
-    assign o_wb_we = (state_cur == STATE_ALU3) ? alu3_store : '0;
-    assign o_wb_sel = (state_cur == STATE_ALU3) ? memory_sel : '1;
+    assign o_wb_we = bus_data ? alu3_store : '0;
+    assign o_wb_sel = bus_data ? memory_sel : '1;
     assign o_wb_stb = '1;
     assign o_wb_cyc = '1;
     assign o_debug = '0;
