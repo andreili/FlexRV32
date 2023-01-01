@@ -164,7 +164,7 @@ module rv_decode
     assign  o_bus.alu_ctrl.cmp_eq  = |{inst_beq,inst_bne};
     assign  o_bus.alu_ctrl.cmp_lts = |{inst_slti,inst_slt,inst_blt,inst_bge};
     assign  o_bus.alu_ctrl.cmp_ltu = inst_ltu;
-    assign  o_bus.alu_ctrl.cmp_inversed = funct3[0];
+    assign  o_bus.alu_ctrl.cmp_inversed = funct3[0] & inst_branch;
     assign  o_bus.alu_ctrl.bits_and = |{inst_andi,inst_and};
     assign  o_bus.alu_ctrl.bits_or  = |{inst_ori,inst_or};
     assign  o_bus.alu_ctrl.bits_xor = |{inst_xori,inst_xor};
