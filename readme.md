@@ -14,11 +14,11 @@ All perfomance measured on simulation (DHRYSTONE test), Fmax checked on FPGA syn
  
 # TODO
 - Extensions:
-- C extension.
-- Zicsr extension (with Zicntr and Zihpm features, WIP).
-- M extension.
-- F extension.
-- Interrupts.
+  - C extension.
+  - Zicsr extension (with Zicntr and Zihpm features, WIP).
+  - M extension.
+  - F extension.
+  - Interrupts.
 
 
 # Verification
