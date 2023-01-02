@@ -145,8 +145,8 @@ module rv_core
 
     logic[31:0] pc_jalr, pc_jal/*, pc_branch*/;
 
-    assign  pc_jalr   = alu_reg_data1 + (alu_compressed ? alu_imm_c : alu_imm_i);
-    assign  pc_jal    = alu_pc + (alu_compressed ? alu_imm_c : alu_imm_j);
+    assign  pc_jalr   = alu_reg_data1 + alu_imm_i;
+    assign  pc_jal    = alu_pc + alu_imm_j;
 
     always_comb
     begin

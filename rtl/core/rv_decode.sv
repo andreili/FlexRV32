@@ -119,8 +119,18 @@ module rv_decode
 
     assign  imm_mux = (|{inst_lui, inst_auipc}) ? imm_u :
                       (inst_store) ? imm_s :
+                      (|{inst_c_jr, inst_c_jalr}) ? '0 :
                       imm_i;
+`ifdef EXTENSION_C
+    logic[31:0] imm_j_b;
+    logic[31:0] imm_c_j_b;
+
+    assign  imm_j_b = inst_jal ? imm_j : imm_b;
+    assign  imm_c_j_b = (inst_c_j | inst_c_jal) ? imm_c_j : imm_c_b;
+    assign  o_bus.imm_j = ((!inst_full) & (!inst_none)) ? imm_c_j_b : imm_j_b;
+`else
     assign  o_bus.imm_j = inst_jal ? imm_j : imm_b;
+`endif
     assign  o_bus.imm_i = imm_mux;
 
 `ifdef EXTENSION_C
