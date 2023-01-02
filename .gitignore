@@ -1,5 +1,5 @@
-*/logs/*
-*/obj_dir/*
+sim/run/logs/*
+sim/run/obj_dir/*
 */out/*
 */*/out/*
 *.bak
