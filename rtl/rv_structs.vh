@@ -21,6 +21,9 @@ typedef struct packed
     logic                   u;
     logic                   j;
     logic                   s;
+`ifdef EXTENSION_C
+    logic                   c;
+`endif
     // always latest - it's default
     logic                   r;
 } src_op2_t;
@@ -68,6 +71,9 @@ typedef struct packed
     logic[31:0]             imm_u;
     logic[31:0]             imm_b;
     logic[31:0]             imm_s;
+`ifdef EXTENSION_C
+    logic[31:0]             imm_c;
+`endif
     alu_ctrl_t              alu_ctrl;
     logic[2:0]              funct3;
     res_src_t               res_src;
@@ -79,6 +85,9 @@ typedef struct packed
     logic                   inst_branch;
     logic                   inst_store;
     logic                   inst_supported;
+`ifdef EXTENSION_C
+    logic                   inst_compressed;
+`endif
 } decode_bus_t;
 
 /*typedef struct packed

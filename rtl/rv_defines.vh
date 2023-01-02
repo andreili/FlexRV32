@@ -1,3 +1,5 @@
+`define EXTENSION_C
+
 `define SLAVE_SEL_WIDTH                 4
 `ifdef TO_SIM
     `define TCM_ADDR_WIDTH              21

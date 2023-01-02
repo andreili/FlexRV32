@@ -32,19 +32,20 @@ module rv_fetch_buf
     assign  full         = !(|free_cnt);
     assign  empty        = free_cnt[`INSTR_BUF_ADDR_SIZE];
 
-    logic[1:0]  instr_type;
-    logic       instr_comp;
+    //logic[1:0]  instr_type;
+    //logic       instr_comp;
 
-    assign  instr_type = i_data[1:0];
-    assign  instr_comp = !(&instr_type);
+    //assign  instr_type = i_data[1:0];
+    //assign  instr_comp = !(&instr_type);
 
+    logic   fetch_pc1;
     logic   push_double_word;
     logic   push_word;
     logic   pop_double_word;
     logic   pop_word;
 
-    assign  push_double_word = i_ack & (!full) & (!nearfull) & (!i_fetch_pc1);
-    assign  push_word        = i_ack & (!full) & instr_comp & i_fetch_pc1;
+    assign  push_double_word = i_ack & (!full) & (!nearfull) & (!fetch_pc1);
+    assign  push_word        = i_ack & (!full) /*& instr_comp*/ & fetch_pc1;
     assign  pop_double_word  = move & (!out_comp) & (!empty);
     assign  pop_word         = move & out_comp & (!empty);
 
@@ -100,6 +101,7 @@ module rv_fetch_buf
 
     always_ff @(posedge i_clk)
     begin
+        fetch_pc1 <= i_fetch_pc1;
         buffer <= next;
         free_cnt <= free_cnt_next;
         cnt <= `INSTR_BUF_SIZE - free_cnt_next;
@@ -123,10 +125,12 @@ module rv_fetch_buf
     assign  out_comp = !(&out_type);
     assign  have_valid_instr = (out_comp & (!empty)) | ((!out_comp) & (cnt > 1));
 
-    assign  o_pc_incr = (empty & instr_comp & i_fetch_pc1) ? 2 : 4;
+    assign  o_pc_incr = (empty /*& instr_comp*/ & i_fetch_pc1) ? 2 : 4;
     assign  o_free_dword_or_more = free_dword_or_more;
 
     assign  o_pc = pc;
-    assign  o_instruction = move ? {buffer[1], buffer[0] } : '0;
+    //assign  o_instruction = move ? {buffer[1], buffer[0] } : '0;
+    assign  o_instruction[31:16] = (move & (!out_comp)) ? buffer[1] : '0;
+    assign  o_instruction[15: 0] = move ? buffer[0] : '0;
 
 endmodule

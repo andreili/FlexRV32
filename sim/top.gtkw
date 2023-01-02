@@ -1,20 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sun Jan 01 14:53:12 2023
+[*] Mon Jan 02 01:33:14 2023
 [*]
-[dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Sun Jan 01 14:52:19 2023"
-[dumpfile_size] 73191
+[dumpfile] "D:\Projects\RISC-V\core_tiny\sim\run\logs_top\wave.fst"
+[dumpfile_mtime] "Mon Jan 02 00:58:55 2023"
+[dumpfile_size] 92912
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 79
+[timestart] 2362
 [size] 1920 1017
 [pos] -9 -9
-*-2.532505 98 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.631004 2410 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
 [treeopen] TOP.top.u_rv.u_st1_fetch.
 [treeopen] TOP.top.u_rv.u_st2_decode.
+[treeopen] TOP.top.u_rv.u_st2_decode.o_bus.
 [sst_width] 212
 [signals_width] 335
 [sst_expanded] 1
@@ -77,6 +78,7 @@ TOP.top.u_rv.i_wb_ack
 @800200
 -TCM
 @22
+TOP.top.u_tcm.i_addr[22:2]
 TOP.top.u_tcm.i_data[31:0]
 @28
 TOP.top.u_tcm.i_dev_sel
@@ -93,11 +95,15 @@ TOP.top.u_tcm.o_data[31:0]
 -TCM
 @820
 TOP.top.u_rv.dbg_state[127:0]
-@800200
+@28
+TOP.top.u_rv.u_st1_fetch.i_pc_select
+@c00201
 -ST1 FETCH
 @28
 TOP.top.u_rv.u_st1_fetch.i_ack
+TOP.top.u_rv.u_st1_fetch.u_buf.i_fetch_pc1
 TOP.top.u_rv.u_st1_fetch.i_pc_inc
+TOP.top.u_rv.u_st1_fetch.i_pc_select
 @22
 TOP.top.u_rv.u_st1_fetch.fetch_pc[31:0]
 TOP.top.u_rv.u_st1_fetch.fetch_pc_incr[31:0]
@@ -105,20 +111,19 @@ TOP.top.u_rv.u_st1_fetch.fetch_pc_next[31:0]
 @28
 TOP.top.u_rv.u_st1_fetch.free_dword_or_more
 TOP.top.u_rv.u_st1_fetch.o_cyc
-@800200
+@c00200
 -FETCH BUF
 @28
+TOP.top.u_rv.u_st1_fetch.u_buf.i_ack
 TOP.top.u_rv.u_st1_fetch.i_pc_select
 TOP.top.u_rv.u_st1_fetch.u_buf.i_decode_ready
-TOP.top.u_rv.u_st1_fetch.u_buf.instr_comp
 TOP.top.u_rv.u_st1_fetch.u_buf.empty
 TOP.top.u_rv.u_st1_fetch.u_buf.nearfull
 TOP.top.u_rv.u_st1_fetch.u_buf.full
 @420
 TOP.top.u_rv.u_st1_fetch.u_buf.free_cnt_delta[2:0]
-@25
-TOP.top.u_rv.u_st1_fetch.u_buf.free_cnt_next[2:0]
 @24
+TOP.top.u_rv.u_st1_fetch.u_buf.free_cnt_next[2:0]
 TOP.top.u_rv.u_st1_fetch.u_buf.free_cnt[2:0]
 @22
 TOP.top.u_rv.u_st1_fetch.u_buf.buffer[0][15:0]
@@ -139,10 +144,131 @@ TOP.top.u_rv.u_st1_fetch.u_buf.full
 @22
 TOP.top.u_rv.u_st1_fetch.u_buf.o_pc_incr[31:0]
 TOP.top.u_rv.u_st1_fetch.u_buf.o_instruction[31:0]
-@1000200
+@1401200
 -FETCH BUF
+@1401201
 -ST1 FETCH
 @800200
+-ST2 DECODE
+@c00022
+TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+@28
+(0)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(1)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(2)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(3)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(4)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(5)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(6)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(7)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(8)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(9)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(10)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(11)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(12)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(13)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(14)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(15)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(16)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(17)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(18)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(19)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(20)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(21)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(22)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(23)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(24)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(25)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(26)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(27)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(28)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(29)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(30)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+(31)TOP.top.u_rv.u_st2_decode.i_bus.pc[31:0]
+@1401200
+-group_end
+@22
+TOP.top.u_rv.u_st2_decode.i_bus.instruction[31:0]
+@820
+TOP.top.u_rv.u_st2_decode.dbg_ascii_instr[127:0]
+@28
+TOP.top.u_rv.u_st2_decode.o_bus.inst_supported
+TOP.top.u_rv.u_st2_decode.o_bus.alu_ctrl.res_arith
+TOP.top.u_rv.u_st2_decode.o_bus.alu_ctrl.res_bits
+TOP.top.u_rv.u_st2_decode.o_bus.alu_ctrl.res_cmp
+TOP.top.u_rv.u_st2_decode.o_bus.alu_ctrl.cmp_inversed
+TOP.top.u_rv.u_st2_decode.o_bus.res_src.alu
+TOP.top.u_rv.u_st2_decode.o_bus.res_src.memory
+TOP.top.u_rv.u_st2_decode.o_bus.res_src.pc_p4
+@22
+TOP.top.u_rv.u_st2_decode.o_bus.rd[4:0]
+TOP.top.u_rv.u_st2_decode.o_bus.rs1[4:0]
+TOP.top.u_rv.u_st2_decode.o_bus.rs2[4:0]
+TOP.top.u_rv.u_st2_decode.o_bus.imm_c[31:0]
+@28
+TOP.top.u_rv.u_st2_decode.o_bus.reg_write
+@1000200
+-ST2 DECODE
+@800200
+-ST3 ALU
+@28
+TOP.top.u_rv.alu_op2_sel.c
+TOP.top.u_rv.u_st2_decode.o_bus.op2_src.i
+TOP.top.u_rv.u_st2_decode.o_bus.op2_src.j
+TOP.top.u_rv.u_st2_decode.o_bus.op2_src.s
+TOP.top.u_rv.u_st2_decode.o_bus.op2_src.u
+TOP.top.u_rv.alu_op2_sel.r
+@22
+TOP.top.u_rv.alu_pc_target[31:0]
+TOP.top.u_rv.alu_op1[31:0]
+TOP.top.u_rv.alu_op2[31:0]
+TOP.top.u_rv.pc_jalr[31:0]
+TOP.top.u_rv.pc_jal[31:0]
+TOP.top.u_rv.pc_branch[31:0]
+TOP.top.u_rv.alu_pc[31:0]
+TOP.top.u_rv.alu_pc_target[31:0]
+@28
+TOP.top.u_rv.alu_ctrl.cmp_eq
+TOP.top.u_rv.alu_ctrl.cmp_lts
+TOP.top.u_rv.alu_ctrl.cmp_ltu
+TOP.top.u_rv.alu_ctrl.cmp_inversed
+TOP.top.u_rv.alu_ctrl.bits_and
+TOP.top.u_rv.alu_ctrl.bits_or
+TOP.top.u_rv.alu_ctrl.bits_xor
+TOP.top.u_rv.alu_ctrl.arith_add
+TOP.top.u_rv.alu_ctrl.arith_sub
+TOP.top.u_rv.alu_ctrl.arith_shl
+TOP.top.u_rv.alu_ctrl.arith_shr
+TOP.top.u_rv.alu_ctrl.shift_arithmetical
+@1000200
+-ST3 ALU
+@c00200
+-ST4 ALU2
+@28
+TOP.top.u_rv.alu2_eq
+TOP.top.u_rv.alu2_lts
+TOP.top.u_rv.alu2_ltu
+TOP.top.u_rv.alu2_cmp_result
+@22
+TOP.top.u_rv.alu2_add[32:0]
+TOP.top.u_rv.alu2_xor[31:0]
+TOP.top.u_rv.alu2_or[31:0]
+TOP.top.u_rv.alu2_and[31:0]
+TOP.top.u_rv.alu2_shl[31:0]
+TOP.top.u_rv.alu2_shr[32:0]
+TOP.top.u_rv.alu2_bits_result[31:0]
+@1401200
+-ST4 ALU2
+@800200
+-ST5 ALU3
+@22
+TOP.top.u_rv.alu3_ariph_result[31:0]
+TOP.top.u_rv.alu3_result[31:0]
+@28
+TOP.top.u_rv.alu3_pc_select
+@1000200
+-ST5 ALU3
+@c00200
 -BUS ARBITER
 @28
 TOP.top.u_rv.bus_data
@@ -154,7 +280,43 @@ TOP.top.u_rv.u_st1_fetch.u_buf.free_cnt[2:0]
 TOP.top.u_rv.u_st1_fetch.u_buf.push_double_word
 TOP.top.u_rv.u_st1_fetch.u_buf.i_ack
 TOP.top.u_rv.u_st1_fetch.u_buf.push_word
-@1000200
+@1401200
 -BUS ARBITER
+@800200
+-REGS
+@22
+TOP.top.u_rv.u_regs.r_reg_file[1][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[2][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[3][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[4][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[5][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[6][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[7][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[8][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[9][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[10][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[11][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[12][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[13][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[14][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[15][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[16][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[17][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[18][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[19][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[20][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[21][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[22][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[23][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[24][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[25][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[26][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[27][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[28][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[29][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[30][31:0]
+TOP.top.u_rv.u_regs.r_reg_file[31][31:0]
+@1000200
+-REGS
 [pattern_trace] 1
 [pattern_trace] 0

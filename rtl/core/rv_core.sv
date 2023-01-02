@@ -101,6 +101,10 @@ module rv_core
     logic[31:0] alu_imm_j;
     logic[31:0] alu_imm_b;
     logic[31:0] alu_imm_s;
+`ifdef EXTENSION_C
+    logic[31:0] alu_imm_c;
+    logic       alu_compressed;
+`endif
     src_op1_t   alu_op1_sel;
     src_op2_t   alu_op2_sel;
     alu_ctrl_t  alu_ctrl;
@@ -121,6 +125,10 @@ module rv_core
         alu_imm_u  <= decode_bus.imm_u;
         alu_imm_b  <= decode_bus.imm_b;
         alu_imm_s  <= decode_bus.imm_s;
+    `ifdef EXTENSION_C
+        alu_imm_c  <= decode_bus.imm_c;
+        alu_compressed <= decode_bus.inst_compressed;
+    `endif
         alu_ctrl <= decode_bus.alu_ctrl;
         alu_funct3  <= decode_bus.funct3;
         alu_res_src <= decode_bus.res_src;
@@ -143,9 +151,9 @@ module rv_core
 
     logic[31:0] pc_jalr, pc_jal, pc_branch;
 
-    assign  pc_jalr   = alu_reg_data1 + alu_imm_i;
-    assign  pc_jal    = alu_pc + alu_imm_j;
-    assign  pc_branch = alu_pc + alu_imm_b;
+    assign  pc_jalr   = alu_reg_data1 + (alu_compressed ? alu_imm_c : alu_imm_i);
+    assign  pc_jal    = alu_pc + (alu_compressed ? alu_imm_c : alu_imm_j);
+    assign  pc_branch = alu_pc + (alu_compressed ? alu_imm_c : alu_imm_b);
 
     always_comb
     begin
@@ -172,6 +180,9 @@ module rv_core
         alu_op2_sel.u: alu_op2 = alu_imm_u;
         alu_op2_sel.j: alu_op2 = alu_imm_j;
         alu_op2_sel.s: alu_op2 = alu_imm_s;
+    `ifdef EXTENSION_C
+        alu_op2_sel.c: alu_op2 = alu_imm_c;
+    `endif
         default:       alu_op2 = alu_reg_data2;
         endcase
     end
@@ -198,6 +209,9 @@ module rv_core
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
     logic[31:0] alu2_reg_data2;
+`ifdef EXTENSION_C
+    logic       alu2_compressed;
+`endif
     
     always_ff @(posedge i_clk)
     begin
@@ -215,6 +229,9 @@ module rv_core
         alu2_res_src <= alu_res_src;
         alu2_funct3 <= alu_funct3;
         alu2_reg_data2 <= alu_reg_data2;
+    `ifdef EXTENSION_C
+        alu2_compressed <= alu_compressed;
+    `endif
     end
 
     // adder - for all (add/sub/cmp)
@@ -270,6 +287,9 @@ module rv_core
     res_src_t   alu3_res_src;
     logic[2:0]  alu3_funct3;
     logic[31:0] alu3_reg_data2;
+`ifdef EXTENSION_C
+    logic       alu3_compressed;
+`endif
 
     always_ff @(posedge i_clk)
     begin
@@ -290,6 +310,9 @@ module rv_core
         alu3_res_src <= alu2_res_src;
         alu3_funct3 <= alu2_funct3;
         alu3_reg_data2 <= alu2_reg_data2;
+    `ifdef EXTENSION_C
+        alu3_compressed <= alu2_compressed;
+    `endif
     end
 
     always_comb
@@ -353,6 +376,9 @@ module rv_core
     logic[4:0]  memory_rd;
     res_src_t   memory_res_src;
     logic[31:0] memory_pc;
+`ifdef EXTENSION_C
+    logic       memory_compressed;
+`endif
 
     always_ff @(posedge i_clk)
     begin
@@ -363,6 +389,9 @@ module rv_core
         memory_rd <= alu3_rd;
         memory_res_src <= alu3_res_src;
         memory_pc <= alu3_pc;
+    `ifdef EXTENSION_C
+        memory_compressed <= alu3_compressed;
+    `endif
     end
 
     logic[31:0] mem_rdata;
@@ -372,6 +401,9 @@ module rv_core
     logic       write_reg_write;
     logic[4:0]  write_rd;
     logic[2:0]  write_funct3;
+`ifdef EXTENSION_C
+    logic       write_compressed;
+`endif
     
     always_ff @(posedge i_clk)
     begin
@@ -383,6 +415,9 @@ module rv_core
         write_rd <= memory_rd;
         write_funct3 <= memory_funct3;
         mem_rdata <= i_wb_dat;
+    `ifdef EXTENSION_C
+        write_compressed <= memory_compressed;
+    `endif
     end
 
     logic[7:0]  write_byte;
@@ -426,7 +461,7 @@ module rv_core
     begin
         case (1'b1)
         write_res_src.memory: write_data = write_rdata;
-        write_res_src.pc_p4:  write_data = (write_pc + 4);
+        write_res_src.pc_p4:  write_data = (write_pc + (write_compressed ? 2 : 4));
         default:              write_data = write_alu_result;
         endcase
     end

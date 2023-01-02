@@ -1,3 +1,6 @@
+localparam  RV32_C_Q0_DET = 2'b00;
+localparam  RV32_C_Q1_DET = 2'b01;
+localparam  RV32_C_Q2_DET = 2'b10;
 localparam  RV32_OPC_DET  = 2'b11;
 localparam  RV32_OPC_LD   = 5'b00000;
 localparam  RV32_OPC_MEM  = 5'b00011;
