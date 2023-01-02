@@ -10,7 +10,7 @@ Piplined mode must be implemented on future, after finished all extensions and f
 All perfomance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
 |Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|
-|162|77640|44.19|0.273|
+|154|77640|44.19|0.273|
  
 # TODO
 - Extensions:
