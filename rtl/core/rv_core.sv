@@ -152,8 +152,8 @@ module rv_core
     begin
         case (1'b1)
         alu_inst_jalr:   alu_pc_target = pc_jalr;
-        |{alu_inst_jal,alu_inst_branch}:    alu_pc_target = pc_jal;
-        default:         alu_pc_target = alu_pc;
+        default:    alu_pc_target = pc_jal;
+        //default:         alu_pc_target = alu_pc;
         endcase
     end
 
@@ -194,7 +194,7 @@ module rv_core
     logic       alu2_store;
     logic       alu2_reg_write;
     logic[4:0]  alu2_rd;
-    logic       alu2_inst_jalr, alu2_inst_jal, alu2_inst_branch;
+    logic       alu2_inst_jal_jalr, alu2_inst_branch;
     logic[31:0] alu2_pc;
     logic[31:0] alu2_pc_target;
     res_src_t   alu2_res_src;
@@ -212,8 +212,7 @@ module rv_core
         alu2_store <= alu_store;
         alu2_reg_write <= alu_reg_write;
         alu2_rd <= alu_rd;
-        alu2_inst_jalr   <= alu_inst_jalr;
-        alu2_inst_jal    <= alu_inst_jal;
+        alu2_inst_jal_jalr <= alu_inst_jal | alu_inst_jalr;
         alu2_inst_branch <= alu_inst_branch;
         alu2_pc <= alu_pc;
         alu2_pc_target <= alu_pc_target;
@@ -253,7 +252,7 @@ module rv_core
     end
 
     logic   alu2_pc_select;
-    assign  alu2_pc_select = /*(!fetch_bp_need) & */(alu2_inst_jalr | alu2_inst_jal | (alu2_inst_branch & (alu2_cmp_result)));
+    assign  alu2_pc_select = /*(!fetch_bp_need) & */(alu2_inst_jal_jalr | (alu2_inst_branch & (alu2_cmp_result)));
 
     always_comb
     begin
