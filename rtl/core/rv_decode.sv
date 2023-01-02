@@ -108,11 +108,20 @@ module rv_decode
                         '0;
 `endif
 
-    assign o_bus.imm_i = { {21{i_bus.instruction[31]}}, i_bus.instruction[30:20] };
-    assign o_bus.imm_s = { {21{i_bus.instruction[31]}}, i_bus.instruction[30:25], i_bus.instruction[11:7] };
-    assign o_bus.imm_b = { {20{i_bus.instruction[31]}}, i_bus.instruction[7], i_bus.instruction[30:25], i_bus.instruction[11:8], 1'b0 };
-    assign o_bus.imm_u = { i_bus.instruction[31:12], {12{1'b0}} };
-    assign o_bus.imm_j = { {12{i_bus.instruction[31]}}, i_bus.instruction[19:12], i_bus.instruction[20], i_bus.instruction[30:21], 1'b0 };
+    logic[31:0] imm_i, imm_j, imm_s, imm_b, imm_u;
+    logic[31:0] imm_mux;
+
+    assign  imm_i = { {21{i_bus.instruction[31]}}, i_bus.instruction[30:20] };
+    assign  imm_s = { {21{i_bus.instruction[31]}}, i_bus.instruction[30:25], i_bus.instruction[11:7] };
+    assign  imm_b = { {20{i_bus.instruction[31]}}, i_bus.instruction[7], i_bus.instruction[30:25], i_bus.instruction[11:8], 1'b0 };
+    assign  imm_u = { i_bus.instruction[31:12], {12{1'b0}} };
+    assign  imm_j = { {12{i_bus.instruction[31]}}, i_bus.instruction[19:12], i_bus.instruction[20], i_bus.instruction[30:21], 1'b0 };
+
+    assign  imm_mux = (|{inst_lui, inst_auipc}) ? imm_u :
+                      (inst_store) ? imm_s :
+                      imm_i;
+    assign  o_bus.imm_j = inst_jal ? imm_j : imm_b;
+    assign  o_bus.imm_i = imm_mux;
 
 `ifdef EXTENSION_C
     assign  inst_c_q0 = (op[1:0] == RV32_C_Q0_DET);
@@ -323,13 +332,11 @@ module rv_decode
                                     });
 
     assign  o_bus.op2_src.j = inst_jal;
-    assign  o_bus.op2_src.u = |{inst_lui, inst_auipc};
-    assign  o_bus.op2_src.i = (|{inst_jalr, inst_load, inst_imm})
+    assign  o_bus.op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store})
 `ifdef EXTENSION_C
                                 & (!(|{inst_c_lwsp,inst_c_swsp}))
 `endif
                                     ;
-    assign  o_bus.op2_src.s = inst_store;
     assign  o_bus.op2_src.r = !(|{inst_jal,inst_lui, inst_auipc,inst_jalr, inst_load, inst_imm,inst_store})
 `ifdef EXTENSION_C
                                     & (!imm_is_c);
@@ -367,9 +374,12 @@ module rv_decode
                                         inst_c_xor,inst_c_or
 `endif
                                     };
-    assign  o_bus.alu_ctrl.res_arith = |{inst_slli,inst_sll,
-                                         inst_srli,inst_srl,inst_srai,inst_sra,
-                                         inst_sub, inst_add
+    assign  o_bus.alu_ctrl.res_shift = |{inst_slli,inst_sll,inst_srli,inst_srl,inst_srai,inst_sra
+`ifdef EXTENSION_C
+                                        ,inst_c_slli,inst_c_srai,inst_c_srli
+`endif
+                                    };
+    assign  o_bus.alu_ctrl.res_arith = |{inst_sub, inst_add
 `ifdef EXTENSION_C
                                         ,inst_c_addi16sp,inst_c_addi4spn,
                                         inst_c_addi,inst_c_add,

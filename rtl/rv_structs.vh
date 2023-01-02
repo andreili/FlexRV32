@@ -18,9 +18,7 @@ typedef struct packed
 typedef struct packed
 {
     logic                   i;
-    logic                   u;
     logic                   j;
-    logic                   s;
 `ifdef EXTENSION_C
     logic                   c;
 `endif
@@ -32,6 +30,7 @@ typedef struct packed
 {
     logic                   res_cmp;
     logic                   res_bits;
+    logic                   res_shift;
     // always latest of result - it's default
     logic                   res_arith;
 
@@ -68,9 +67,6 @@ typedef struct packed
     logic[4:0]              rd;
     logic[31:0]             imm_i;
     logic[31:0]             imm_j;
-    logic[31:0]             imm_u;
-    logic[31:0]             imm_b;
-    logic[31:0]             imm_s;
 `ifdef EXTENSION_C
     logic[31:0]             imm_c;
 `endif

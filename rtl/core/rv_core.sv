@@ -97,10 +97,7 @@ module rv_core
     logic[4:0]  alu_rs2;
     logic[4:0]  alu_rd;
     logic[31:0] alu_imm_i;
-    logic[31:0] alu_imm_u;
     logic[31:0] alu_imm_j;
-    logic[31:0] alu_imm_b;
-    logic[31:0] alu_imm_s;
 `ifdef EXTENSION_C
     logic[31:0] alu_imm_c;
     logic       alu_compressed;
@@ -122,9 +119,6 @@ module rv_core
         alu_rd   <= decode_bus.rd;
         alu_imm_i  <= decode_bus.imm_i;
         alu_imm_j  <= decode_bus.imm_j;
-        alu_imm_u  <= decode_bus.imm_u;
-        alu_imm_b  <= decode_bus.imm_b;
-        alu_imm_s  <= decode_bus.imm_s;
     `ifdef EXTENSION_C
         alu_imm_c  <= decode_bus.imm_c;
         alu_compressed <= decode_bus.inst_compressed;
@@ -149,18 +143,16 @@ module rv_core
     assign  alu_reg_data1 = (|alu_rs1) ? reg_rdata1 : '0;
     assign  alu_reg_data2 = (|alu_rs2) ? reg_rdata2 : '0;
 
-    logic[31:0] pc_jalr, pc_jal, pc_branch;
+    logic[31:0] pc_jalr, pc_jal/*, pc_branch*/;
 
     assign  pc_jalr   = alu_reg_data1 + (alu_compressed ? alu_imm_c : alu_imm_i);
     assign  pc_jal    = alu_pc + (alu_compressed ? alu_imm_c : alu_imm_j);
-    assign  pc_branch = alu_pc + (alu_compressed ? alu_imm_c : alu_imm_b);
 
     always_comb
     begin
         case (1'b1)
         alu_inst_jalr:   alu_pc_target = pc_jalr;
-        alu_inst_jal:    alu_pc_target = pc_jal;
-        alu_inst_branch: alu_pc_target = pc_branch;
+        |{alu_inst_jal,alu_inst_branch}:    alu_pc_target = pc_jal;
         default:         alu_pc_target = alu_pc;
         endcase
     end
@@ -177,9 +169,7 @@ module rv_core
     begin
         case (1'b1)
         alu_op2_sel.i: alu_op2 = alu_imm_i;
-        alu_op2_sel.u: alu_op2 = alu_imm_u;
         alu_op2_sel.j: alu_op2 = alu_imm_j;
-        alu_op2_sel.s: alu_op2 = alu_imm_s;
     `ifdef EXTENSION_C
         alu_op2_sel.c: alu_op2 = alu_imm_c;
     `endif
@@ -192,6 +182,7 @@ module rv_core
     logic[32:0] alu2_add;
     logic[31:0] alu2_xor, alu2_or, alu2_and, alu2_shl;
     logic[32:0] alu2_shr;
+    logic[31:0] alu2_shift_result;
     logic       alu2_cmp_result;
     logic[31:0] alu2_bits_result;
     logic       alu2_carry;
@@ -235,7 +226,7 @@ module rv_core
     end
 
     // adder - for all (add/sub/cmp)
-    assign  alu2_op_b_sel = (alu2_ctrl.arith_sub | alu2_ctrl.res_cmp);
+    assign  alu2_op_b_sel = (alu2_ctrl.arith_sub | alu2_ctrl.res_cmp | alu2_ctrl.res_shift);
     assign  alu2_op_b     = alu2_op_b_sel ? (~alu2_op2) : alu2_op2;
     assign  alu2_add      = alu2_op1 + alu2_op_b + { {32{1'b0}}, alu2_op_b_sel};
     assign  alu2_negative = alu2_add[31];
@@ -261,6 +252,9 @@ module rv_core
         endcase
     end
 
+    logic   alu2_pc_select;
+    assign  alu2_pc_select = /*(!fetch_bp_need) & */(alu2_inst_jalr | alu2_inst_jal | (alu2_inst_branch & (alu2_cmp_result)));
+
     always_comb
     begin
         case (1'b1)
@@ -270,12 +264,19 @@ module rv_core
         endcase
     end
 
+    always_comb
+    begin
+        case (1'b1)
+        alu2_ctrl.arith_shr: alu2_shift_result = alu2_shr[31:0];
+        default:             alu2_shift_result = alu2_shl;
+        endcase
+    end
+
     logic       alu3_cmp_result;
+    logic       alu3_pc_select;
     logic[31:0] alu3_bits_result;
-    logic[31:0] alu3_ariph_result;
     logic[31:0] alu3_add;
-    logic[31:0] alu3_shl;
-    logic[32:0] alu3_shr;
+    logic[31:0] alu3_shift_result;
     logic[31:0] alu3_result;
     alu_ctrl_t  alu3_ctrl;
     logic       alu3_store;
@@ -293,18 +294,15 @@ module rv_core
 
     always_ff @(posedge i_clk)
     begin
-        alu3_cmp_result  <= alu2_cmp_result;
         alu3_bits_result <= alu2_bits_result;
+        alu3_pc_select <= alu2_pc_select;
+        alu3_cmp_result <= alu2_cmp_result;
         alu3_add <= alu2_add[31:0];
-        alu3_shl <= alu2_shl;
-        alu3_shr <= alu2_shr;
+        alu3_shift_result <= alu2_shift_result;
         alu3_ctrl <= alu2_ctrl;
         alu3_store <= alu2_store;
         alu3_reg_write <= alu2_reg_write;
         alu3_rd <= alu2_rd;
-        alu3_inst_jalr   <= alu2_inst_jalr;
-        alu3_inst_jal    <= alu2_inst_jal;
-        alu3_inst_branch <= alu2_inst_branch;
         alu3_pc <= alu2_pc;
         alu3_pc_target <= alu2_pc_target;
         alu3_res_src <= alu2_res_src;
@@ -318,24 +316,12 @@ module rv_core
     always_comb
     begin
         case (1'b1)
-        alu3_ctrl.arith_sub: alu3_ariph_result = alu3_add[31:0];
-        alu3_ctrl.arith_shl: alu3_ariph_result = alu3_shl;
-        alu3_ctrl.arith_shr: alu3_ariph_result = alu3_shr[31:0];
-        default:             alu3_ariph_result = alu3_add[31:0];
+        alu3_ctrl.res_cmp:   alu3_result = { {31{1'b0}}, alu3_cmp_result };
+        alu3_ctrl.res_bits:  alu3_result = alu3_bits_result;
+        alu3_ctrl.res_shift: alu3_result = alu3_shift_result;
+        default:             alu3_result = alu3_add[31:0];
         endcase
     end
-
-    always_comb
-    begin
-        case (1'b1)
-        alu3_ctrl.res_cmp:  alu3_result = { {31{1'b0}}, alu3_cmp_result };
-        alu3_ctrl.res_bits: alu3_result = alu3_bits_result;
-        default:            alu3_result = alu3_ariph_result;
-        endcase
-    end
-
-    logic   alu3_pc_select;
-    assign  alu3_pc_select = /*(!fetch_bp_need) & */(alu3_inst_jalr | alu3_inst_jal | (alu3_inst_branch & (alu3_cmp_result)));
 
     always_comb
     begin
