@@ -354,7 +354,6 @@ module rv_core
 
     logic[2:0]  memory_funct3;
     logic[31:0] memory_alu_result;
-    logic[31:0] memory_reg_data2;
     logic[31:0] memory_wdata;
     logic[3:0]  memory_sel;
     logic       memory_reg_write;
@@ -368,7 +367,6 @@ module rv_core
     always_ff @(posedge i_clk)
     begin
         memory_funct3  <= alu3_funct3;
-        memory_reg_data2 <= alu3_reg_data2;
         memory_alu_result <= alu3_result;
         memory_reg_write <= alu3_reg_write;
         memory_rd <= alu3_rd;
