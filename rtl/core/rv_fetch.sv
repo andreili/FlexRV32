@@ -56,19 +56,10 @@ module rv_fetch
 
     always_ff @(posedge i_clk)
     begin
-        if (!i_reset_n)
-            fetch_pc <= RESET_ADDR;
-        else if (i_ack && (free_dword_or_more))
+        if ((!i_reset_n) | (i_ack & (free_dword_or_more)))
             fetch_pc <= fetch_pc_next;
     end
 
-    /*always_ff @(posedge i_clk)
-    begin
-        if ((!i_reset_n) | (!free_dword_or_more))
-            bus_cyc <= '0;
-        else
-            bus_cyc <= '1;
-    end*/
     assign  bus_cyc = i_reset_n & free_dword_or_more;
 
     logic   ack_sync;

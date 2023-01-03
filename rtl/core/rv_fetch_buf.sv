@@ -58,33 +58,40 @@ module rv_fetch_buf
     logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_next;
     logic[31:0] pc_next;
 
-    //assign  next = { buffer[3], buffer[1], i_data[31:16], i_data[15:0] };
+    logic[3:0]  update_1_word;
+    logic[3:0]  update_2_word;
+
+    assign  update_2_word[0] = (push_word & (free_cnt==4)) | (push_double_word & (free_cnt==5));
+    assign  update_1_word[0] = (push_double_word & (free_cnt==4));
     assign  next[0] = ((!i_reset_n) | i_pc_select) ? '0 :
-                        (push_word & (free_cnt==4)) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==4)) ? i_data[15:0] :
+                        update_2_word[0] ? i_data[31:16] :
+                        update_1_word[0] ? i_data[15:0] :
                         pop_word ? buffer[1] :
                         pop_double_word ? buffer[2] :
                         buffer[0];
-    //assign  next[1] = ((!i_reset_n) | i_pc_select) ? '0 : i_data[31:16];
+    assign  update_2_word[1] = (push_word & (free_cnt==3)) | (push_double_word & (free_cnt==4));
+    assign  update_1_word[1] = (push_double_word & (free_cnt==3));
     assign  next[1] = ((!i_reset_n) | i_pc_select) ? '0 :
-                        (push_word & (free_cnt==3)) ? i_data[31:16] :
-                        (push_double_word & empty) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==3)) ? i_data[15:0] :
+                        update_2_word[1] ? i_data[31:16] :
+                        update_1_word[1] ? i_data[15:0] :
                         pop_word ? buffer[2] :
                         pop_double_word ? buffer[3] :
                         buffer[1];
+    assign  update_2_word[2] = (push_word & (free_cnt==2)) | (push_double_word & (free_cnt==3));
+    assign  update_1_word[2] = (push_double_word & (free_cnt==2));
     assign  next[2] = ((!i_reset_n) | i_pc_select) ? '0 :
-                        (push_word & (free_cnt==2)) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==3)) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==2)) ? i_data[15:0] :
+                        update_2_word[2] ? i_data[31:16] :
+                        update_1_word[2] ? i_data[15:0] :
                         pop_word ? buffer[3] :
                         pop_double_word ? '0 :
                         buffer[2];
+    assign  update_2_word[3] = (push_word & (free_cnt==1)) | (push_double_word & (free_cnt==2));
+    assign  update_1_word[3] = (push_double_word & (free_cnt==1));
     assign  next[3] = ((!i_reset_n) | i_pc_select) ? '0 :
-                        (push_word & (free_cnt==1)) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==2)) ? i_data[31:16] :
-                        (push_double_word & (free_cnt==1)) ? i_data[15:0] :
-                        (pop_word | pop_double_word) ? '0 :
+                        update_2_word[3] ? i_data[31:16] :
+                        update_1_word[3] ? i_data[15:0] :
+                        pop_word ? '0 :
+                        pop_double_word ? '0 :
                         buffer[3];
     assign  pc_next = ((!i_reset_n) | i_pc_select) ? i_fetch_pc_next :
                                 (pop_double_word) ? pc + 4 :
