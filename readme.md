@@ -6,18 +6,27 @@ This is my hobby project for deeper study of SystemVerilog and CPU architecture
 Core supported one modes - staged. On staged mode, one instruction executed on 5 ticks of main clock.
 Piplined mode must be implemented on future, after finished all extensions and features on staged mode.
 
-# Perfomance
-All perfomance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
+# Dependencies
+- RISC-V GCC >= 12 (riscv64-unknown-elf)
+- Verilator >= 4.226
+- Make
+
+# Perfomarnce
+All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
 |Minimal|642|188|90101|51.281|0.273|
 |C|-|-|-|-|-|
 |Prefetch(2)|776|173|82912|47.19|0.273|
 |Prefetch(2)+C|846|172|82433|46.917|0.273|
+
+# Features
+- Prefetch buffer - need to pipelined architecture for more performance.
+- Extensions:
+  - C extension.
  
 # TODO
 - Extensions:
-  - C extension.
   - Zicsr extension (with Zicntr and Zihpm features, WIP).
   - M extension.
   - F extension.
