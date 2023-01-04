@@ -15,7 +15,8 @@ module rv_fetch_buf
     output  wire                        o_free_dword_or_more,
     output  wire[31:0]                  o_pc_incr,
     output  wire[31:0]                  o_pc,
-    output  wire[31:0]                  o_instruction
+    output  wire[31:0]                  o_instruction,
+    output  wire                        o_ready
 );
 
     logic[`INSTR_BUF_SIZE_BITS-1:0] buffer[`INSTR_BUF_SIZE];
@@ -128,5 +129,6 @@ module rv_fetch_buf
     //assign  o_instruction = move ? {buffer[1], buffer[0] } : '0;
     assign  o_instruction[31:16] = (move & (!out_comp)) ? buffer[1] : '0;
     assign  o_instruction[15: 0] = move ? buffer[0] : '0;
+    assign  o_ready = have_valid_instr;
 
 endmodule

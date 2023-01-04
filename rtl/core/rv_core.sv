@@ -28,6 +28,8 @@ module rv_core
 );
 
     logic   instr_cyc;
+    fetch_bus_t fetch_bus;
+    decode_bus_t decode_bus;
 
     logic[3:0]  state_cur, state_nxt;
     localparam  STATE_FETCH = 0;
@@ -42,7 +44,7 @@ module rv_core
     begin
         case (state_cur)
         STATE_FETCH: state_nxt = i_wb_ack ? STATE_RS : STATE_FETCH;
-        STATE_RS: state_nxt = STATE_ALU1;
+        STATE_RS: state_nxt = fetch_bus.ready ? STATE_ALU1 : STATE_RS;
         STATE_ALU1: state_nxt = STATE_ALU2;
         STATE_ALU2: state_nxt = STATE_ALU3;
         STATE_ALU3: state_nxt = STATE_MEM;
@@ -62,9 +64,6 @@ module rv_core
 
     logic[31:0] reg_rdata1, reg_rdata2;
     logic[31:0] fetch_addr;
-
-    fetch_bus_t fetch_bus;
-    decode_bus_t decode_bus;
 
     rv_fetch
     #(

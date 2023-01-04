@@ -3,8 +3,8 @@ TOOLCHAIN_NAME = riscv64-unknown-elf
 
 WORK_DIR = out
 LD_SCRIPT = ../riscv_soc.ld
-#DEV_ARCH = rv32i
-DEV_ARCH = rv32ic
+DEV_ARCH = rv32i
+#DEV_ARCH = rv32ic
 
 AS = $(TOOLCHAIN_NAME)-as
 GCC = $(TOOLCHAIN_NAME)-gcc

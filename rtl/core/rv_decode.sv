@@ -62,7 +62,7 @@ module rv_decode
     logic   inst_ecall, inst_ebreak;
     logic   inst_fence, inst_fence_i;
 
-    assign  op        = i_bus.instruction[ 6: 0];
+    assign  op        = { i_bus.instruction[ 6: 1], i_bus.ready & i_bus.instruction[0] };
 `ifdef EXTENSION_C
     assign  o_bus.rd  = inst_full ? i_bus.instruction[11: 7] : c_rd_mux;
     assign  o_bus.rs1 = inst_lui ? '0 : (inst_full ? i_bus.instruction[19:15] : c_rs1_mux);
@@ -176,8 +176,6 @@ module rv_decode
     assign  o_bus.imm_c = (inst_c_lwsp) ? imm_c_lx :
                     (inst_c_swsp) ? imm_c_sx :
                     (inst_c_lw | inst_c_sw) ? imm_c_lw :
-                    (inst_c_j | inst_c_jal) ? imm_c_j :
-                    (inst_c_beqz | inst_c_bnez) ? imm_c_b :
                     (inst_c_li | inst_c_addi | inst_c_andi) ? imm_c_li :
                     (inst_c_lui) ? imm_c_lui :
                     (inst_c_addi16sp) ? imm_c_a16s :

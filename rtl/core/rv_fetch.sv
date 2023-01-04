@@ -23,8 +23,7 @@ module rv_fetch
     logic[31:0] fetch_pc;
     logic[31:0] fetch_pc_next;
     logic[31:0] fetch_pc_incr;
-    logic       free_dword_or_more;
-    //logic       fetch_ready;
+    logic       move_pc;
 `ifdef BRANCH_PREDICTION_SIMPLE
     logic[31:0] fetch_bp_lr;    // TODO
     logic[6:0]  fetch_bp_op;
@@ -56,13 +55,14 @@ module rv_fetch
 
     always_ff @(posedge i_clk)
     begin
-        if ((!i_reset_n) | (i_ack & (free_dword_or_more)))
+        if ((!i_reset_n) | move_pc)
             fetch_pc <= fetch_pc_next;
     end
 
-    assign  bus_cyc = i_reset_n & free_dword_or_more;
-
+`ifdef PREFETCH_BUFFER
     logic   ack_sync;
+    logic   free_dword_or_more;
+
     always_ff @(posedge i_clk)
     begin
         ack_sync <= i_ack & (!i_pc_select);
@@ -82,8 +82,31 @@ module rv_fetch
         .o_free_dword_or_more           (free_dword_or_more),
         .o_pc_incr                      (fetch_pc_incr),
         .o_pc                           (o_bus.pc),
-        .o_instruction                  (o_bus.instruction)
+        .o_instruction                  (o_bus.instruction),
+        .o_ready                        (o_bus.ready)
     );
+
+    assign  move_pc = (i_ack & free_dword_or_more);
+    assign  bus_cyc = i_reset_n & free_dword_or_more;
+`else
+    // latch and alignment logic
+    logic[31:0] instruction;
+
+    always_ff @(posedge i_clk)
+    begin
+        if (i_pc_inc & i_ack)
+            instruction <= i_instruction;
+        else
+            instruction <= '0;
+    end
+
+    assign  o_bus.pc = fetch_pc;
+    assign  o_bus.instruction = instruction;
+    assign  o_bus.ready = '1;
+    assign  fetch_pc_incr = 4;
+    assign  bus_cyc = i_reset_n;
+    assign  move_pc = i_pc_inc | i_pc_select;
+`endif
 
 `ifdef BRANCH_PREDICTION_SIMPLE
     assign  fetch_bp_op        = fetch_data_buf[6:0];

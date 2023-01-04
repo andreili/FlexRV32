@@ -57,6 +57,7 @@ typedef struct packed
 {
     logic[31:0]             instruction;
     logic[31:0]             pc;
+    logic                   ready;
 } fetch_bus_t;
 
 typedef struct packed
