@@ -119,7 +119,9 @@ module rv_decode
 
     assign  imm_mux = (|{inst_lui, inst_auipc}) ? imm_u :
                       (inst_store) ? imm_s :
+`ifdef EXTENSION_C
                       (|{inst_c_jr, inst_c_jalr}) ? '0 :
+`endif
                       imm_i;
 `ifdef EXTENSION_C
     logic[31:0] imm_j_b;
@@ -133,11 +135,11 @@ module rv_decode
 `endif
     assign  o_bus.imm_i = imm_mux;
 
+    assign  inst_full = (op[1:0] == RV32_OPC_DET);
 `ifdef EXTENSION_C
     assign  inst_c_q0 = (op[1:0] == RV32_C_Q0_DET);
     assign  inst_c_q1 = (op[1:0] == RV32_C_Q1_DET);
     assign  inst_c_q2 = (op[1:0] == RV32_C_Q2_DET);
-    assign  inst_full = (op[1:0] == RV32_OPC_DET);
 
     logic[31:0] imm_c_lx;
     logic[31:0] imm_c_sx;

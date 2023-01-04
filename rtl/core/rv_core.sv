@@ -444,7 +444,13 @@ module rv_core
     begin
         case (1'b1)
         write_res_src.memory: write_data = write_rdata;
-        write_res_src.pc_p4:  write_data = (write_pc + (write_compressed ? 2 : 4));
+        write_res_src.pc_p4:  write_data = (write_pc + 
+`ifdef EXTENSION_C
+                (write_compressed ? 2 : 4)
+`else
+                4
+`endif
+            );
         default:              write_data = write_alu_result;
         endcase
     end
