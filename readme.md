@@ -11,7 +11,7 @@ Piplined mode must be implemented on future, after finished all extensions and f
 - Verilator >= 4.226
 - Make
 
-# Perfomarnce
+# Performance
 All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
