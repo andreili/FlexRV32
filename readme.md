@@ -15,7 +15,7 @@ Piplined mode must be implemented on future, after finished all extensions and f
 All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|Minimal|510|182|90580|51.55|0.283|
+|Minimal|510|182|87226|49.64|0.273|
 |Prefetch(2)|645|187|89622|51.01|0.273|
 |C|621|171|78026|44.41|0.260|
 |Prefetch(2)+C|733|177|83156|47.33|0.267|
