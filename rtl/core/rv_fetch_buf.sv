@@ -106,13 +106,15 @@ module rv_fetch_buf
     end
 
     logic       move;
+    logic       decode_ready;
 
     always_ff @(posedge i_clk)
     begin
+        decode_ready <= i_decode_ready;
         if (!i_reset_n)
             move <= '0;
         else
-            move <= i_decode_ready & have_valid_instr;
+            move <= decode_ready & have_valid_instr;
     end
 
     logic[1:0]  out_type;

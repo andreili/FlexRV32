@@ -15,10 +15,10 @@ Piplined mode must be implemented on future, after finished all extensions and f
 All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|Minimal|642|188|90101|51.281|0.273|
-|C|-|-|-|-|-|
-|Prefetch(2)|776|173|82912|47.19|0.273|
-|Prefetch(2)+C|846|172|82433|46.917|0.273|
+|Minimal|563|166|79557|45.28|0.273|
+|Prefetch(2)|706|179|85788|48.83|0.273|
+|C|705|166|75744|43.11|0.26|
+|Prefetch(2)+C|779|165|77518|44.12|0.26|
 
 # Features
 - Prefetch buffer - need to pipelined architecture for more performance.

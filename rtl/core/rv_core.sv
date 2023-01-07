@@ -75,7 +75,8 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_pc_target                    (alu3_pc_target),
         .i_pc_select                    (alu3_pc_select),
-        .i_pc_inc                       (state_cur == STATE_FETCH),
+        .i_fetch_start                  (state_cur == STATE_WR),
+        //.i_pc_inc                       (state_cur == STATE_FETCH),
         //.i_data_latch                   (state_cur == STATE_FETCH),
         .i_instruction                  (i_wb_dat),
         .i_ack                          (instr_ack),//(state_cur == STATE_FETCH),//(1'b1),
@@ -481,11 +482,11 @@ module rv_core
     assign o_wb_cyc = '1;
     assign o_debug = '0;
 
-    /*always_ff @(posedge i_clk)
+    always_ff @(posedge i_clk)
     begin
         instr_ack <= i_wb_ack & (!bus_data) & instr_cyc;
-    end*/
-    assign  instr_ack = i_wb_ack & (!bus_data) & instr_cyc;
+    end
+    //assign  instr_ack = i_wb_ack & (!bus_data) & instr_cyc;
 
     logic[127:0] dbg_state;
     always_comb
