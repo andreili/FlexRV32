@@ -344,7 +344,7 @@ module rv_decode
     assign  o_bus.op2_src.j = inst_jal;
     assign  o_bus.op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store})
 `ifdef EXTENSION_C
-                                & (!(|{inst_c_lwsp,inst_c_swsp}))
+                                & (!(|{inst_c_lwsp,inst_c_swsp,inst_c_lw,inst_c_sw}))
 `endif
                                     ;
     assign  o_bus.op2_src.r = !(|{inst_jal,inst_lui, inst_auipc,inst_jalr, inst_load, inst_imm,inst_store})
@@ -389,11 +389,13 @@ module rv_decode
                                         ,inst_c_slli,inst_c_srai,inst_c_srli
 `endif
                                     };
-    assign  o_bus.alu_ctrl.res_arith = |{inst_sub, inst_add
+    assign  o_bus.alu_ctrl.res_arith = |{inst_sub, inst_add, inst_load, inst_store
 `ifdef EXTENSION_C
                                         ,inst_c_addi16sp,inst_c_addi4spn,
                                         inst_c_addi,inst_c_add,
-                                        inst_c_li, inst_c_mv
+                                        inst_c_li, inst_c_mv,
+                                        inst_c_lw,inst_c_lwsp,
+                                        inst_c_sw,inst_c_swsp
 `endif
                                     };
     assign  o_bus.alu_ctrl.cmp_eq  = |{inst_beq,inst_bne
@@ -438,11 +440,13 @@ module rv_decode
                                         ,inst_c_sub
 `endif
                                         };
-    assign  o_bus.alu_ctrl.arith_add = |{inst_add,inst_addi
+    assign  o_bus.alu_ctrl.arith_add = |{inst_add,inst_addi,inst_load,inst_store
 `ifdef EXTENSION_C
                                         ,inst_c_addi16sp,inst_c_addi4spn,
                                         inst_c_addi,inst_c_add,
-                                        inst_c_li, inst_c_mv
+                                        inst_c_li, inst_c_mv,
+                                        inst_c_lw,inst_c_lwsp,
+                                        inst_c_sw,inst_c_swsp
 `endif
                                             };
     assign  o_bus.alu_ctrl.shift_arithmetical = |{inst_srai,inst_sra
