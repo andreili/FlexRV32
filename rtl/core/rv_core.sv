@@ -225,7 +225,7 @@ module rv_core
     end
 
     // adder - for all (add/sub/cmp)
-    assign  alu2_op_b_sel = (alu2_ctrl.arith_sub | alu2_ctrl.res_cmp | alu2_ctrl.res_shift);
+    assign  alu2_op_b_sel = (alu2_ctrl.arith_sub | alu2_ctrl.res_cmp);
     assign  alu2_op_b     = alu2_op_b_sel ? (~alu2_op2) : alu2_op2;
     assign  alu2_add      = alu2_op1 + alu2_op_b + { {32{1'b0}}, alu2_op_b_sel};
     assign  alu2_negative = alu2_add[31];
