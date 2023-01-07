@@ -16,7 +16,7 @@ All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA sy
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
 |Minimal|510|182|90580|51.55|0.283|
-|Prefetch(2)|187|179|89622|51.01|0.273|
+|Prefetch(2)|645|187|89622|51.01|0.273|
 |C|621|171|78026|44.41|0.260|
 |Prefetch(2)+C|733|177|83156|47.33|0.267|
 
