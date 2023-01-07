@@ -57,13 +57,13 @@ module rv_fetch
 
     always_ff @(posedge i_clk)
     begin
-        if ((!i_reset_n) | move_pc)
+        if (move_pc)
             fetch_pc <= fetch_pc_next;
     end
 
 `ifdef PREFETCH_BUFFER
-    logic   ack_sync;
     logic   free_dword_or_more;
+    logic   ack_sync;
 
     always_ff @(posedge i_clk)
     begin
@@ -95,34 +95,35 @@ module rv_fetch
   `ifdef EXTENSION_C
 
     // latch and alignment logic
-    fetch_bus_t bus_o;
-    logic[1:0]  misal;
+    logic       misal;
+    logic       misal_prev;
     logic       ready_en;
     logic       instr_ready;
     logic[15:0] instr_lo_hw;
     logic[31:0] instr_concat;
     logic[31:0] instr_mux;
-    logic[31:0] misal_inc;
-    //logic       cyc_next;
+    logic       fetch_inc_bit;
+
+    assign  fetch_inc_bit = (!misal) & bus_cyc & fetch_pc[1];
 
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
-            misal[0] <= '0;
+            misal <= '0;
         else if (bus_cyc & fetch_pc[1])
-            misal[0] <= !misal[0];
+            misal <= !misal;
+        fetch_addr <= fetch_pc + { 29'b0, fetch_inc_bit, 2'b0 };
     end
     always_ff @(posedge i_clk)
     begin
-        if ((!i_reset_n) | misal[1])
-            misal[1] <= '0;
-        else if (misal[0])
-            misal[1] <= '1;
+        if ((!i_reset_n) | misal_prev)
+            misal_prev <= '0;
+        else if (misal)
+            misal_prev <= '1;
     end
-    //assign  misal = i_reset_n & i_ack & fetch_pc[1];
 
-    assign  ready_en = !(fetch_pc[1] & (!(|misal)));
-    assign  instr_ready = i_ack & i_reset_n & ready_en & (!misal[0]);
+    assign  ready_en = !(fetch_pc[1] & misal);
+    assign  instr_ready = i_ack & ready_en;
 
     always_ff @(posedge i_clk)
     begin
@@ -131,26 +132,21 @@ module rv_fetch
     end
 
     assign  instr_concat = { i_instruction[15:0], instr_lo_hw };
-    assign  instr_mux = misal[1] ? instr_concat : i_instruction;
-    //assign  cyc_next = i_fetch_start | misal;
+    assign  instr_mux = misal_prev ? instr_concat : i_instruction;
 
     always_ff @(posedge i_clk)
     begin
-        bus_o.ready <= instr_ready;
-        bus_o.pc <= fetch_pc;
-        //bus_cyc <= cyc_next;
+        o_bus.ready <= instr_ready;
+        o_bus.pc <= fetch_pc;
         if (instr_ready & i_reset_n)
-            bus_o.instruction <= instr_mux;
+            o_bus.instruction <= instr_mux;
         else
-            bus_o.instruction <= '0;
+            o_bus.instruction <= '0;
     end
 
-    assign  o_bus = bus_o;
     assign  fetch_pc_incr = (instr_mux[1:0] == 2'b11) ? 4 : 2;
-    assign  bus_cyc = i_fetch_start | misal[0];
+    assign  bus_cyc = i_fetch_start | misal;
     assign  move_pc = instr_ready | i_pc_select;
-    assign  misal_inc = misal[0] ? 32'd2 : '0;
-    assign  fetch_addr = fetch_pc + misal_inc;
 
   `else // EXTENSION_C
 

@@ -486,7 +486,6 @@ module rv_core
     begin
         instr_ack <= i_wb_ack & (!bus_data) & instr_cyc;
     end
-    //assign  instr_ack = i_wb_ack & (!bus_data) & instr_cyc;
 
     logic[127:0] dbg_state;
     always_comb
