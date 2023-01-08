@@ -150,6 +150,33 @@ typedef struct packed
 `endif
 } alu3_bus_t;
 
+typedef struct packed
+{
+    logic[2:0]  funct3;
+    logic[31:0] alu_result;
+    logic       reg_write;
+    logic[4:0]  rd;
+    res_src_t   res_src;
+    logic[31:0] pc;
+`ifdef EXTENSION_C
+    logic       compressed;
+`endif
+} memory_bus_t;
+
+typedef struct packed
+{
+    logic[31:0] alu_result;
+    logic[31:0] pc;
+    res_src_t   res_src;
+    logic       reg_write;
+    logic[4:0]  rd;
+    logic[2:0]  funct3;
+    logic[31:0] rdata;
+`ifdef EXTENSION_C
+    logic       compressed;
+`endif
+} write_bus_t;
+
 /*typedef struct packed
 {
     logic[31:0] alu_result;

@@ -33,6 +33,8 @@ module rv_core
     alu1_bus_t  alu1_bus;
     alu2_bus_t  alu2_bus;
     alu3_bus_t  alu3_bus;
+    memory_bus_t memory_bus;
+    write_bus_t write_bus;
 
     logic[3:0]  state_cur, state_nxt;
     localparam  STATE_FETCH = 0;
@@ -127,105 +129,33 @@ module rv_core
         .o_bus                          (alu3_bus)
     );
 
-    logic[2:0]  memory_funct3;
-    logic[31:0] memory_alu_result;
-    logic       memory_reg_write;
-    logic[4:0]  memory_rd;
-    res_src_t   memory_res_src;
-    logic[31:0] memory_pc;
-`ifdef EXTENSION_C
-    logic       memory_compressed;
-`endif
-
     always_ff @(posedge i_clk)
     begin
-        memory_funct3  <= alu3_bus.funct3;
-        memory_alu_result <= alu3_bus.alu_result;
-        memory_reg_write <= alu3_bus.reg_write;
-        memory_rd <= alu3_bus.rd;
-        memory_res_src <= alu3_bus.res_src;
-        memory_pc <= alu3_bus.pc;
+        memory_bus.funct3  <= alu3_bus.funct3;
+        memory_bus.alu_result <= alu3_bus.alu_result;
+        memory_bus.reg_write <= alu3_bus.reg_write;
+        memory_bus.rd <= alu3_bus.rd;
+        memory_bus.res_src <= alu3_bus.res_src;
+        memory_bus.pc <= alu3_bus.pc;
     `ifdef EXTENSION_C
-        memory_compressed <= alu3_bus.compressed;
+        memory_bus.compressed <= alu3_bus.compressed;
     `endif
     end
 
-    logic[31:0] mem_rdata;
-    logic[31:0] write_alu_result;
-    logic[31:0] write_pc;
-    res_src_t   write_res_src;
-    logic       write_reg_write;
-    logic[4:0]  write_rd;
-    logic[2:0]  write_funct3;
-`ifdef EXTENSION_C
-    logic       write_compressed;
-`endif
-    
-    always_ff @(posedge i_clk)
-    begin
-        write_alu_result <= memory_alu_result;
-        write_pc <= memory_pc;
-        write_res_src <= memory_res_src;
-        write_reg_write <= memory_reg_write;
-        write_rd <= memory_rd;
-        write_funct3 <= memory_funct3;
-        mem_rdata <= i_wb_dat;
-    `ifdef EXTENSION_C
-        write_compressed <= memory_compressed;
-    `endif
-    end
-
-    logic[7:0]  write_byte;
-    logic[15:0] write_half_word;
-    logic[31:0] write_rdata;
     logic[31:0] write_data;
-
-    always_comb
-    begin
-        case (write_alu_result[1:0])
-        2'b00: write_byte = mem_rdata[ 0+:8];
-        2'b01: write_byte = mem_rdata[ 8+:8];
-        2'b10: write_byte = mem_rdata[16+:8];
-        2'b11: write_byte = mem_rdata[24+:8];
-        endcase
-    end
-
-    always_comb
-    begin
-        case (write_alu_result[1])
-        1'b0: write_half_word = mem_rdata[ 0+:16];
-        1'b1: write_half_word = mem_rdata[16+:16];
-        endcase
-    end
-
-    always_comb
-    begin
-        case (write_funct3)
-        3'b000: write_rdata = { {24{write_byte[7]}}, write_byte};
-        3'b001: write_rdata = { {16{write_half_word[15]}}, write_half_word};
-        3'b010: write_rdata = mem_rdata;
-        3'b011: write_rdata = '0;
-        3'b100: write_rdata = { {24{1'b0}}, write_byte};
-        3'b101: write_rdata = { {16{1'b0}}, write_half_word};
-        3'b110: write_rdata = '0;
-        3'b111: write_rdata = '0;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        write_res_src.memory: write_data = write_rdata;
-        write_res_src.pc_p4:  write_data = (write_pc + 
-`ifdef EXTENSION_C
-                (write_compressed ? 2 : 4)
-`else
-                4
-`endif
-            );
-        default:              write_data = write_alu_result;
-        endcase
-    end
+    logic[4:0]  write_rd;
+    logic       write_op;
+    
+    rv_write
+    u_st6_write
+    (
+        .i_clk                          (i_clk),
+        .i_bus                          (memory_bus),
+        .i_data                         (i_wb_dat),
+        .o_data                         (write_data),
+        .o_rd                           (write_rd),
+        .o_write_op                     (write_op)
+    );
 
     rv_regs
     u_regs
@@ -235,7 +165,7 @@ module rv_core
         .i_rs1                          (decode_bus.rs1),
         .i_rs2                          (decode_bus.rs2),
         .i_rd                           (write_rd),
-        .i_write                        (write_reg_write),
+        .i_write                        (write_op),
         .i_data                         (write_data),
         .o_data1                        (reg_rdata1),
         .o_data2                        (reg_rdata2)
