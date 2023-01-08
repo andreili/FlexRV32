@@ -30,6 +30,8 @@ module rv_core
     logic   instr_cyc;
     fetch_bus_t fetch_bus;
     decode_bus_t decode_bus;
+    alu1_bus_t  alu1_bus;
+    alu2_bus_t  alu2_bus;
 
     logic[3:0]  state_cur, state_nxt;
     localparam  STATE_FETCH = 0;
@@ -93,183 +95,23 @@ module rv_core
         .o_bus                          (decode_bus)
     );
 
-    logic[4:0]  alu_rs1;
-    logic[4:0]  alu_rs2;
-    logic[4:0]  alu_rd;
-    logic[31:0] alu_imm_i;
-    logic[31:0] alu_imm_j;
-`ifdef EXTENSION_C
-    logic[31:0] alu_imm_c;
-    logic       alu_compressed;
-`endif
-    src_op1_t   alu_op1_sel;
-    src_op2_t   alu_op2_sel;
-    alu_ctrl_t  alu_ctrl;
-    logic       alu_inst_jalr, alu_inst_jal, alu_inst_branch;
-    logic[2:0]  alu_funct3;
-    logic       alu_store;
-    res_src_t   alu_res_src;
-    logic       alu_reg_write;
-    logic[31:0] alu_pc;
+    rv_alu1
+    u_st3_alu1
+    (
+        .i_clk                          (i_clk),
+        .i_bus                          (decode_bus),
+        .i_reg1_data                    (reg_rdata1),
+        .i_reg2_data                    (reg_rdata2),
+        .o_bus                          (alu1_bus)
+    );
 
-    always_ff @(posedge i_clk)
-    begin
-        alu_rs1  <= decode_bus.rs1;
-        alu_rs2  <= decode_bus.rs2;
-        alu_rd   <= decode_bus.rd;
-        alu_imm_i  <= decode_bus.imm_i;
-        alu_imm_j  <= decode_bus.imm_j;
-    `ifdef EXTENSION_C
-        alu_imm_c  <= decode_bus.imm_c;
-        alu_compressed <= decode_bus.inst_compressed;
-    `endif
-        alu_ctrl <= decode_bus.alu_ctrl;
-        alu_funct3  <= decode_bus.funct3;
-        alu_res_src <= decode_bus.res_src;
-        alu_op1_sel <= decode_bus.op1_src;
-        alu_op2_sel <= decode_bus.op2_src;
-        alu_reg_write   <= decode_bus.reg_write;
-        alu_inst_jalr   <= decode_bus.inst_jalr;
-        alu_inst_jal    <= decode_bus.inst_jal;
-        alu_inst_branch <= decode_bus.inst_branch;
-        alu_store <= decode_bus.inst_store;
-        alu_pc <= decode_bus.pc;
-    end
-
-    logic[31:0] alu_reg_data1, alu_reg_data2;
-    logic[31:0] alu_op1, alu_op2;
-    logic[31:0] alu_pc_target;
-
-    assign  alu_reg_data1 = (|alu_rs1) ? reg_rdata1 : '0;
-    assign  alu_reg_data2 = (|alu_rs2) ? reg_rdata2 : '0;
-
-    logic[31:0] pc_jalr, pc_jal/*, pc_branch*/;
-
-    assign  pc_jalr   = alu_reg_data1 + alu_imm_i;
-    assign  pc_jal    = alu_pc + alu_imm_j;
-
-    always_comb
-    begin
-        case (1'b1)
-        alu_inst_jalr:   alu_pc_target = pc_jalr;
-        default:    alu_pc_target = pc_jal;
-        //default:         alu_pc_target = alu_pc;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        alu_op1_sel.pc: alu_op1 = alu_pc;
-        default:        alu_op1 = alu_reg_data1;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        alu_op2_sel.i: alu_op2 = alu_imm_i;
-        alu_op2_sel.j: alu_op2 = alu_imm_j;
-    `ifdef EXTENSION_C
-        alu_op2_sel.c: alu_op2 = alu_imm_c;
-    `endif
-        default:       alu_op2 = alu_reg_data2;
-        endcase
-    end
-
-    logic[31:0] alu2_op1, alu2_op2;
-    logic       alu2_eq, alu2_lts, alu2_ltu;
-    logic[32:0] alu2_add;
-    logic[31:0] alu2_xor, alu2_or, alu2_and, alu2_shl;
-    logic[32:0] alu2_shr;
-    logic[31:0] alu2_shift_result;
-    logic       alu2_cmp_result;
-    logic[31:0] alu2_bits_result;
-    logic       alu2_carry;
-    logic       alu2_op_b_sel;
-    logic[31:0] alu2_op_b;
-    logic       alu2_negative;
-    logic       alu2_overflow;
-    alu_ctrl_t  alu2_ctrl;
-    logic       alu2_store;
-    logic       alu2_reg_write;
-    logic[4:0]  alu2_rd;
-    logic       alu2_inst_jal_jalr, alu2_inst_branch;
-    logic[31:0] alu2_pc;
-    logic[31:0] alu2_pc_target;
-    res_src_t   alu2_res_src;
-    logic[2:0]  alu2_funct3;
-    logic[31:0] alu2_reg_data2;
-`ifdef EXTENSION_C
-    logic       alu2_compressed;
-`endif
-    
-    always_ff @(posedge i_clk)
-    begin
-        alu2_op1 <= alu_op1;
-        alu2_op2 <= alu_op2;
-        alu2_ctrl <= alu_ctrl;
-        alu2_store <= alu_store;
-        alu2_reg_write <= alu_reg_write;
-        alu2_rd <= alu_rd;
-        alu2_inst_jal_jalr <= alu_inst_jal | alu_inst_jalr;
-        alu2_inst_branch <= alu_inst_branch;
-        alu2_pc <= alu_pc;
-        alu2_pc_target <= alu_pc_target;
-        alu2_res_src <= alu_res_src;
-        alu2_funct3 <= alu_funct3;
-        alu2_reg_data2 <= alu_reg_data2;
-    `ifdef EXTENSION_C
-        alu2_compressed <= alu_compressed;
-    `endif
-    end
-
-    // adder - for all (add/sub/cmp)
-    assign  alu2_op_b_sel = (alu2_ctrl.arith_sub | alu2_ctrl.res_cmp);
-    assign  alu2_op_b     = alu2_op_b_sel ? (~alu2_op2) : alu2_op2;
-    assign  alu2_add      = alu2_op1 + alu2_op_b + { {32{1'b0}}, alu2_op_b_sel};
-    assign  alu2_negative = alu2_add[31];
-    assign  alu2_overflow = (alu2_op1[31] ^ alu2_op2[31]) & (alu2_op1[31] ^ alu2_add[31]);
-    assign  alu2_carry    = alu2_add[32];
-
-    assign  alu2_eq  = alu2_ctrl.cmp_inversed ^ (alu2_op1 == alu2_op2);
-    assign  alu2_lts = alu2_ctrl.cmp_inversed ^ (alu2_negative ^ alu2_overflow);
-    assign  alu2_ltu = alu2_ctrl.cmp_inversed ^ (!alu2_carry);
-
-    assign  alu2_xor = alu2_op1 ^ alu2_op2;
-    assign  alu2_or  = alu2_op1 | alu2_op2;
-    assign  alu2_and = alu2_op1 & alu2_op2;
-    assign  alu2_shl = alu2_op1 << alu2_op2[4:0];
-    assign  alu2_shr = $signed({alu2_ctrl.shift_arithmetical ? alu2_op1[31] : 1'b0, alu2_op1}) >>> alu2_op2[4:0];
-
-    always_comb
-    begin
-        case (1'b1)
-        alu2_ctrl.cmp_lts: alu2_cmp_result = alu2_lts;
-        alu2_ctrl.cmp_ltu: alu2_cmp_result = alu2_ltu;
-        default:           alu2_cmp_result = alu2_eq;
-        endcase
-    end
-
-    logic   alu2_pc_select;
-    assign  alu2_pc_select = /*(!fetch_bp_need) & */(alu2_inst_jal_jalr | (alu2_inst_branch & (alu2_cmp_result)));
-
-    always_comb
-    begin
-        case (1'b1)
-        alu2_ctrl.bits_xor: alu2_bits_result = alu2_xor;
-        alu2_ctrl.bits_or:  alu2_bits_result = alu2_or;
-        default:            alu2_bits_result = alu2_and;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        alu2_ctrl.arith_shr: alu2_shift_result = alu2_shr[31:0];
-        default:             alu2_shift_result = alu2_shl;
-        endcase
-    end
+    rv_alu2
+    u_st4_alu2
+    (   
+        .i_clk                          (i_clk),
+        .i_bus                          (alu1_bus),
+        .o_bus                          (alu2_bus)
+    );
 
     logic       alu3_cmp_result;
     logic       alu3_pc_select;
@@ -281,7 +123,6 @@ module rv_core
     logic       alu3_store;
     logic       alu3_reg_write;
     logic[4:0]  alu3_rd;
-    logic       alu3_inst_jalr, alu3_inst_jal, alu3_inst_branch;
     logic[31:0] alu3_pc;
     logic[31:0] alu3_pc_target;
     res_src_t   alu3_res_src;
@@ -293,22 +134,22 @@ module rv_core
 
     always_ff @(posedge i_clk)
     begin
-        alu3_bits_result <= alu2_bits_result;
-        alu3_pc_select <= alu2_pc_select;
-        alu3_cmp_result <= alu2_cmp_result;
-        alu3_add <= alu2_add[31:0];
-        alu3_shift_result <= alu2_shift_result;
-        alu3_ctrl <= alu2_ctrl;
-        alu3_store <= alu2_store;
-        alu3_reg_write <= alu2_reg_write;
-        alu3_rd <= alu2_rd;
-        alu3_pc <= alu2_pc;
-        alu3_pc_target <= alu2_pc_target;
-        alu3_res_src <= alu2_res_src;
-        alu3_funct3 <= alu2_funct3;
-        alu3_reg_data2 <= alu2_reg_data2;
+        alu3_bits_result <= alu2_bus.bits_result;
+        alu3_pc_select <= alu2_bus.pc_select;
+        alu3_cmp_result <= alu2_bus.cmp_result;
+        alu3_add <= alu2_bus.add;
+        alu3_shift_result <= alu2_bus.shift_result;
+        alu3_ctrl <= alu2_bus.ctrl;
+        alu3_store <= alu2_bus.store;
+        alu3_reg_write <= alu2_bus.reg_write;
+        alu3_rd <= alu2_bus.rd;
+        alu3_pc <= alu2_bus.pc;
+        alu3_pc_target <= alu2_bus.pc_target;
+        alu3_res_src <= alu2_bus.res_src;
+        alu3_funct3 <= alu2_bus.funct3;
+        alu3_reg_data2 <= alu2_bus.reg_data2;
     `ifdef EXTENSION_C
-        alu3_compressed <= alu2_compressed;
+        alu3_compressed <= alu2_bus.compressed;
     `endif
     end
 
@@ -500,6 +341,10 @@ module rv_core
         STATE_WR:    dbg_state = "wr";
         endcase
     end
+
+`ifdef TO_SIM
+    assign  o_debug[0] = (!decode_bus.inst_supported) & (state_cur == STATE_RS);
+`endif
 
 endmodule
 /* verilator lint_on UNUSEDSIGNAL */

@@ -87,29 +87,48 @@ typedef struct packed
 `endif
 } decode_bus_t;
 
-/*typedef struct packed
+typedef struct packed
 {
-    logic[31:0] pc;
-    res_src_t   res_src;
+    logic[31:0] op1;
+    logic[31:0] op2;
+    alu_ctrl_t  alu_ctrl;
+    logic       store;
     logic       reg_write;
     logic[4:0]  rd;
+    logic       inst_jal_jalr;
+    logic       inst_branch;
+    logic[31:0] pc;
+    logic[31:0] pc_target;
+    res_src_t   res_src;
     logic[2:0]  funct3;
-    logic       store;
-
-    logic       alu3_cmp_result;
-    logic[31:0] alu3_bits_result;
-    logic[31:0] alu3_ariph_result;
-    logic[31:0] alu3_add;
-    logic[31:0] alu3_shl;
-    logic[32:0] alu3_shr;
-    logic[31:0] alu3_result;
-    alu_ctrl_t  alu3_ctrl;
-    logic       alu3_inst_jalr, alu3_inst_jal, alu3_inst_branch;
-    logic[31:0] alu3_pc_target;
-    logic[31:0] alu3_reg_data2;
-} alu3_data_t;
+    logic[31:0] reg_data2;
+`ifdef EXTENSION_C
+    logic       compressed;
+`endif
+} alu1_bus_t;
 
 typedef struct packed
+{
+    logic       cmp_result;
+    logic       pc_select;
+    logic[31:0] bits_result;
+    logic[31:0] add;
+    logic[31:0] shift_result;
+    alu_ctrl_t  ctrl;
+    logic       store;
+    logic       reg_write;
+    logic[4:0]  rd;
+    logic[31:0] pc;
+    logic[31:0] pc_target;
+    res_src_t   res_src;
+    logic[2:0]  funct3;
+    logic[31:0] reg_data2;
+`ifdef EXTENSION_C
+    logic       compressed;
+`endif
+} alu2_bus_t;
+
+/*typedef struct packed
 {
     logic[31:0] alu_result;
     logic[31:0] pc;

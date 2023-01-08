@@ -20,7 +20,6 @@ module rv_fetch
     output  fetch_bus_t                 o_bus
 );
 
-    logic       bus_cyc;
     logic[31:0] fetch_pc;
     logic[31:0] fetch_addr;
     logic[31:0] fetch_pc_next;
@@ -89,71 +88,34 @@ module rv_fetch
     );
 
     assign  move_pc = (i_ack & free_dword_or_more) | i_pc_select;
-    assign  bus_cyc = i_reset_n & free_dword_or_more;
+    assign  o_cyc = i_reset_n & free_dword_or_more;
     assign  fetch_addr = fetch_pc;
 `else // PREFETCH_BUFFER
   `ifdef EXTENSION_C
-
-    // latch and alignment logic
-    logic       misal;
-    logic       misal_prev;
-    logic       ready_en;
-    logic       instr_ready;
-    logic[15:0] instr_lo_hw;
-    logic[31:0] instr_concat;
-    logic[31:0] instr_mux;
-    logic       fetch_inc_bit;
-
-    assign  fetch_inc_bit = (!misal) & bus_cyc & fetch_pc[1];
-
-    always_ff @(posedge i_clk)
-    begin
-        if (!i_reset_n)
-            misal <= '0;
-        else if (bus_cyc & fetch_pc[1])
-            misal <= !misal;
-        fetch_addr <= fetch_pc + { 29'b0, fetch_inc_bit, 2'b0 };
-    end
-    always_ff @(posedge i_clk)
-    begin
-        if ((!i_reset_n) | misal_prev)
-            misal_prev <= '0;
-        else if (misal)
-            misal_prev <= '1;
-    end
-
-    assign  ready_en = !(fetch_pc[1] & misal);
-    assign  instr_ready = i_ack & ready_en;
-
-    always_ff @(posedge i_clk)
-    begin
-        if (i_ack)
-            instr_lo_hw <= i_instruction[31:16];
-    end
-
-    assign  instr_concat = { i_instruction[15:0], instr_lo_hw };
-    assign  instr_mux = misal_prev ? instr_concat : i_instruction;
-
-    always_ff @(posedge i_clk)
-    begin
-        o_bus.ready <= instr_ready;
-        o_bus.pc <= fetch_pc;
-        if (instr_ready & i_reset_n)
-            o_bus.instruction <= instr_mux;
-        else
-            o_bus.instruction <= '0;
-    end
-
-    assign  fetch_pc_incr = (instr_mux[1:0] == 2'b11) ? 4 : 2;
-    assign  bus_cyc = i_fetch_start | misal;
-    assign  move_pc = instr_ready | i_pc_select;
-
+    rv_fetch_aligner
+    u_aligner
+    (
+        .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
+        .i_pc                           (fetch_pc),
+        .i_start                        (i_fetch_start),
+        .i_pc_select                    (i_pc_select),
+        .i_instruction                  (i_instruction),
+        .i_ack                          (i_ack),
+        .o_cyc                          (o_cyc),
+        .o_move                         (move_pc),
+        .o_addr                         (fetch_addr),
+        .o_pc_incr                      (fetch_pc_incr),
+        .o_ready                        (o_bus.ready),
+        .o_pc                           (o_bus.pc),
+        .o_instruction                  (o_bus.instruction)
+    );
   `else // EXTENSION_C
 
     assign  fetch_addr = fetch_pc;
     assign  fetch_pc_incr = 32'd4;
     assign  move_pc = i_ack | i_pc_select;
-    assign  bus_cyc = i_fetch_start;
+    assign  o_cyc = i_fetch_start;
 
     always_ff @(posedge i_clk)
     begin
@@ -195,6 +157,5 @@ module rv_fetch
 `endif // BRANCH_PREDICTION_SIMPLE
 
     assign  o_addr = fetch_addr;
-    assign  o_cyc = bus_cyc;
 
 endmodule
