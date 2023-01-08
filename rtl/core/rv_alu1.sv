@@ -25,6 +25,7 @@ module rv_alu1
 `endif
     src_op1_t   op1_sel;
     src_op2_t   op2_sel;
+    alu_res_t   alu_res;
     alu_ctrl_t  alu_ctrl;
     logic       inst_jalr, inst_jal, inst_branch;
     logic[2:0]  funct3;
@@ -44,6 +45,7 @@ module rv_alu1
         imm_c  <= i_bus.imm_c;
         compressed <= i_bus.inst_compressed;
     `endif
+        alu_res <= i_bus.alu_res;
         alu_ctrl <= i_bus.alu_ctrl;
         funct3  <= i_bus.funct3;
         res_src <= i_bus.res_src;
@@ -104,6 +106,7 @@ module rv_alu1
 
     assign  o_bus.op1 = op1;
     assign  o_bus.op2 = op2;
+    assign  o_bus.alu_res = alu_res;
     assign  o_bus.alu_ctrl = alu_ctrl;
     assign  o_bus.store = store;
     assign  o_bus.reg_write = reg_write;

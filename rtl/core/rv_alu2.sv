@@ -25,6 +25,7 @@ module rv_alu2
     logic[31:0] op_b;
     logic       negative;
     logic       overflow;
+    alu_res_t   res;
     alu_ctrl_t  ctrl;
     logic       store;
     logic       reg_write;
@@ -43,6 +44,7 @@ module rv_alu2
     begin
         op1 <= i_bus.op1;
         op2 <= i_bus.op2;
+        res <= i_bus.alu_res;
         ctrl <= i_bus.alu_ctrl;
         store <= i_bus.store;
         reg_write <= i_bus.reg_write;
@@ -60,7 +62,7 @@ module rv_alu2
     end
 
     // adder - for all (add/sub/cmp)
-    assign  op_b_sel = (ctrl.arith_sub | ctrl.res_cmp);
+    assign  op_b_sel = (ctrl.arith_sub | res.cmp);
     assign  op_b     = op_b_sel ? (~op2) : op2;
     assign  add      = op1 + op_b + { {32{1'b0}}, op_b_sel};
     assign  negative = add[31];
@@ -108,7 +110,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & shr[32];
+    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32];
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_bus.bits_result = bits_result;
@@ -116,7 +118,7 @@ module rv_alu2
     assign  o_bus.cmp_result = cmp_result;
     assign  o_bus.add = add[31:0];
     assign  o_bus.shift_result = shift_result;
-    assign  o_bus.ctrl = ctrl;
+    assign  o_bus.res = res;
     assign  o_bus.store = store;
     assign  o_bus.reg_write = reg_write;
     assign  o_bus.rd = rd;

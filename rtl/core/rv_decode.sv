@@ -371,12 +371,12 @@ module rv_decode
 `endif
                                     });
 
-    assign  o_bus.alu_ctrl.res_cmp = |{inst_branch,inst_slts
+    assign  o_bus.alu_res.cmp = |{inst_branch,inst_slts
 `ifdef EXTENSION_C
                                 ,inst_c_beqz,inst_c_bnez
 `endif
                                     };
-    assign  o_bus.alu_ctrl.res_bits = |{inst_andi,inst_and,
+    assign  o_bus.alu_res.bits = |{inst_andi,inst_and,
                                         inst_ori,inst_or,
                                         inst_xori,inst_xor
 `ifdef EXTENSION_C
@@ -384,12 +384,12 @@ module rv_decode
                                         inst_c_xor,inst_c_or
 `endif
                                     };
-    assign  o_bus.alu_ctrl.res_shift = |{inst_slli,inst_sll,inst_srli,inst_srl,inst_srai,inst_sra
+    assign  o_bus.alu_res.shift = |{inst_slli,inst_sll,inst_srli,inst_srl,inst_srai,inst_sra
 `ifdef EXTENSION_C
                                         ,inst_c_slli,inst_c_srai,inst_c_srli
 `endif
                                     };
-    assign  o_bus.alu_ctrl.res_arith = |{inst_sub, inst_add, inst_load, inst_store
+    assign  o_bus.alu_res.arith = |{inst_sub, inst_add, inst_load, inst_store
 `ifdef EXTENSION_C
                                         ,inst_c_addi16sp,inst_c_addi4spn,
                                         inst_c_addi,inst_c_add,

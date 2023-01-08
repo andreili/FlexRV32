@@ -28,12 +28,15 @@ typedef struct packed
 
 typedef struct packed
 {
-    logic                   res_cmp;
-    logic                   res_bits;
-    logic                   res_shift;
+    logic                   cmp;
+    logic                   bits;
+    logic                   shift;
     // always latest of result - it's default
-    logic                   res_arith;
+    logic                   arith;
+} alu_res_t;
 
+typedef struct packed
+{
     logic                   cmp_lts;
     logic                   cmp_ltu;
     // always latest of compare - it's default
@@ -71,6 +74,7 @@ typedef struct packed
 `ifdef EXTENSION_C
     logic[31:0]             imm_c;
 `endif
+    alu_res_t               alu_res;
     alu_ctrl_t              alu_ctrl;
     logic[2:0]              funct3;
     res_src_t               res_src;
@@ -91,6 +95,7 @@ typedef struct packed
 {
     logic[31:0] op1;
     logic[31:0] op2;
+    alu_res_t   alu_res;
     alu_ctrl_t  alu_ctrl;
     logic       store;
     logic       reg_write;
@@ -114,7 +119,7 @@ typedef struct packed
     logic[31:0] bits_result;
     logic[31:0] add;
     logic[31:0] shift_result;
-    alu_ctrl_t  ctrl;
+    alu_res_t   res;
     logic       store;
     logic       reg_write;
     logic[4:0]  rd;
@@ -127,6 +132,23 @@ typedef struct packed
     logic       compressed;
 `endif
 } alu2_bus_t;
+
+typedef struct packed
+{
+    logic[2:0]  funct3;
+    logic[31:0] alu_result;
+    logic[31:0] add;
+    logic       reg_write;
+    logic[4:0]  rd;
+    res_src_t   res_src;
+    logic[31:0] pc;
+    logic       pc_select;
+    logic[31:0] pc_target;
+    logic       store;
+`ifdef EXTENSION_C
+    logic       compressed;
+`endif
+} alu3_bus_t;
 
 /*typedef struct packed
 {

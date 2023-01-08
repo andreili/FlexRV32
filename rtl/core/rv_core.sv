@@ -32,6 +32,7 @@ module rv_core
     decode_bus_t decode_bus;
     alu1_bus_t  alu1_bus;
     alu2_bus_t  alu2_bus;
+    alu3_bus_t  alu3_bus;
 
     logic[3:0]  state_cur, state_nxt;
     localparam  STATE_FETCH = 0;
@@ -75,8 +76,8 @@ module rv_core
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
-        .i_pc_target                    (alu3_pc_target),
-        .i_pc_select                    (alu3_pc_select),
+        .i_pc_target                    (alu3_bus.pc_target),
+        .i_pc_select                    (alu3_bus.pc_select),
         .i_fetch_start                  (state_cur == STATE_WR),
         //.i_pc_inc                       (state_cur == STATE_FETCH),
         //.i_data_latch                   (state_cur == STATE_FETCH),
@@ -113,90 +114,21 @@ module rv_core
         .o_bus                          (alu2_bus)
     );
 
-    logic       alu3_cmp_result;
-    logic       alu3_pc_select;
-    logic[31:0] alu3_bits_result;
-    logic[31:0] alu3_add;
-    logic[31:0] alu3_shift_result;
-    logic[31:0] alu3_result;
-    alu_ctrl_t  alu3_ctrl;
-    logic       alu3_store;
-    logic       alu3_reg_write;
-    logic[4:0]  alu3_rd;
-    logic[31:0] alu3_pc;
-    logic[31:0] alu3_pc_target;
-    res_src_t   alu3_res_src;
-    logic[2:0]  alu3_funct3;
-    logic[31:0] alu3_reg_data2;
-`ifdef EXTENSION_C
-    logic       alu3_compressed;
-`endif
+    logic[31:0] wdata;
+    logic[3:0]  wsel;
 
-    always_ff @(posedge i_clk)
-    begin
-        alu3_bits_result <= alu2_bus.bits_result;
-        alu3_pc_select <= alu2_bus.pc_select;
-        alu3_cmp_result <= alu2_bus.cmp_result;
-        alu3_add <= alu2_bus.add;
-        alu3_shift_result <= alu2_bus.shift_result;
-        alu3_ctrl <= alu2_bus.ctrl;
-        alu3_store <= alu2_bus.store;
-        alu3_reg_write <= alu2_bus.reg_write;
-        alu3_rd <= alu2_bus.rd;
-        alu3_pc <= alu2_bus.pc;
-        alu3_pc_target <= alu2_bus.pc_target;
-        alu3_res_src <= alu2_bus.res_src;
-        alu3_funct3 <= alu2_bus.funct3;
-        alu3_reg_data2 <= alu2_bus.reg_data2;
-    `ifdef EXTENSION_C
-        alu3_compressed <= alu2_bus.compressed;
-    `endif
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        alu3_ctrl.res_cmp:   alu3_result = { {31{1'b0}}, alu3_cmp_result };
-        alu3_ctrl.res_bits:  alu3_result = alu3_bits_result;
-        alu3_ctrl.res_shift: alu3_result = alu3_shift_result;
-        default:             alu3_result = alu3_add[31:0];
-        endcase
-    end
-
-    always_comb
-    begin
-        case (alu3_funct3[1:0])
-        2'b00:   memory_wdata = {4{alu3_reg_data2[0+: 8]}};
-        2'b01:   memory_wdata = {2{alu3_reg_data2[0+:16]}};
-        default: memory_wdata = alu3_reg_data2;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (alu3_funct3[1:0])
-        2'b00: begin
-            case (alu3_result[1:0])
-            2'b00: memory_sel = 4'b0001;
-            2'b01: memory_sel = 4'b0010;
-            2'b10: memory_sel = 4'b0100;
-            2'b11: memory_sel = 4'b1000;
-            endcase
-        end
-        2'b01: begin
-            case (alu3_result[1])
-            1'b0: memory_sel = 4'b0011;
-            1'b1: memory_sel = 4'b1100;
-            endcase
-        end
-        default:  memory_sel = 4'b1111;
-        endcase
-    end
+    rv_alu3
+    u_st4_alu3
+    (   
+        .i_clk                          (i_clk),
+        .i_bus                          (alu2_bus),
+        .o_wdata                        (wdata),
+        .o_wsel                         (wsel),
+        .o_bus                          (alu3_bus)
+    );
 
     logic[2:0]  memory_funct3;
     logic[31:0] memory_alu_result;
-    logic[31:0] memory_wdata;
-    logic[3:0]  memory_sel;
     logic       memory_reg_write;
     logic[4:0]  memory_rd;
     res_src_t   memory_res_src;
@@ -207,14 +139,14 @@ module rv_core
 
     always_ff @(posedge i_clk)
     begin
-        memory_funct3  <= alu3_funct3;
-        memory_alu_result <= alu3_result;
-        memory_reg_write <= alu3_reg_write;
-        memory_rd <= alu3_rd;
-        memory_res_src <= alu3_res_src;
-        memory_pc <= alu3_pc;
+        memory_funct3  <= alu3_bus.funct3;
+        memory_alu_result <= alu3_bus.alu_result;
+        memory_reg_write <= alu3_bus.reg_write;
+        memory_rd <= alu3_bus.rd;
+        memory_res_src <= alu3_bus.res_src;
+        memory_pc <= alu3_bus.pc;
     `ifdef EXTENSION_C
-        memory_compressed <= alu3_compressed;
+        memory_compressed <= alu3_bus.compressed;
     `endif
     end
 
@@ -231,7 +163,6 @@ module rv_core
     
     always_ff @(posedge i_clk)
     begin
-        //write_wdata <= write_rdata;
         write_alu_result <= memory_alu_result;
         write_pc <= memory_pc;
         write_res_src <= memory_res_src;
@@ -313,12 +244,12 @@ module rv_core
     logic   instr_ack;
     logic   bus_data;
 
-    assign  bus_data = (state_cur == STATE_ALU3) & (alu3_res_src.memory | alu3_store);
+    assign  bus_data = (state_cur == STATE_ALU3) & (alu3_bus.res_src.memory | alu3_bus.store);
 
-    assign o_wb_adr = bus_data ? alu3_add : fetch_addr;
-    assign o_wb_dat = memory_wdata;
-    assign o_wb_we = bus_data ? alu3_store : '0;
-    assign o_wb_sel = bus_data ? memory_sel : '1;
+    assign o_wb_adr = bus_data ? alu3_bus.add : fetch_addr;
+    assign o_wb_dat = wdata;
+    assign o_wb_we = bus_data ? alu3_bus.store : '0;
+    assign o_wb_sel = bus_data ? wsel : '1;
     assign o_wb_stb = '1;
     assign o_wb_cyc = '1;
     assign o_debug = '0;
