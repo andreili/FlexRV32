@@ -136,10 +136,7 @@ module rv_core
         memory_bus.reg_write <= alu3_bus.reg_write;
         memory_bus.rd <= alu3_bus.rd;
         memory_bus.res_src <= alu3_bus.res_src;
-        memory_bus.pc <= alu3_bus.pc;
-    `ifdef EXTENSION_C
-        memory_bus.compressed <= alu3_bus.compressed;
-    `endif
+        memory_bus.pc_p4 <= alu3_bus.pc_p4;
     end
 
     logic[31:0] write_data;

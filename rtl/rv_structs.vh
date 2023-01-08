@@ -123,14 +123,11 @@ typedef struct packed
     logic       store;
     logic       reg_write;
     logic[4:0]  rd;
-    logic[31:0] pc;
+    logic[31:0] pc_p4;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
 } alu2_bus_t;
 
 typedef struct packed
@@ -141,13 +138,10 @@ typedef struct packed
     logic       reg_write;
     logic[4:0]  rd;
     res_src_t   res_src;
-    logic[31:0] pc;
+    logic[31:0] pc_p4;
     logic       pc_select;
     logic[31:0] pc_target;
     logic       store;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
 } alu3_bus_t;
 
 typedef struct packed
@@ -157,46 +151,16 @@ typedef struct packed
     logic       reg_write;
     logic[4:0]  rd;
     res_src_t   res_src;
-    logic[31:0] pc;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
+    logic[31:0] pc_p4;
 } memory_bus_t;
 
 typedef struct packed
 {
     logic[31:0] alu_result;
-    logic[31:0] pc;
+    logic[31:0] pc_p4;
     res_src_t   res_src;
     logic       reg_write;
     logic[4:0]  rd;
     logic[2:0]  funct3;
     logic[31:0] rdata;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
 } write_bus_t;
-
-/*typedef struct packed
-{
-    logic[31:0] alu_result;
-    logic[31:0] pc;
-    res_src_t   res_src;
-    logic       reg_write;
-    logic[4:0]  rd;
-    logic[2:0]  funct3;
-    logic       store;
-    logic[31:0] reg_data2;
-    logic[31:0] wdata;
-    logic[3:0]  sel;
-} memory_data_t;
-
-typedef struct packed
-{
-    logic[31:0] alu_result;
-    logic[31:0] pc;
-    res_src_t   res_src;
-    logic       reg_write;
-    logic[4:0]  rd;
-    logic[2:0]  funct3;
-} write_data_t;*/

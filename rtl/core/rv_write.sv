@@ -20,15 +20,12 @@ module rv_write
     always_ff @(posedge i_clk)
     begin
         bus_reg.alu_result <= i_bus.alu_result;
-        bus_reg.pc <= i_bus.pc;
+        bus_reg.pc_p4 <= i_bus.pc_p4;
         bus_reg.res_src <= i_bus.res_src;
         bus_reg.reg_write <= i_bus.reg_write;
         bus_reg.rd <= i_bus.rd;
         bus_reg.funct3 <= i_bus.funct3;
         bus_reg.rdata <= i_data;
-    `ifdef EXTENSION_C
-        bus_reg.compressed <= i_bus.compressed;
-    `endif
     end
 
     logic[7:0]  write_byte;
@@ -71,13 +68,7 @@ module rv_write
     begin
         case (1'b1)
         bus_reg.res_src.memory: o_data = write_rdata;
-        bus_reg.res_src.pc_p4:  o_data = (bus_reg.pc + 
-`ifdef EXTENSION_C
-                (bus_reg.compressed ? 2 : 4)
-`else
-                4
-`endif
-            );
+        bus_reg.res_src.pc_p4:  o_data = bus_reg.pc_p4;
         default:              o_data = bus_reg.alu_result;
         endcase
     end

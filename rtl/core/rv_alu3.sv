@@ -24,14 +24,11 @@ module rv_alu3
     logic       store;
     logic       reg_write;
     logic[4:0]  rd;
-    logic[31:0] pc;
+    logic[31:0] pc_p4;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
 
     always_ff @(posedge i_clk)
     begin
@@ -44,14 +41,11 @@ module rv_alu3
         store <= i_bus.store;
         reg_write <= i_bus.reg_write;
         rd <= i_bus.rd;
-        pc <= i_bus.pc;
+        pc_p4 <= i_bus.pc_p4;
         pc_target <= i_bus.pc_target;
         res_src <= i_bus.res_src;
         funct3 <= i_bus.funct3;
         reg_data2 <= i_bus.reg_data2;
-    `ifdef EXTENSION_C
-        compressed <= i_bus.compressed;
-    `endif
     end
 
     always_comb
@@ -105,12 +99,9 @@ module rv_alu3
     assign  o_bus.reg_write = reg_write;
     assign  o_bus.rd = rd;
     assign  o_bus.res_src = res_src;
-    assign  o_bus.pc = pc;
+    assign  o_bus.pc_p4 = pc_p4;
     assign  o_bus.pc_select = pc_select;
     assign  o_bus.pc_target = pc_target;
     assign  o_bus.store = store;
-`ifdef EXTENSION_C
-    assign  o_bus.compressed = compressed;
-`endif
 
 endmodule

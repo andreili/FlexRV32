@@ -32,6 +32,7 @@ module rv_alu2
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
     logic[31:0] pc;
+    logic[31:0] pc_p4;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
@@ -108,6 +109,14 @@ module rv_alu2
         endcase
     end
 
+    assign  pc_p4 = (pc + 
+`ifdef EXTENSION_C
+            (compressed ? 2 : 4)
+`else
+            4
+`endif
+        );
+
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
     assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32];
@@ -122,13 +131,10 @@ module rv_alu2
     assign  o_bus.store = store;
     assign  o_bus.reg_write = reg_write;
     assign  o_bus.rd = rd;
-    assign  o_bus.pc = pc;
+    assign  o_bus.pc_p4 = pc_p4;
     assign  o_bus.pc_target = pc_target;
     assign  o_bus.res_src = res_src;
     assign  o_bus.funct3 = funct3;
     assign  o_bus.reg_data2 = reg_data2;
-`ifdef EXTENSION_C
-    assign  o_bus.compressed = compressed;
-`endif
 
 endmodule
