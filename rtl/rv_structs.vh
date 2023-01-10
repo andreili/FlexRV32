@@ -19,9 +19,6 @@ typedef struct packed
 {
     logic                   i;
     logic                   j;
-`ifdef EXTENSION_C
-    logic                   c;
-`endif
     // always latest - it's default
     logic                   r;
 } src_op2_t;
@@ -71,9 +68,6 @@ typedef struct packed
     logic[4:0]              rd;
     logic[31:0]             imm_i;
     logic[31:0]             imm_j;
-`ifdef EXTENSION_C
-    logic[31:0]             imm_c;
-`endif
     alu_res_t               alu_res;
     alu_ctrl_t              alu_ctrl;
     logic[2:0]              funct3;

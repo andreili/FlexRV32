@@ -20,7 +20,6 @@ module rv_alu1
     logic[31:0] imm_i;
     logic[31:0] imm_j;
 `ifdef EXTENSION_C
-    logic[31:0] imm_c;
     logic       compressed;
 `endif
     src_op1_t   op1_sel;
@@ -42,7 +41,6 @@ module rv_alu1
         imm_i  <= i_bus.imm_i;
         imm_j  <= i_bus.imm_j;
     `ifdef EXTENSION_C
-        imm_c  <= i_bus.imm_c;
         compressed <= i_bus.inst_compressed;
     `endif
         alu_res <= i_bus.alu_res;
@@ -92,9 +90,6 @@ module rv_alu1
         case (1'b1)
         op2_sel.i: op2 = imm_i;
         op2_sel.j: op2 = imm_j;
-    `ifdef EXTENSION_C
-        op2_sel.c: op2 = imm_c;
-    `endif
         default:   op2 = reg_data2;
         endcase
     end

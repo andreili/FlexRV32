@@ -179,7 +179,6 @@ module rv_core
     assign o_wb_sel = bus_data ? wsel : '1;
     assign o_wb_stb = '1;
     assign o_wb_cyc = '1;
-    assign o_debug = '0;
 
     always_ff @(posedge i_clk)
     begin
@@ -201,7 +200,8 @@ module rv_core
     end
 
 `ifdef TO_SIM
-    assign  o_debug[0] = (!decode_bus.inst_supported) & (state_cur == STATE_RS);
+    assign  o_debug[0] = (!decode_bus.inst_supported) & (state_nxt == STATE_ALU1);
+    assign  o_debug[31:1] = '0;
 `endif
 
 endmodule
