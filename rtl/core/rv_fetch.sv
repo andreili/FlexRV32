@@ -114,7 +114,7 @@ module rv_fetch
 
     assign  fetch_addr = fetch_pc;
     assign  fetch_pc_incr = 32'd4;
-    assign  move_pc = i_ack | i_pc_select;
+    assign  move_pc = i_ack | i_pc_select | (!i_reset_n);
     assign  o_cyc = i_fetch_start;
 
     always_ff @(posedge i_clk)
