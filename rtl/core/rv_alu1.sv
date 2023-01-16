@@ -92,12 +92,12 @@ module rv_alu1
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_bus.inst_supported & op1_sel.r & op2_sel.r & (|rs1) & (|rs2)
+    assign  dummy = i_bus.inst_supported & op1_sel.r & op2_sel.r & (|rs1) & (|rs2) & i_bus.inst_ebreak
 `ifdef EXTENSION_Zicsr
                 & i_bus.csr_imm_sel & i_bus.csr_write
                 & i_bus.csr_set & i_bus.csr_clear
                 & (|i_bus.csr_idx) & (|i_bus.csr_imm)
-                & i_bus.csr_read & i_bus.inst_ebreak
+                & i_bus.csr_read
 `endif
                 ;
 /* verilator lint_on UNUSEDSIGNAL */

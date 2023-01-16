@@ -287,6 +287,7 @@ module rv_decode_comp
     assign  o_instruction = instruction;
     assign  o_illegal_instruction = illegal_instruction;
 
+`ifdef TO_SIM
 /* verilator lint_off UNUSEDSIGNAL */
     logic [127:0] dbg_ascii_cinstr;
     always @* begin
@@ -322,5 +323,6 @@ module rv_decode_comp
         if (!(|i_instruction[15:0])) dbg_ascii_cinstr = '0;
     end
 /* verilator lint_on UNUSEDSIGNAL */
+`endif
 
 endmodule

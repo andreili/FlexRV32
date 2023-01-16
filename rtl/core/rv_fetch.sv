@@ -70,6 +70,9 @@ module rv_fetch
     end
 
     rv_fetch_buf
+    #(
+        .INSTR_BUF_ADDR_SIZE            (2)
+    )
     u_buf
     (
         .i_clk                          (i_clk),

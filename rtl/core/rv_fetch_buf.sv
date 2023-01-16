@@ -3,6 +3,9 @@
 `include "../rv_defines.vh"
 
 module rv_fetch_buf
+#(
+    parameter   INSTR_BUF_ADDR_SIZE = 2
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
@@ -19,9 +22,12 @@ module rv_fetch_buf
     output  wire                        o_ready
 );
 
-    logic[`INSTR_BUF_SIZE_BITS-1:0] buffer[`INSTR_BUF_SIZE];
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt;
-    logic[`INSTR_BUF_ADDR_SIZE:0] cnt;
+    localparam  INSTR_BUF_SIZE =  (2 ** INSTR_BUF_ADDR_SIZE);
+    localparam  INSTR_BUF_SIZE_BITS =  16;
+
+    logic[INSTR_BUF_SIZE_BITS-1:0] buffer[INSTR_BUF_SIZE];
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt;
+    logic[INSTR_BUF_ADDR_SIZE:0] cnt;
     logic   nearfull;
     logic   full;
     logic   free_dword_or_more;
@@ -31,7 +37,7 @@ module rv_fetch_buf
     assign  free_dword_or_more  = (free_cnt_next > 1);
     assign  nearfull     = (free_cnt == 1);
     assign  full         = !(|free_cnt);
-    assign  empty        = free_cnt[`INSTR_BUF_ADDR_SIZE];
+    assign  empty        = free_cnt[INSTR_BUF_ADDR_SIZE];
 
     logic   fetch_pc1;
     logic   push_double_word;
@@ -44,15 +50,15 @@ module rv_fetch_buf
     assign  pop_double_word  = move & (!out_comp) & (!empty);
     assign  pop_word         = move & out_comp & (!empty);
 
-    logic[`INSTR_BUF_SIZE_BITS-1:0] next[`INSTR_BUF_SIZE];
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_delta1;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_delta2;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_delta3;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_delta4;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_delta_push;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_delta_pop;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_next;
-    logic[`INSTR_BUF_ADDR_SIZE:0] free_cnt_next_pop;
+    logic[INSTR_BUF_SIZE_BITS-1:0] next[INSTR_BUF_SIZE];
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_delta1;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_delta2;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_delta3;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_delta4;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_delta_push;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_delta_pop;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_next;
+    logic[INSTR_BUF_ADDR_SIZE:0] free_cnt_next_pop;
     logic[31:0] pc_next;
 
     assign  pc_next = ((!i_reset_n) | i_pc_select) ? i_fetch_pc_next :
@@ -66,22 +72,22 @@ module rv_fetch_buf
     assign  free_cnt_delta_push = free_cnt_delta1 + free_cnt_delta2;
     assign  free_cnt_delta_pop  = free_cnt_delta3 + free_cnt_delta4;
     assign  free_cnt_next_pop = free_cnt + free_cnt_delta_pop;
-    assign  free_cnt_next = ((!i_reset_n) | i_pc_select) ? `INSTR_BUF_SIZE :
+    assign  free_cnt_next = ((!i_reset_n) | i_pc_select) ? INSTR_BUF_SIZE :
                                         (free_cnt_next_pop + free_cnt_delta_push);
 
     genvar  i;
     generate
-        for (i=0 ; i<`INSTR_BUF_SIZE ; ++i)
+        for (i=0 ; i<INSTR_BUF_SIZE ; i++)
         begin : gen_buf
             logic   update_1_word;
             logic   update_2_word;
-            assign  update_2_word = (push_word & (free_cnt_next_pop==(`INSTR_BUF_SIZE-i))) |
-                                    (push_double_word & (free_cnt_next_pop==(`INSTR_BUF_SIZE-i+1)));
-            assign  update_1_word = (push_double_word & (free_cnt_next_pop==(`INSTR_BUF_SIZE-i)));
+            assign  update_2_word = (push_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i))) |
+                                    (push_double_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i+1)));
+            assign  update_1_word = (push_double_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i)));
             logic[15:0] buf_p1;
             logic[15:0] buf_p2;
-            assign  buf_p1 = (i>=(`INSTR_BUF_SIZE-1)) ? '0 : buffer[i + 1];
-            assign  buf_p2 = (i>=(`INSTR_BUF_SIZE-2)) ? '0 : buffer[i + 2];
+            assign  buf_p1 = (i>=(INSTR_BUF_SIZE-1)) ? '0 : buffer[i + 1];
+            assign  buf_p2 = (i>=(INSTR_BUF_SIZE-2)) ? '0 : buffer[i + 2];
             assign  next[i] = ((!i_reset_n) | i_pc_select) ? '0 :
                                 update_2_word ? i_data[31:16] :
                                 update_1_word ? i_data[15:0] :
@@ -101,7 +107,7 @@ module rv_fetch_buf
     begin
         fetch_pc1 <= i_fetch_pc1;
         free_cnt <= free_cnt_next;
-        cnt <= `INSTR_BUF_SIZE - free_cnt_next;
+        cnt <= INSTR_BUF_SIZE - free_cnt_next;
         pc <= pc_next;
     end
 

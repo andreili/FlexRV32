@@ -288,6 +288,7 @@ module rv_decode
         if (alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_AND }) dbg_ascii_alu_ctrl = "AND";
     end*/
 
+`ifdef TO_SIM
 /* verilator lint_off UNUSEDSIGNAL */
     logic [127:0] dbg_ascii_instr;
     /* verilator lint_on UNUSEDSIGNAL */
@@ -362,5 +363,6 @@ module rv_decode
 
         if (inst_none)     dbg_ascii_instr = "NONE";
     end
+`endif
 
 endmodule

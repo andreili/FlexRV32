@@ -95,11 +95,34 @@ module top
 
     wire[(MAIN_NIC_SLAVES_COUNT-1):0]   w_main_slave_sel;
     wire[(MAIN_NIC_SLAVES_COUNT-1):0]   w_main_slave_ack;
-    wire[(MAIN_NIC_SLAVES_COUNT-1):0][31:0]	w_main_slave_rdata;
+    wire[(32*16)-1:0]	                w_main_slave_rdata;
 
-    assign  w_main_slave_rdata[(MAIN_NIC_SLAVES_COUNT-1):3] = '0;
-    assign  w_main_slave_ack  [(MAIN_NIC_SLAVES_COUNT-2):3] = '0;
+    assign  w_main_slave_rdata[(15*32)+:32] = '0;
+    assign  w_main_slave_rdata[(14*32)+:32] = '0;
+    assign  w_main_slave_rdata[(13*32)+:32] = '0;
+    assign  w_main_slave_rdata[(12*32)+:32] = '0;
+    assign  w_main_slave_rdata[(11*32)+:32] = '0;
+    assign  w_main_slave_rdata[(10*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 9*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 8*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 7*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 6*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 5*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 4*32)+:32] = '0;
+    assign  w_main_slave_rdata[( 3*32)+:32] = '0;
     assign  w_main_slave_ack[15] = '1;
+    assign  w_main_slave_ack[14] = '0;
+    assign  w_main_slave_ack[13] = '0;
+    assign  w_main_slave_ack[12] = '0;
+    assign  w_main_slave_ack[11] = '0;
+    assign  w_main_slave_ack[10] = '0;
+    assign  w_main_slave_ack[ 9] = '0;
+    assign  w_main_slave_ack[ 8] = '0;
+    assign  w_main_slave_ack[ 7] = '0;
+    assign  w_main_slave_ack[ 6] = '0;
+    assign  w_main_slave_ack[ 5] = '0;
+    assign  w_main_slave_ack[ 4] = '0;
+    assign  w_main_slave_ack[ 3] = '0;
 
     nic
     #(
@@ -131,7 +154,7 @@ module top
         .i_write                        (w_wb_we),
         .i_data                         (w_wb_wdata),
         .o_ack                          (w_main_slave_ack[MAIN_NIC_SLAVE_TCM]),
-        .o_data                         (w_main_slave_rdata[MAIN_NIC_SLAVE_TCM])
+        .o_data                         (w_main_slave_rdata[MAIN_NIC_SLAVE_TCM*32+:32])
     );
 
     wire    w_uart_txen;
@@ -143,7 +166,7 @@ module top
         .i_reset_n                      (w_reset_n),
         .i_dev_sel                      (w_main_slave_sel[MAIN_NIC_SLAVE_UART]),
         .i_wb_adr                       (w_wb_addr[11:2]),
-        .o_wb_dat                       (w_main_slave_rdata[MAIN_NIC_SLAVE_UART]),
+        .o_wb_dat                       (w_main_slave_rdata[MAIN_NIC_SLAVE_UART*32+:32]),
         .i_wb_dat                       (w_wb_wdata[19:0]),
         .i_wb_we                        (w_wb_we),
         //.i_wb_sel                       (w_wb_sel),
@@ -162,7 +185,7 @@ module top
     end
 
     assign  w_main_slave_ack[2] = '1;
-    assign  w_main_slave_rdata[2] = r_cnt;
+    assign  w_main_slave_rdata[2*32+:32] = r_cnt;
 
 initial
 begin

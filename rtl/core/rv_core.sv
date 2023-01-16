@@ -214,6 +214,7 @@ module rv_core
         instr_ack <= i_wb_ack & (!bus_data) & instr_cyc;
     end
 
+`ifdef TO_SIM
     logic[127:0] dbg_state;
     always_comb
     begin
@@ -227,6 +228,7 @@ module rv_core
         STATE_WR:    dbg_state = "wr";
         endcase
     end
+`endif
 
 `ifdef TO_SIM
     assign  o_debug[0] = (!decode_bus.inst_supported) & (state_nxt == STATE_ALU1);
