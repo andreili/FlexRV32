@@ -57,16 +57,12 @@ module rv_alu1
         pc <= i_bus.pc;
     end
 
-    logic[31:0] reg_data1, reg_data2;
     logic[31:0] op1, op2;
     logic[31:0] pc_target;
 
-    assign  reg_data1 = (|rs1) ? i_reg1_data : '0;
-    assign  reg_data2 = (|rs2) ? i_reg2_data : '0;
-
     logic[31:0] pc_jalr, pc_jal;
 
-    assign  pc_jalr = reg_data1 + imm_i;
+    assign  pc_jalr = i_reg1_data + imm_i;
     assign  pc_jal  = pc        + imm_j;
 
     always_comb
@@ -81,7 +77,7 @@ module rv_alu1
     begin
         case (1'b1)
         op1_sel.pc: op1 = pc;
-        default:    op1 = reg_data1;
+        default:    op1 = i_reg1_data;
         endcase
     end
 
@@ -90,13 +86,20 @@ module rv_alu1
         case (1'b1)
         op2_sel.i: op2 = imm_i;
         op2_sel.j: op2 = imm_j;
-        default:   op2 = reg_data2;
+        default:   op2 = i_reg2_data;
         endcase
     end
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_bus.inst_supported & op1_sel.r & op2_sel.r;
+    assign  dummy = i_bus.inst_supported & op1_sel.r & op2_sel.r & (|rs1) & (|rs2)
+`ifdef EXTENSION_Zicsr
+                & i_bus.csr_imm_sel & i_bus.csr_write
+                & i_bus.csr_set & i_bus.csr_clear
+                & (|i_bus.csr_idx) & (|i_bus.csr_imm)
+                & i_bus.csr_read & i_bus.inst_ebreak
+`endif
+                ;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_bus.op1 = op1;
@@ -112,7 +115,7 @@ module rv_alu1
     assign  o_bus.pc_target = pc_target;
     assign  o_bus.res_src = res_src;
     assign  o_bus.funct3 = funct3;
-    assign  o_bus.reg_data2 = reg_data2;
+    assign  o_bus.reg_data2 = i_reg2_data;
 `ifdef EXTENSION_C
     assign  o_bus.compressed = compressed;
 `endif

@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include "sim.h"
+#include "xprintf.h"
 
 #define read_csr(reg) ({ unsigned long __tmp; \
   asm volatile ("csrr %0, " #reg : "=r"(__tmp)); \
@@ -22,8 +23,20 @@
 
 int main(void)
 {
+    uint32_t cycle_start = read_csr(cycle);
+    uint32_t time_start = read_csr(time);
+    uint32_t instret_start = read_csr(instret);
+    write_csr(mepc, 0x40);
+    write_csr(mtvec, 0x140);
+    asm volatile ("ebreak");
     static const char* p_str = "Hello RISC-V core!\n";
     sim_send_str(p_str);
+    uint32_t cycle_end = read_csr(cycle);
+    uint32_t time_end = read_csr(time);
+    uint32_t instret_end = read_csr(instret);
+    xprintf("Cycles: %d->%d\n", cycle_start, cycle_end);
+    xprintf("Time: %d->%d\n", time_start, time_end);
+    xprintf("Instret: %d->%d\n", instret_start, instret_end);
     sim_exit(EXIT_OK);
     while (1);
     return 0;

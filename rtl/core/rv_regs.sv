@@ -16,6 +16,8 @@ module rv_regs
     reg[31:0]   r_reg_file[0:31];
     reg[31:0]   r_data1;
     reg[31:0]   r_data2;
+    reg[4:0]    r_rs1;
+    reg[4:0]    r_rs2;
 
     always_ff @(posedge i_clk)
     begin
@@ -23,10 +25,12 @@ module rv_regs
             r_reg_file[i_rd] <= i_data;
         r_data1 <= r_reg_file[i_rs1];
         r_data2 <= r_reg_file[i_rs2];
+        r_rs1 <= i_rs1;
+        r_rs2 <= i_rs2;
     end
 
-    assign  o_data1 = r_data1;
-    assign  o_data2 = r_data2;
+    assign  o_data1 = (|r_rs1) ? r_data1 : '0;
+    assign  o_data2 = (|r_rs2) ? r_data2 : '0;
 
 `ifdef TO_SIM
     initial begin

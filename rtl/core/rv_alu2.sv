@@ -9,6 +9,10 @@ module rv_alu2
 (
     input   wire                        i_clk,
     input   alu1_bus_t                  i_bus,
+`ifdef EXTENSION_Zicsr
+    input   wire                        i_csr_read,
+    input   wire[31:0]                  i_csr_data,
+`endif
     output  alu2_bus_t                  o_bus
 );
 
@@ -40,6 +44,10 @@ module rv_alu2
 `ifdef EXTENSION_C
     logic       compressed;
 `endif
+`ifdef EXTENSION_Zicsr
+    logic       csr_read;
+    logic[31:0] csr_data;
+`endif
 
     always_ff @(posedge i_clk)
     begin
@@ -59,6 +67,10 @@ module rv_alu2
         reg_data2 <= i_bus.reg_data2;
     `ifdef EXTENSION_C
         compressed <= i_bus.compressed;
+    `endif
+    `ifdef EXTENSION_Zicsr
+        csr_read <= i_csr_read;
+        csr_data <= i_csr_data;
     `endif
     end
 
@@ -117,6 +129,17 @@ module rv_alu2
 `endif
         );
 
+    logic[31:0] result;
+    always_comb
+    begin
+        case (1'b1)
+    `ifdef EXTENSION_Zicsr
+        csr_read:  result = csr_data;
+    `endif
+        default:   result = add[31:0];
+        endcase
+    end
+
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
     assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32];
@@ -125,7 +148,7 @@ module rv_alu2
     assign  o_bus.bits_result = bits_result;
     assign  o_bus.pc_select = pc_select;
     assign  o_bus.cmp_result = cmp_result;
-    assign  o_bus.add = add[31:0];
+    assign  o_bus.add = result;
     assign  o_bus.shift_result = shift_result;
     assign  o_bus.res = res;
     assign  o_bus.store = store;

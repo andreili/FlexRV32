@@ -108,11 +108,40 @@ module rv_core
         .o_bus                          (alu1_bus)
     );
 
+`ifdef EXTENSION_Zicsr
+    logic       csr_read;
+    logic[31:0] csr_rdata;
+    logic[31:0] trap_pc;
+    rv_csr
+    u_st3_csr
+    (
+        .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
+        .i_reg_data                     (reg_rdata1),
+        .i_idx                          (decode_bus.csr_idx),
+        .i_imm                          (decode_bus.csr_imm),
+        .i_imm_sel                      (decode_bus.csr_imm_sel),
+        .i_write                        (decode_bus.csr_write),
+        .i_set                          (decode_bus.csr_set),
+        .i_clear                        (decode_bus.csr_clear),
+        .i_read                         (decode_bus.csr_read),
+        .i_pc                           (decode_bus.pc),
+        .i_ebreak                       (decode_bus.inst_ebreak),
+        .o_read                         (csr_read),
+        .o_trap_pc                      (trap_pc),
+        .o_data                         (csr_rdata)
+    );
+`endif
+
     rv_alu2
     u_st4_alu2
     (   
         .i_clk                          (i_clk),
         .i_bus                          (alu1_bus),
+    `ifdef EXTENSION_Zicsr
+        .i_csr_read                     (csr_read),
+        .i_csr_data                     (csr_rdata),
+    `endif
         .o_bus                          (alu2_bus)
     );
 

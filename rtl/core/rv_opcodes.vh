@@ -1,3 +1,4 @@
+/* verilator lint_off UNUSEDPARAM */
 localparam  RV32_C_Q0_DET = 2'b00;
 localparam  RV32_C_Q1_DET = 2'b01;
 localparam  RV32_C_Q2_DET = 2'b10;
@@ -14,3 +15,4 @@ localparam  RV32_OPC_B    = 5'b11000;
 localparam  RV32_OPC_JALR = 5'b11001;
 localparam  RV32_OPC_JAL  = 5'b11011;
 localparam  RV32_OPC_SYS  = 5'b11100;
+/* verilator lint_on UNUSEDPARAM */

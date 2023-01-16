@@ -47,12 +47,22 @@ module rv_decode
     logic   inst_jalr;
     logic   inst_jal;
     logic   inst_ecall, inst_ebreak;
+`ifdef EXTENSION_Zifencei
     logic   inst_fence, inst_fence_i;
+`endif
+`ifdef EXTENSION_Zihintntl
+    logic   inst_ntl, inst_ntl_p1, inst_ntl_pall, inst_ntl_s1, inst_ntl_all;
+`endif
+`ifdef EXTENSION_Zicsr
+    logic   inst_csrrw, inst_csrrs, inst_csrrc, inst_csrrwi, inst_csrrsi, inst_csrrci;
+`endif
+
+    logic[4:0]  rd, rs1, rs2;
 
     assign  op        = { instruction[ 6: 1], i_bus.ready & instruction[0] };
-    assign  o_bus.rd  = instruction[11: 7];
-    assign  o_bus.rs1 = inst_lui ? '0 : instruction[19:15];
-    assign  o_bus.rs2 = instruction[24:20];
+    assign  rd        = instruction[11: 7];
+    assign  rs1       = inst_lui ? '0 : instruction[19:15];
+    assign  rs2       = instruction[24:20];
     assign  funct3    = instruction[14:12];
     assign  funct7    = instruction[31:25];
     assign  funct12   = instruction[31:20];
@@ -71,6 +81,16 @@ module rv_decode
     assign  o_bus.imm_j = inst_jal ? imm_j : imm_b;
     assign  o_bus.imm_i = imm_mux;
 
+`ifdef EXTENSION_Zicsr
+    assign  o_bus.csr_idx = instruction[31:20];
+    assign  o_bus.csr_imm = instruction[19:15];
+    assign  o_bus.csr_imm_sel = funct3[2];
+    assign  o_bus.csr_write = inst_csrrw | inst_csrrwi;
+    assign  o_bus.csr_set   = inst_csrrs | inst_csrrsi;
+    assign  o_bus.csr_clear = inst_csrrc | inst_csrrci;
+    assign  o_bus.csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
+`endif
+
     assign  inst_full = (op[1:0] == RV32_OPC_DET);
 
     assign  inst_none = !(|instruction);
@@ -88,7 +108,16 @@ module rv_decode
             inst_beq   | inst_bne  | inst_blt  | inst_bge   | inst_bltu | inst_bgeu |
             inst_jalr  |
             inst_jal   |
-            inst_fence | inst_fence_i
+            inst_ecall | inst_ebreak
+        `ifdef EXTENSION_Zifencei
+            | inst_fence | inst_fence_i
+        `endif
+        `ifdef EXTENSION_Zihintntl
+            | inst_ntl_p1 | inst_ntl_pall | inst_ntl_s1 | inst_ntl_all
+        `endif
+        `ifdef EXTENSION_Zicsr
+            | inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci
+        `endif
             ;
 
     // memory read operations
@@ -136,12 +165,29 @@ module rv_decode
     // jumps
     assign  inst_jalr     = (op[6:2] == RV32_OPC_JALR) & inst_full & (funct3 == 3'b000);
     assign  inst_jal      = (op[6:2] == RV32_OPC_JAL)  & inst_full;
-    // fence
-    assign  inst_fence    = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b000);
-    assign  inst_fence_i  = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b001);
     // system
     assign  inst_ecall    = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000000);
     assign  inst_ebreak   = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000001);
+`ifdef EXTENSION_Zifencei
+    // fence
+    assign  inst_fence    = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b000);
+    assign  inst_fence_i  = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b001);
+`endif
+`ifdef EXTENSION_Zihintntl
+    assign  inst_ntl = inst_add & (rd=='0) & (rs1=='0);
+    assign  inst_ntl_p1 = inst_ntl & (rs2==5'h2);
+    assign  inst_ntl_pall = inst_ntl & (rs2==5'h3);
+    assign  inst_ntl_s1 = inst_ntl & (rs2==5'h4);
+    assign  inst_ntl_all = inst_ntl & (rs2==5'h5);
+`endif
+`ifdef EXTENSION_Zicsr
+    assign  inst_csrrw      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b001);
+    assign  inst_csrrs      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b010);
+    assign  inst_csrrc      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b011);
+    assign  inst_csrrwi     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b101);
+    assign  inst_csrrsi     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b110);
+    assign  inst_csrrci     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b111);
+`endif
 
     logic   inst_load;
     logic   inst_store;
@@ -161,8 +207,15 @@ module rv_decode
     assign  inst_ltu    = ((((op[6:2] == RV32_OPC_ARI) | ((op[6:2] == RV32_OPC_ARR) & (funct7 == 7'b0000000))) & (funct3 == 3'b011)) |
         ((op[6:2] == RV32_OPC_B) & (funct3[2:1] == 2'b11))) & inst_full;
 
-    assign  o_bus.reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui | inst_jalr | inst_jal;
+    assign  o_bus.reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui | inst_jalr | inst_jal
+`ifdef EXTENSION_Zicsr
+                                | ((op[6:2] == RV32_OPC_SYS) & inst_full)
+`endif
+                                ;
 
+    assign  o_bus.rd  = rd;
+    assign  o_bus.rs1 = inst_lui ? '0 : rs1;
+    assign  o_bus.rs2 = rs2;
     assign  o_bus.op1_src.pc = |{inst_auipc,inst_jal};
     assign  o_bus.op1_src.r  = !(|{inst_auipc,inst_jal});
 
@@ -199,8 +252,21 @@ module rv_decode
     assign  o_bus.inst_jal = inst_jal;
     assign  o_bus.inst_branch = inst_branch;
     assign  o_bus.inst_store = inst_store;
+    assign  o_bus.inst_ebreak = inst_ebreak;
 `ifdef EXTENSION_C
     assign  o_bus.inst_compressed = !comp_illegal;
+`endif
+        
+`ifdef EXTENSION_Zifencei
+    //inst_fence inst_fence_i
+`endif
+    
+`ifdef EXTENSION_Zicsr
+    //inst_csrrw inst_csrrs inst_csrrc inst_csrrwi inst_csrrsi inst_csrrci
+`endif
+    
+`ifdef EXTENSION_Zihintntl
+    //inst_ntl_p1 inst_ntl_pall inst_ntl_s1 inst_ntl_all
 `endif
 
     /*logic [127:0] dbg_ascii_alu_ctrl;
@@ -224,6 +290,7 @@ module rv_decode
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic [127:0] dbg_ascii_instr;
+    /* verilator lint_on UNUSEDSIGNAL */
     always @* begin
         dbg_ascii_instr = '0;
 
@@ -269,11 +336,13 @@ module rv_decode
         if (inst_or)       dbg_ascii_instr = "or";
         if (inst_and)      dbg_ascii_instr = "and";
         
-        if (inst_fence)    dbg_ascii_instr = "fence";
-        if (inst_fence_i)  dbg_ascii_instr = "fence.i";
-        
         if (inst_ecall)    dbg_ascii_instr = "ecall";
         if (inst_ebreak)   dbg_ascii_instr = "ebreak";
+        
+    `ifdef EXTENSION_Zifencei
+        if (inst_fence)    dbg_ascii_instr = "fence";
+        if (inst_fence_i)  dbg_ascii_instr = "fence.i";
+    `endif
         
     `ifdef EXTENSION_Zicsr
         if (inst_csrrw)    dbg_ascii_instr = "csrrw";
@@ -283,9 +352,15 @@ module rv_decode
         if (inst_csrrsi)   dbg_ascii_instr = "csrrsi";
         if (inst_csrrci)   dbg_ascii_instr = "csrrci";
     `endif
+        
+    `ifdef EXTENSION_Zihintntl
+        if (inst_ntl_p1)   dbg_ascii_instr = "ntl.p1";
+        if (inst_ntl_pall) dbg_ascii_instr = "ntl.pall";
+        if (inst_ntl_s1)   dbg_ascii_instr = "ntl.s1";
+        if (inst_ntl_all)  dbg_ascii_instr = "ntl.all";
+    `endif
 
         if (inst_none)     dbg_ascii_instr = "NONE";
     end
-/* verilator lint_on UNUSEDSIGNAL */
 
 endmodule

@@ -79,9 +79,19 @@ typedef struct packed
     logic                   inst_jal;
     logic                   inst_branch;
     logic                   inst_store;
+    logic                   inst_ebreak;
     logic                   inst_supported;
 `ifdef EXTENSION_C
     logic                   inst_compressed;
+`endif
+`ifdef EXTENSION_Zicsr
+    logic[11:0]             csr_idx;
+    logic[4:0]              csr_imm;
+    logic                   csr_imm_sel;
+    logic                   csr_write;
+    logic                   csr_set;
+    logic                   csr_clear;
+    logic                   csr_read;
 `endif
 } decode_bus_t;
 
@@ -158,3 +168,17 @@ typedef struct packed
     logic[2:0]  funct3;
     logic[31:0] rdata;
 } write_bus_t;
+
+typedef struct packed
+{
+    logic   enable_external;
+    logic   enable_timer;
+    logic   enable_soft;
+} int_ctrl_csr_t;
+
+typedef struct packed
+{
+    logic   pending_external;
+    logic   pending_timer;
+    logic   pending_soft;
+} int_ctrl_state_csr_t;
