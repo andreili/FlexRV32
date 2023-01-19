@@ -19,6 +19,7 @@ module rv_csr_machine
     input   wire[31:0]                  i_pc,
     input   wire                        i_ebreak,
     output  int_ctrl_csr_t              o_int_ctr,
+    output  wire[31:0]                  o_ret_addr,
     output  wire[31:0]                  o_trap_pc,
     output  wire[31:0]                  o_data
 );
@@ -73,7 +74,7 @@ module rv_csr_machine
     `CSR_REG(mstatush, 32, sel_mstatush)
     `CSR_REG(mscratch, 32, sel_mscratch)
     //`CSR_REG(mepc, 32, sel_mepc)
-    `CSR_REG(mcause, 32, sel_mcause)
+    //`CSR_REG(mcause, 32, sel_mcause)
     `CSR_REG(mtval, 32, sel_mtval)
     //`CSR_REG(mip, 12, sel_mip)  // Machine Interrupt Pending
 
@@ -86,6 +87,31 @@ module rv_csr_machine
             mepc_data <= i_pc;
         else if (sel_mepc & i_write)
             mepc_data <= i_data;
+    end
+    
+    logic[31:0] mcause_data;
+    logic       mcause_is_int;
+    logic[7:0]  mcause_code;
+    assign      mcause_data = { mcause_is_int, {(32-1-8){1'b0}}, mcause_code };
+    
+    logic       mcause_is_int_next;
+    logic[7:0]  mcause_code_next;
+    assign      mcause_is_int_next = 1'b0;
+    assign      mcause_code_next =
+                i_ebreak ? 8'h3 :
+                '0;
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+        begin
+            mcause_is_int <= '0;
+            mcause_code <= '0;
+        end
+        else if (i_ebreak)
+        begin
+            mcause_is_int <= mcause_is_int_next;
+            mcause_code <= mcause_code_next;
+        end
     end
 
     logic[31:0] misa_data = {
@@ -171,6 +197,7 @@ module rv_csr_machine
     assign  o_trap_pc = (trap_bar_mode == 2'b00) ? { trap_bar_base, 2'b00 } : // Direct
                         (trap_bar_mode == 2'b01) ? cause_pc :  // Vectored
                         '0;
+    assign  o_ret_addr = mepc_data;
 
     assign  o_data = sel_mstatus ? mstatus_data :
                      sel_misa ? misa_data :

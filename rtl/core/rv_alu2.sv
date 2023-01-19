@@ -8,6 +8,7 @@
 module rv_alu2
 (
     input   wire                        i_clk,
+    input   wire                        i_reset_n,
     input   alu1_bus_t                  i_bus,
 `ifdef EXTENSION_Zicsr
     input   wire                        i_csr_read,
@@ -35,15 +36,11 @@ module rv_alu2
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
-    logic[31:0] pc;
     logic[31:0] pc_p4;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
 `ifdef EXTENSION_Zicsr
     logic       csr_read;
     logic[31:0] csr_data;
@@ -51,27 +48,35 @@ module rv_alu2
 
     always_ff @(posedge i_clk)
     begin
-        op1 <= i_bus.op1;
-        op2 <= i_bus.op2;
-        res <= i_bus.alu_res;
-        ctrl <= i_bus.alu_ctrl;
-        store <= i_bus.store;
-        reg_write <= i_bus.reg_write;
-        rd <= i_bus.rd;
-        inst_jal_jalr <= i_bus.inst_jal_jalr;
-        inst_branch <= i_bus.inst_branch;
-        pc <= i_bus.pc;
-        pc_target <= i_bus.pc_target;
-        res_src <= i_bus.res_src;
-        funct3 <= i_bus.funct3;
-        reg_data2 <= i_bus.reg_data2;
-    `ifdef EXTENSION_C
-        compressed <= i_bus.compressed;
-    `endif
+        if (!i_reset_n)
+        begin
+            inst_jal_jalr <= '0;
+            inst_branch <= '0;
+            store <= '0;
+            reg_write <= '0;
+            res_src <= '0;
+        end
+        else
+        begin
+            op1 <= i_bus.op1;
+            op2 <= i_bus.op2;
+            res <= i_bus.alu_res;
+            ctrl <= i_bus.alu_ctrl;
+            store <= i_bus.store;
+            reg_write <= i_bus.reg_write;
+            rd <= i_bus.rd;
+            inst_jal_jalr <= i_bus.inst_jal_jalr;
+            inst_branch <= i_bus.inst_branch;
+            pc_p4 <= i_bus.pc_p4;
+            pc_target <= i_bus.pc_target;
+            res_src <= i_bus.res_src;
+            funct3 <= i_bus.funct3;
+            reg_data2 <= i_bus.reg_data2;
     `ifdef EXTENSION_Zicsr
-        csr_read <= i_csr_read;
-        csr_data <= i_csr_data;
+            csr_read <= i_csr_read;
+            csr_data <= i_csr_data;
     `endif
+        end
     end
 
     // adder - for all (add/sub/cmp)
@@ -120,14 +125,6 @@ module rv_alu2
         default:        shift_result = shl;
         endcase
     end
-
-    assign  pc_p4 = (pc + 
-`ifdef EXTENSION_C
-            (compressed ? 2 : 4)
-`else
-            4
-`endif
-        );
 
     logic[31:0] result;
     always_comb

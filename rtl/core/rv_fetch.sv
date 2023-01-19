@@ -11,6 +11,10 @@ module rv_fetch
     input   wire                        i_reset_n,
     input   wire[31:0]                  i_pc_target,
     input   wire                        i_pc_select,
+`ifdef EXTENSION_Zicsr
+    input   wire[31:0]                  i_pc_trap,
+    input   wire                        i_ebreak,
+`endif
     input   wire                        i_fetch_start,
     //input   wire                        i_pc_inc,
     input   wire[31:0]                  i_instruction,
@@ -48,6 +52,9 @@ module rv_fetch
 
     assign  fetch_pc_next = 
         (!i_reset_n) ? RESET_ADDR :
+`ifdef EXTENSION_Zicsr
+        i_ebreak ? i_pc_trap :
+`endif
         i_pc_select ? i_pc_target :
 `ifdef BRANCH_PREDICTION_SIMPLE
         //fetch_bp_need ? fetch_bp_addr :
@@ -90,7 +97,11 @@ module rv_fetch
         .o_ready                        (o_bus.ready)
     );
 
-    assign  move_pc = (i_ack & free_dword_or_more) | i_pc_select;
+    assign  move_pc = (i_ack & free_dword_or_more) | i_pc_select
+`ifdef EXTENSION_Zicsr
+            | i_ebreak
+`endif
+            ;
     assign  o_cyc = i_reset_n & free_dword_or_more;
     assign  fetch_addr = fetch_pc;
 `else // PREFETCH_BUFFER
@@ -103,6 +114,9 @@ module rv_fetch
         .i_pc                           (fetch_pc),
         .i_start                        (i_fetch_start),
         .i_pc_select                    (i_pc_select),
+    `ifdef EXTENSION_Zicsr
+        .i_ebreak                       (i_ebreak),
+    `endif
         .i_instruction                  (i_instruction),
         .i_ack                          (i_ack),
         .o_cyc                          (o_cyc),
@@ -117,17 +131,30 @@ module rv_fetch
 
     assign  fetch_addr = fetch_pc;
     assign  fetch_pc_incr = 32'd4;
-    assign  move_pc = i_ack | i_pc_select | (!i_reset_n);
+    assign  move_pc = i_ack | i_pc_select | (!i_reset_n)
+`ifdef EXTENSION_Zicsr
+                | i_ebreak
+`endif
+                ;
     assign  o_cyc = i_fetch_start;
 
     always_ff @(posedge i_clk)
     begin
-        o_bus.ready <= i_ack;
-        o_bus.pc <= fetch_pc;
-        if (i_ack & i_reset_n)
-            o_bus.instruction <= i_instruction;
-        else
+        if (!i_reset_n)
+        begin
+            o_bus.ready <= '0;
+            o_bus.pc <= '0;
             o_bus.instruction <= '0;
+        end
+        else
+        begin
+            o_bus.ready <= i_ack;
+            o_bus.pc <= fetch_pc;
+            if (i_ack & i_reset_n)
+                o_bus.instruction <= i_instruction;
+            else
+                o_bus.instruction <= '0;
+        end
     end
 
   `endif // EXTENSION_C
@@ -160,5 +187,11 @@ module rv_fetch
 `endif // BRANCH_PREDICTION_SIMPLE
 
     assign  o_addr = fetch_addr;
+
+initial
+begin
+    fetch_pc = '0;
+    o_bus = '0;
+end
 
 endmodule

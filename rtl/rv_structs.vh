@@ -81,9 +81,7 @@ typedef struct packed
     logic                   inst_store;
     logic                   inst_ebreak;
     logic                   inst_supported;
-`ifdef EXTENSION_C
-    logic                   inst_compressed;
-`endif
+    logic[31:0]             pc_p4;
 `ifdef EXTENSION_Zicsr
     logic[11:0]             csr_idx;
     logic[4:0]              csr_imm;
@@ -92,6 +90,7 @@ typedef struct packed
     logic                   csr_set;
     logic                   csr_clear;
     logic                   csr_read;
+    logic                   inst_mret;
 `endif
 } decode_bus_t;
 
@@ -106,14 +105,11 @@ typedef struct packed
     logic[4:0]  rd;
     logic       inst_jal_jalr;
     logic       inst_branch;
-    logic[31:0] pc;
+    logic[31:0] pc_p4;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
-`ifdef EXTENSION_C
-    logic       compressed;
-`endif
 } alu1_bus_t;
 
 typedef struct packed

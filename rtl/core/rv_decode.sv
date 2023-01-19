@@ -46,7 +46,7 @@ module rv_decode
     logic   inst_beq, inst_bne, inst_blt, inst_bge, inst_bltu, inst_bgeu;
     logic   inst_jalr;
     logic   inst_jal;
-    logic   inst_ecall, inst_ebreak;
+    logic   inst_ecall, inst_ebreak, inst_mret;
 `ifdef EXTENSION_Zifencei
     logic   inst_fence, inst_fence_i;
 `endif
@@ -89,6 +89,7 @@ module rv_decode
     assign  o_bus.csr_set   = inst_csrrs | inst_csrrsi;
     assign  o_bus.csr_clear = inst_csrrc | inst_csrrci;
     assign  o_bus.csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
+    assign  o_bus.inst_mret = inst_mret;
 `endif
 
     assign  inst_full = (op[1:0] == RV32_OPC_DET);
@@ -117,6 +118,7 @@ module rv_decode
         `endif
         `ifdef EXTENSION_Zicsr
             | inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci
+            | inst_mret
         `endif
             ;
 
@@ -168,6 +170,7 @@ module rv_decode
     // system
     assign  inst_ecall    = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000000);
     assign  inst_ebreak   = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000001);
+    assign  inst_mret     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
 `ifdef EXTENSION_Zifencei
     // fence
     assign  inst_fence    = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b000);
@@ -253,9 +256,16 @@ module rv_decode
     assign  o_bus.inst_branch = inst_branch;
     assign  o_bus.inst_store = inst_store;
     assign  o_bus.inst_ebreak = inst_ebreak;
+
+    logic[31:0] pc_p4;
+    assign  pc_p4 = (pc + 
 `ifdef EXTENSION_C
-    assign  o_bus.inst_compressed = !comp_illegal;
+            ((!comp_illegal) ? 2 : 4)
+`else
+            4
 `endif
+        );
+    assign  o_bus.pc_p4 = pc_p4;
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
@@ -364,5 +374,8 @@ module rv_decode
         if (inst_none)     dbg_ascii_instr = "NONE";
     end
 `endif
+
+initial
+    o_bus = '0;
 
 endmodule

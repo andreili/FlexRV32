@@ -21,6 +21,7 @@ module rv_csr
     input   wire[31:0]                  i_pc,
     input   wire                        i_ebreak,
     output  wire[31:0]                  o_data,
+    output  wire[31:0]                  o_ret_addr,
     output  wire[31:0]                  o_trap_pc,
     output  wire                        o_read
 );
@@ -32,6 +33,8 @@ module rv_csr
     logic       set;
     logic       clear;
     logic       read;
+    logic       ebreak;
+    logic[31:0] pc;
 
     always_ff @(posedge i_clk)
     begin
@@ -42,6 +45,8 @@ module rv_csr
         set <= i_set;
         clear <= i_clear;
         read <= i_read;
+        ebreak <= i_ebreak;
+        pc <= i_pc;
     end
 
     logic[31:0] write_value;
@@ -95,9 +100,10 @@ module rv_csr
         .i_set                          (set),
         .i_clear                        (clear),
         .i_int_ctr_state                ('0),
-        .i_pc                           (i_pc),
-        .i_ebreak                       (i_ebreak),
+        .i_pc                           (pc),
+        .i_ebreak                       (ebreak),
         .o_int_ctr                      (o_int_ctr),
+        .o_ret_addr                     (o_ret_addr),
         .o_trap_pc                      (o_trap_pc),
         .o_data                         (rdata_machine)
     );

@@ -9,6 +9,9 @@ module rv_fetch_aligner
     input   wire[31:0]                  i_pc,
     input   wire                        i_start,
     input   wire                        i_pc_select,
+`ifdef EXTENSION_Zicsr
+    input   wire                        i_ebreak,
+`endif
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ack,
     output  wire                        o_cyc,
@@ -67,22 +70,43 @@ module rv_fetch_aligner
 
     always_ff @(posedge i_clk)
     begin
-        ready <= instr_ready;
-        pc <= i_pc;
-        if (instr_ready & i_reset_n)
-            instruction <= instr_mux;
-        else
+        if (!i_reset_n)
+        begin
+            ready <= '0;
+            pc <= '0;
             instruction <= '0;
+        end
+        else
+        begin
+            ready <= instr_ready;
+            pc <= i_pc;
+            if (instr_ready & i_reset_n)
+                instruction <= instr_mux;
+            else
+                instruction <= '0;
+        end
     end
 
     assign  bus_cyc = i_start | misal;
 
     assign  o_cyc = bus_cyc;
-    assign  o_move = instr_ready | i_pc_select;
+    assign  o_move = instr_ready | i_pc_select
+    `ifdef EXTENSION_Zicsr
+                | i_ebreak
+    `endif
+                ;
     assign  o_pc_incr = (instr_mux[1:0] == 2'b11) ? 4 : 2;
     assign  o_addr = fetch_addr;
     assign  o_ready = ready;
     assign  o_pc = pc;
     assign  o_instruction = instruction;
+
+initial
+begin
+    fetch_addr = '0;
+    ready = '0;
+    pc = '0;
+    instruction = '0;
+end
 
 endmodule

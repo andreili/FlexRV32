@@ -1,4 +1,6 @@
 #include <memory>
+#include <chrono>
+#include <ctime> 
 #include "tb.h"
 
 double sc_time_stamp() { return 0; }
@@ -76,7 +78,9 @@ int main(int argc, char** argv, char** env)
     initialized = true;
 
     int ret = -1;
-    for (int i=0 ; i<cycles ; ++i)
+    uint32_t cycles_cnt = 0;
+    auto start = std::chrono::system_clock::now();
+    for ( ; cycles_cnt<cycles ; ++cycles_cnt)
     {
         ret = tb->run_steps(TICK_TIME);
         if (ret != 0)
@@ -84,6 +88,8 @@ int main(int argc, char** argv, char** env)
             break;
         }
     }
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<float> elapsed_seconds = end-start;
     if (cycles != (uint32_t)-1)
     {
         ret = 0;
@@ -93,6 +99,8 @@ int main(int argc, char** argv, char** env)
     {
         ret = 0;
     }
+
+    printf("Simulation time: %.2f(s), %d/%d cycles\n", elapsed_seconds, cycles_cnt, cycles);
 
     tb->finish();
     top->final();

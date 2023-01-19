@@ -8,6 +8,7 @@
 module rv_alu3
 (
     input   wire                        i_clk,
+    input   wire                        i_reset_n,
     input   alu2_bus_t                  i_bus,
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
@@ -32,20 +33,30 @@ module rv_alu3
 
     always_ff @(posedge i_clk)
     begin
-        bits_result <= i_bus.bits_result;
-        pc_select <= i_bus.pc_select;
-        cmp_result <= i_bus.cmp_result;
-        add <= i_bus.add;
-        shift_result <= i_bus.shift_result;
-        res <= i_bus.res;
-        store <= i_bus.store;
-        reg_write <= i_bus.reg_write;
-        rd <= i_bus.rd;
-        pc_p4 <= i_bus.pc_p4;
-        pc_target <= i_bus.pc_target;
-        res_src <= i_bus.res_src;
-        funct3 <= i_bus.funct3;
-        reg_data2 <= i_bus.reg_data2;
+        if (!i_reset_n)
+        begin
+            pc_select <= '0;
+            store <= '0;
+            reg_write <= '0;
+            res_src <= '0;
+        end
+        else
+        begin
+            bits_result <= i_bus.bits_result;
+            pc_select <= i_bus.pc_select;
+            cmp_result <= i_bus.cmp_result;
+            add <= i_bus.add;
+            shift_result <= i_bus.shift_result;
+            res <= i_bus.res;
+            store <= i_bus.store;
+            reg_write <= i_bus.reg_write;
+            rd <= i_bus.rd;
+            pc_p4 <= i_bus.pc_p4;
+            pc_target <= i_bus.pc_target;
+            res_src <= i_bus.res_src;
+            funct3 <= i_bus.funct3;
+            reg_data2 <= i_bus.reg_data2;
+        end
     end
 
     always_comb

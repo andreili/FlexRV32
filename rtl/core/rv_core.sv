@@ -35,6 +35,9 @@ module rv_core
     alu3_bus_t  alu3_bus;
     memory_bus_t memory_bus;
     write_bus_t write_bus;
+`ifdef EXTENSION_Zicsr
+    logic[31:0] ret_addr;
+`endif
 
     logic[3:0]  state_cur, state_nxt;
     localparam  STATE_FETCH = 0;
@@ -80,6 +83,10 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_pc_target                    (alu3_bus.pc_target),
         .i_pc_select                    (alu3_bus.pc_select),
+    `ifdef EXTENSION_Zicsr
+        .i_pc_trap                      (trap_pc),
+        .i_ebreak                       (decode_bus.inst_ebreak),
+    `endif
         .i_fetch_start                  (state_cur == STATE_WR),
         //.i_pc_inc                       (state_cur == STATE_FETCH),
         //.i_data_latch                   (state_cur == STATE_FETCH),
@@ -102,7 +109,11 @@ module rv_core
     u_st3_alu1
     (
         .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_bus                          (decode_bus),
+`ifdef EXTENSION_Zicsr
+        .i_ret_addr                     (ret_addr),
+`endif
         .i_reg1_data                    (reg_rdata1),
         .i_reg2_data                    (reg_rdata2),
         .o_bus                          (alu1_bus)
@@ -125,9 +136,10 @@ module rv_core
         .i_set                          (decode_bus.csr_set),
         .i_clear                        (decode_bus.csr_clear),
         .i_read                         (decode_bus.csr_read),
-        .i_pc                           (decode_bus.pc),
+        .i_pc                           (decode_bus.pc_p4),
         .i_ebreak                       (decode_bus.inst_ebreak),
         .o_read                         (csr_read),
+        .o_ret_addr                     (ret_addr),
         .o_trap_pc                      (trap_pc),
         .o_data                         (csr_rdata)
     );
@@ -137,6 +149,7 @@ module rv_core
     u_st4_alu2
     (   
         .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_bus                          (alu1_bus),
     `ifdef EXTENSION_Zicsr
         .i_csr_read                     (csr_read),
@@ -152,6 +165,7 @@ module rv_core
     u_st4_alu3
     (   
         .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_bus                          (alu2_bus),
         .o_wdata                        (wdata),
         .o_wsel                         (wsel),
