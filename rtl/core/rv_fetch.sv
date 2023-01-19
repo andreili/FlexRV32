@@ -49,11 +49,18 @@ module rv_fetch
 
     assign  fetch_bp_lr = 32'h0000_0010;
 `endif
+`ifdef EXTENSION_Zicsr
+    logic       ebreak;
+    always_ff @(posedge i_clk)
+    begin
+        ebreak <= i_ebreak;
+    end
+`endif
 
     assign  fetch_pc_next = 
         (!i_reset_n) ? RESET_ADDR :
 `ifdef EXTENSION_Zicsr
-        i_ebreak ? i_pc_trap :
+        ebreak ? i_pc_trap :
 `endif
         i_pc_select ? i_pc_target :
 `ifdef BRANCH_PREDICTION_SIMPLE
@@ -99,7 +106,7 @@ module rv_fetch
 
     assign  move_pc = (i_ack & free_dword_or_more) | i_pc_select
 `ifdef EXTENSION_Zicsr
-            | i_ebreak
+            | ebreak
 `endif
             ;
     assign  o_cyc = i_reset_n & free_dword_or_more;
@@ -115,7 +122,7 @@ module rv_fetch
         .i_start                        (i_fetch_start),
         .i_pc_select                    (i_pc_select),
     `ifdef EXTENSION_Zicsr
-        .i_ebreak                       (i_ebreak),
+        .i_ebreak                       (ebreak),
     `endif
         .i_instruction                  (i_instruction),
         .i_ack                          (i_ack),
@@ -133,7 +140,7 @@ module rv_fetch
     assign  fetch_pc_incr = 32'd4;
     assign  move_pc = i_ack | i_pc_select | (!i_reset_n)
 `ifdef EXTENSION_Zicsr
-                | i_ebreak
+                | ebreak
 `endif
                 ;
     assign  o_cyc = i_fetch_start;
