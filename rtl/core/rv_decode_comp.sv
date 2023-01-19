@@ -57,8 +57,8 @@ module rv_decode_comp
             2'b00:
             begin
                 // c.addi4spn -> addi rd', x2, imm
-                inst_c_addi4spn = |i_instruction[4:2];
-                instruction = (|i_instruction[4:2]) ? { 2'b00, i_instruction[10:7], i_instruction[12:11],
+                inst_c_addi4spn = |i_instruction[12:5];
+                instruction = (|i_instruction[12:5]) ? { 2'b00, i_instruction[10:7], i_instruction[12:11],
                                 i_instruction[5], i_instruction[6], 2'b00, 5'h2, 3'b000, 2'b01,
                                 i_instruction[4:2], RV32_OPC_ARI, 2'b11 } : '0;
             end
