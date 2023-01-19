@@ -70,6 +70,7 @@ int main(int argc, char** argv, char** env)
         cycles_str += 8;
         cycles = atoi(cycles_str);
     }
+    auto start = std::chrono::system_clock::now();
 
     // wait for reset
     top->i_reset_n = 0;
@@ -79,7 +80,6 @@ int main(int argc, char** argv, char** env)
 
     int ret = -1;
     uint32_t cycles_cnt = 0;
-    auto start = std::chrono::system_clock::now();
     for ( ; cycles_cnt<cycles ; ++cycles_cnt)
     {
         ret = tb->run_steps(TICK_TIME);
@@ -89,7 +89,7 @@ int main(int argc, char** argv, char** env)
         }
     }
     auto end = std::chrono::system_clock::now();
-    std::chrono::duration<float> elapsed_seconds = end-start;
+    std::chrono::duration<double> elapsed_seconds = end-start;
     if (cycles != (uint32_t)-1)
     {
         ret = 0;
@@ -100,7 +100,7 @@ int main(int argc, char** argv, char** env)
         ret = 0;
     }
 
-    printf("Simulation time: %.2f(s), %d/%d cycles\n", elapsed_seconds, cycles_cnt, cycles);
+    printf("Simulation time: %.3f(s), %d/%d cycles\n", elapsed_seconds, cycles_cnt, cycles);
 
     tb->finish();
     top->final();
