@@ -26,9 +26,6 @@ int main(void)
     uint32_t cycle_start = read_csr(cycle);
     uint32_t time_start = read_csr(time);
     uint32_t instret_start = read_csr(instret);
-    write_csr(mepc, 0x40);
-    write_csr(mtvec, 0x140);
-    asm volatile ("ebreak");
     static const char* p_str = "Hello RISC-V core!\n";
     sim_send_str(p_str);
     uint32_t cycle_end = read_csr(cycle);
