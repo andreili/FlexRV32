@@ -16,6 +16,24 @@ module rv_core
 `ifdef TO_SIM
     output  wire[31:0]                  o_debug,
 `endif
+`ifdef EXTENSION_Zicsr
+    // CSR interface
+    output  wire[11:0]                  o_csr_idx,
+    output  wire[4:0]                   o_csr_imm,
+    output  wire                        o_csr_imm_sel,
+    output  wire                        o_csr_write,
+    output  wire                        o_csr_set,
+    output  wire                        o_csr_clear,
+    output  wire                        o_csr_read,
+    output  wire                        o_csr_ebreak,
+    output  wire[31:0]                  o_csr_pc_next,
+    input   wire                        i_csr_to_trap,
+    input   wire[31:0]                  i_csr_trap_pc,
+    input   wire                        i_csr_read,
+    input   wire[31:0]                  i_csr_ret_addr,
+    input   wire[31:0]                  i_csr_data,
+    output  wire[31:0]                  o_reg_rdata1,
+`endif
     // instruction interface
     output  wire                        o_instr_req,
     output  wire[31:0]                  o_instr_addr,
@@ -41,7 +59,7 @@ module rv_core
     write_bus_t write_bus;
 `ifdef EXTENSION_Zicsr
     logic[31:0] ret_addr;
-    csr_bus_t   csr_bus;
+    assign  o_reg_rdata1 = reg_rdata1;
 `endif
 
     logic[3:0]  state_cur, state_nxt;
@@ -90,8 +108,8 @@ module rv_core
         .i_pc_target                    (alu3_bus.pc_target),
         .i_pc_select                    (alu3_bus.pc_select),
     `ifdef EXTENSION_Zicsr
-        .i_pc_trap                      (trap_pc),
-        .i_ebreak                       (decode_bus.inst_ebreak),
+        .i_pc_trap                      (i_csr_trap_pc),
+        .i_ebreak                       (i_csr_to_trap),
     `endif
         .i_fetch_start                  (state_cur == STATE_WR),
         //.i_pc_inc                       (state_cur == STATE_FETCH),
@@ -109,7 +127,15 @@ module rv_core
         .i_clk                          (i_clk),
         .i_bus                          (fetch_bus),
 `ifdef EXTENSION_Zicsr
-        .o_csr                          (csr_bus),
+        .o_csr_idx                      (o_csr_idx),
+        .o_csr_imm                      (o_csr_imm),
+        .o_csr_imm_sel                  (o_csr_imm_sel),
+        .o_csr_write                    (o_csr_write),
+        .o_csr_set                      (o_csr_set),
+        .o_csr_clear                    (o_csr_clear),
+        .o_csr_read                     (o_csr_read),
+        .o_csr_ebreak                   (o_csr_ebreak),
+        .o_csr_pc_next                  (o_csr_pc_next),
 `endif
         .o_bus                          (decode_bus)
     );
@@ -121,30 +147,12 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_bus                          (decode_bus),
 `ifdef EXTENSION_Zicsr
-        .i_ret_addr                     (ret_addr),
+        .i_ret_addr                     (i_csr_ret_addr),
 `endif
         .i_reg1_data                    (reg_rdata1),
         .i_reg2_data                    (reg_rdata2),
         .o_bus                          (alu1_bus)
     );
-
-`ifdef EXTENSION_Zicsr
-    logic       csr_read;
-    logic[31:0] csr_rdata;
-    logic[31:0] trap_pc;
-    rv_csr
-    u_st3_csr
-    (
-        .i_clk                          (i_clk),
-        .i_reset_n                      (i_reset_n),
-        .i_reg_data                     (reg_rdata1),
-        .i_bus                          (csr_bus),
-        .o_read                         (csr_read),
-        .o_ret_addr                     (ret_addr),
-        .o_trap_pc                      (trap_pc),
-        .o_data                         (csr_rdata)
-    );
-`endif
 
     rv_alu2
     u_st4_alu2
@@ -153,8 +161,8 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_bus                          (alu1_bus),
     `ifdef EXTENSION_Zicsr
-        .i_csr_read                     (csr_read),
-        .i_csr_data                     (csr_rdata),
+        .i_csr_read                     (i_csr_read),
+        .i_csr_data                     (i_csr_data),
     `endif
         .o_bus                          (alu2_bus)
     );

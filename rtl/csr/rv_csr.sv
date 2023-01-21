@@ -11,9 +11,18 @@ module rv_csr
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire[31:0]                  i_reg_data,
-    input   csr_bus_t                   i_bus,
+    input   wire[11:0]                  i_idx,
+    input   wire[4:0]                   i_imm,
+    input   wire                        i_imm_sel,
+    input   wire                        i_write,
+    input   wire                        i_set,
+    input   wire                        i_clear,
+    input   wire                        i_read,
+    input   wire                        i_ebreak,
+    input   wire[31:0]                  i_pc_next,
     output  wire[31:0]                  o_data,
     output  wire[31:0]                  o_ret_addr,
+    output  wire                        o_csr_to_trap,
     output  wire[31:0]                  o_trap_pc,
     output  wire                        o_read
 );
@@ -30,15 +39,15 @@ module rv_csr
 
     always_ff @(posedge i_clk)
     begin
-        idx <= i_bus.idx;
-        imm <= i_bus.imm;
-        imm_sel <= i_bus.imm_sel;
-        write <= i_bus.to_write;
-        set <= i_bus.to_set;
-        clear <= i_bus.to_clear;
-        read <= i_bus.read;
-        ebreak <= i_bus.ebreak;
-        pc <= i_bus.pc_next;
+        idx <= i_idx;
+        imm <= i_imm;
+        imm_sel <= i_imm_sel;
+        write <= i_write;
+        set <= i_set;
+        clear <= i_clear;
+        read <= i_read;
+        ebreak <= i_ebreak;
+        pc <= i_pc_next;
     end
 
     logic[31:0] write_value;
@@ -100,6 +109,7 @@ module rv_csr
         .o_data                         (rdata_machine)
     );
 
+    assign  o_csr_to_trap = i_ebreak;
     assign  o_data = user_level_category ? rdata_user :
                      supervisor_level_category ? rdata_supervisor :
                      hypervisor_level_category ? rdata_hypervisor :

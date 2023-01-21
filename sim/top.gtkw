@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sat Jan 21 15:21:56 2023
+[*] Sat Jan 21 16:06:34 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Sat Jan 21 15:21:48 2023"
-[dumpfile_size] 1147101
+[dumpfile_mtime] "Sat Jan 21 16:06:27 2023"
+[dumpfile_size] 1141642
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
 [timestart] 49
 [size] 1920 1017

@@ -158,21 +158,6 @@ typedef struct packed
     logic[31:0] rdata;
 } write_bus_t;
 
-`ifdef EXTENSION_Zicsr
-typedef struct packed
-{
-    logic[11:0] idx;
-    logic[4:0]  imm;
-    logic       imm_sel;
-    logic       to_write;
-    logic       to_set;
-    logic       to_clear;
-    logic       read;
-    logic       ebreak;
-    logic[31:0] pc_next;
-} csr_bus_t;
-`endif
-
 typedef struct packed
 {
     logic   enable_external;
