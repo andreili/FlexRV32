@@ -10,6 +10,11 @@
     //`define EXTENSION_Zihpm
 `endif
 
+//`define U_MODE // TODO
+`ifdef U_MODE
+//`define S_MODE // TODO
+`endif // U_MODE
+
 `define SLAVE_SEL_WIDTH                 4
 `ifdef TO_SIM
     `define TCM_ADDR_WIDTH              21

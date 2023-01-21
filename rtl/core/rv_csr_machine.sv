@@ -41,6 +41,10 @@ module rv_csr_machine
         .o_data                         (name``_data)  \
     );
 
+    /*localparam  MODE_U = 2'b00;
+    localparam  MODE_S = 2'b01;
+    localparam  MODE_M = 2'b11;*/
+
     logic   sel_mstatus;
     logic   sel_misa;
     logic   sel_mie;
@@ -66,17 +70,92 @@ module rv_csr_machine
     assign  sel_mip        = i_sel && (i_idx[7:0] == 8'h44);
 
     `CSR_REG(mstatus, 32, sel_mstatus)
+    `CSR_REG(mstatush, 32, sel_mstatush)
     `CSR_REG(mie, 12, sel_mie)  // Machine Interrupt Enable
     `CSR_REG(mtvec, 32, sel_mtvec)
 `ifdef EXTENSION_Zicntr
     `CSR_REG(mcounteren_lo, 3, sel_mcounteren)
 `endif
-    `CSR_REG(mstatush, 32, sel_mstatush)
     `CSR_REG(mscratch, 32, sel_mscratch)
     //`CSR_REG(mepc, 32, sel_mepc)
     //`CSR_REG(mcause, 32, sel_mcause)
     `CSR_REG(mtval, 32, sel_mtval)
     //`CSR_REG(mip, 12, sel_mip)  // Machine Interrupt Pending
+
+    /*logic[1:0]  cur_mode;
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+            cur_mode <= MODE_M;
+    end
+    
+    logic[31:0] mstatus_data;
+    logic[31:0] mstatush_data;
+    logic       SD, TSR, TW, TVM, MXR, SUM, MPRV, MPIE, UBE, MIE, MBE;
+    logic[1:0]  XS, FS, MPP, VS;
+    assign  mstatus_data[31] = SD;
+    assign  mstatus_data[30:23] = '0;
+    assign  mstatus_data[22] = TSR;
+    assign  mstatus_data[21] = TW;
+    assign  mstatus_data[20] = TVM;
+    assign  mstatus_data[19] = MXR;
+    assign  mstatus_data[18] = SUM;
+    assign  mstatus_data[17] = MPRV;
+    assign  mstatus_data[16:15] = XS;
+    assign  mstatus_data[14:13] = FS;
+    assign  mstatus_data[12:11] = MPP;
+    assign  mstatus_data[10: 9] = VS;
+    assign  mstatus_data[ 7] = MPIE;
+    assign  mstatus_data[ 6] = UBE;
+    assign  mstatus_data[ 4] = '0;
+    assign  mstatus_data[ 3] = MIE;     // M-mode interrupt enable
+    assign  mstatus_data[ 2] = '0;
+    assign  mstatus_data[ 0] = '0;
+    assign  mstatush_data[31:6] = '0;
+    assign  mstatush_data[5] = MBE;
+    assign  mstatush_data[3:0] = '0;
+`ifdef S_MODE
+    logic       SPP, SPIE, SIE, SBE;
+    assign  mstatus_data[ 8] = SPP;
+    assign  mstatus_data[ 5] = SPIE;
+    assign  mstatus_data[ 1] = SIE;     // S-mode interrupt enable
+    assign  mstatush_data[4] = SBE;
+`else
+    assign  mstatus_data[ 8] = '0;
+    assign  mstatus_data[ 5] = '0;
+    assign  mstatus_data[ 1] = '0;
+    assign  mstatush_data[4] = '0;
+`endif
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+        begin
+            MPIE <= '0;
+            MIE <= '0;
+`ifdef S_MODE
+            SPIE <= '0;
+            SIE <= '0;
+`endif
+        end
+        else if (sel_mstatus & i_write)
+        begin
+            MIE  <= i_data[ 3];
+`ifdef S_MODE
+            SPIE <= i_data[ 5];
+            SIE  <= i_data[ 1];
+`endif
+        end
+    end
+
+    logic   xPP_next;
+    assign  xPP_next = (cur_mode == MODE_M) ? 
+
+    logic   xIE;
+`ifdef S_MODE
+    assign  xIE = (cur_mode == MODE_M) ? MIE : SIE;
+`else
+    assign  xIE = MIE;
+`endif*/
 
     logic[31:0] mepc_data;
     always_ff @(posedge i_clk)
