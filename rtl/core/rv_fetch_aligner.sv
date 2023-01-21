@@ -35,7 +35,7 @@ module rv_fetch_aligner
     logic[31:0] instruction;
     logic[31:0] fetch_addr;
     logic       fetch_inc_bit;
-    logic       ready;
+    //logic       ready;
     logic[31:0] pc;
 
     assign  fetch_inc_bit = (!misal) & bus_cyc & i_pc[1];
@@ -72,13 +72,13 @@ module rv_fetch_aligner
     begin
         if (!i_reset_n)
         begin
-            ready <= '0;
+            //ready <= '0;
             pc <= '0;
             instruction <= '0;
         end
         else
         begin
-            ready <= instr_ready;
+            //ready <= instr_ready;
             pc <= i_pc;
             if (instr_ready & i_reset_n)
                 instruction <= instr_mux;
@@ -97,14 +97,14 @@ module rv_fetch_aligner
                 ;
     assign  o_pc_incr = (instr_mux[1:0] == 2'b11) ? 4 : 2;
     assign  o_addr = fetch_addr;
-    assign  o_ready = ready;
+    assign  o_ready = instr_ready;//ready;
     assign  o_pc = pc;
     assign  o_instruction = instruction;
 
 initial
 begin
     fetch_addr = '0;
-    ready = '0;
+    instr_ready = '0;
     pc = '0;
     instruction = '0;
 end

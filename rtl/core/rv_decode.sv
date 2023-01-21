@@ -62,7 +62,7 @@ module rv_decode
 
     logic[4:0]  rd, rs1, rs2;
 
-    assign  op        = { instruction[ 6: 1], i_bus.ready & instruction[0] };
+    assign  op        = instruction[ 6: 0];
     assign  rd        = instruction[11: 7];
     assign  rs1       = inst_lui ? '0 : instruction[19:15];
     assign  rs2       = instruction[24:20];
@@ -302,6 +302,11 @@ module rv_decode
         if (alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_OR })  dbg_ascii_alu_ctrl = "OR";
         if (alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_AND }) dbg_ascii_alu_ctrl = "AND";
     end*/
+
+/* verilator lint_off UNUSEDSIGNAL */
+    logic   dummy;
+/* verilator lint_on UNUSEDSIGNAL */
+    assign  dummy = i_bus.ready;
 
 `ifdef TO_SIM
 /* verilator lint_off UNUSEDSIGNAL */

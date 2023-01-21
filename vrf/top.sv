@@ -67,9 +67,7 @@ module top
         .o_sig                          (w_reset_n)
     );
 
-    //rv_core_mini
-    rv_core
-    //core
+    rv_top_wb
     u_rv
     (
         .i_clk                          (w_clk),

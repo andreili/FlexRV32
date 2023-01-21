@@ -144,18 +144,19 @@ module rv_fetch
 `endif
                 ;
     assign  o_cyc = i_fetch_start;
+    assign  o_bus.ready = i_ack;
 
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
         begin
-            o_bus.ready <= '0;
+            //o_bus.ready <= '0;
             o_bus.pc <= '0;
             o_bus.instruction <= '0;
         end
         else
         begin
-            o_bus.ready <= i_ack;
+            //o_bus.ready <= i_ack;
             o_bus.pc <= fetch_pc;
             if (i_ack & i_reset_n)
                 o_bus.instruction <= i_instruction;
