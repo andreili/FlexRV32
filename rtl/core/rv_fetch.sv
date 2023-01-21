@@ -21,7 +21,9 @@ module rv_fetch
     input   wire                        i_ack,
     output  wire[31:0]                  o_addr,
     output  wire                        o_cyc,
-    output  fetch_bus_t                 o_bus
+    output  wire[31:0]                  o_instruction,
+    output  wire[31:0]                  o_pc,
+    output  wire                        o_ready
 );
 
     logic[31:0] fetch_pc;
@@ -99,9 +101,9 @@ module rv_fetch
         .i_fetch_pc_next                (fetch_pc_next),
         .o_free_dword_or_more           (free_dword_or_more),
         .o_pc_incr                      (fetch_pc_incr),
-        .o_pc                           (o_bus.pc),
-        .o_instruction                  (o_bus.instruction),
-        .o_ready                        (o_bus.ready)
+        .o_pc                           (o_pc),
+        .o_instruction                  (o_instruction),
+        .o_ready                        (o_ready)
     );
 
     assign  move_pc = (i_ack & free_dword_or_more) | i_pc_select
@@ -130,9 +132,9 @@ module rv_fetch
         .o_move                         (move_pc),
         .o_addr                         (fetch_addr),
         .o_pc_incr                      (fetch_pc_incr),
-        .o_ready                        (o_bus.ready),
-        .o_pc                           (o_bus.pc),
-        .o_instruction                  (o_bus.instruction)
+        .o_ready                        (o_ready),
+        .o_pc                           (o_pc),
+        .o_instruction                  (o_instruction)
     );
   `else // EXTENSION_C
 
@@ -144,24 +146,22 @@ module rv_fetch
 `endif
                 ;
     assign  o_cyc = i_fetch_start;
-    assign  o_bus.ready = i_ack;
+    assign  o_ready = i_ack;
 
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
         begin
-            //o_bus.ready <= '0;
-            o_bus.pc <= '0;
-            o_bus.instruction <= '0;
+            o_pc <= '0;
+            o_instruction <= '0;
         end
         else
         begin
-            //o_bus.ready <= i_ack;
-            o_bus.pc <= fetch_pc;
+            o_pc <= fetch_pc;
             if (i_ack & i_reset_n)
-                o_bus.instruction <= i_instruction;
+                o_instruction <= i_instruction;
             else
-                o_bus.instruction <= '0;
+                o_instruction <= '0;
         end
     end
 
@@ -199,7 +199,6 @@ module rv_fetch
 initial
 begin
     fetch_pc = '0;
-    o_bus = '0;
 end
 
 endmodule

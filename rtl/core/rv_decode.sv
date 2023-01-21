@@ -5,7 +5,8 @@
 module rv_decode
 (
     input   wire                        i_clk,
-    input   fetch_bus_t                 i_bus,
+    input   wire[31:0]                  i_instruction,
+    input   wire[31:0]                  i_pc,
 `ifdef EXTENSION_Zicsr
     // CSR interface
     output  wire[11:0]                  o_csr_idx,
@@ -18,7 +19,29 @@ module rv_decode
     output  wire                        o_csr_ebreak,
     output  wire[31:0]                  o_csr_pc_next,
 `endif
-    output  decode_bus_t                o_bus
+    output  wire[31:0]                  o_pc,
+    output  wire[31:0]                  o_pc_next,
+    output  wire[4:0]                   o_rs1,
+    output  wire[4:0]                   o_rs2,
+    output  wire[4:0]                   o_rd,
+    output  wire[31:0]                  o_imm_i,
+    output  wire[31:0]                  o_imm_j,
+    output  alu_res_t                   o_alu_res,
+    output  alu_ctrl_t                  o_alu_ctrl,
+    output  wire[2:0]                   o_funct3,
+    output  res_src_t                   o_res_src,
+    output  wire                        o_reg_write,
+    output  src_op1_t                   o_op1_src,
+    output  src_op2_t                   o_op2_src,
+`ifdef EXTENSION_Zicsr
+    output  wire                        o_inst_mret,
+`endif
+    output  wire                        o_inst_jalr,
+    output  wire                        o_inst_jal,
+    output  wire                        o_inst_branch,
+    output  wire                        o_inst_store,
+    output  wire                        o_inst_ebreak,
+    output  wire                        o_inst_supported
 );
 
     logic[6:0]  op;
@@ -28,7 +51,7 @@ module rv_decode
     logic[31:0] pc;
     always_ff @(posedge i_clk)
     begin
-        pc <= i_bus.pc;
+        pc <= i_pc;
     end
 
     logic[31:0] instruction;
@@ -37,12 +60,12 @@ module rv_decode
     rv_decode_comp
     u_comp
     (
-        .i_instruction                  (i_bus.instruction),
+        .i_instruction                  (i_instruction),
         .o_instruction                  (instruction),
         .o_illegal_instruction          (comp_illegal)
     );
 `else
-    assign  instruction = i_bus.instruction;
+    assign  instruction = i_instruction;
 `endif
 
     logic   inst_full, inst_none;
@@ -90,8 +113,8 @@ module rv_decode
 
     assign  imm_mux = (|{inst_lui, inst_auipc}) ? imm_u :
                       (inst_store) ? imm_s : imm_i;
-    assign  o_bus.imm_j = inst_jal ? imm_j : imm_b;
-    assign  o_bus.imm_i = imm_mux;
+    assign  o_imm_j = inst_jal ? imm_j : imm_b;
+    assign  o_imm_i = imm_mux;
 
 `ifdef EXTENSION_Zicsr
     assign  o_csr_idx = instruction[31:20];
@@ -102,15 +125,15 @@ module rv_decode
     assign  o_csr_clear = inst_csrrc | inst_csrrci;
     assign  o_csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
     assign  o_csr_ebreak = inst_ebreak;
-    assign  o_csr_pc_next = pc_p4;
-    assign  o_bus.inst_mret = inst_mret;
+    assign  o_csr_pc_next = pc_next;
+    assign  o_inst_mret = inst_mret;
 `endif
 
     assign  inst_full = (op[1:0] == RV32_OPC_DET);
 
     assign  inst_none = !(|instruction);
 
-    assign  o_bus.inst_supported = 
+    assign  o_inst_supported = 
             inst_none |
             inst_lb    | inst_lh   | inst_lw   | inst_lbu   | inst_lhu  |
             inst_addi  | inst_slli | inst_slti | inst_sltiu |
@@ -224,62 +247,62 @@ module rv_decode
     assign  inst_ltu    = ((((op[6:2] == RV32_OPC_ARI) | ((op[6:2] == RV32_OPC_ARR) & (funct7 == 7'b0000000))) & (funct3 == 3'b011)) |
         ((op[6:2] == RV32_OPC_B) & (funct3[2:1] == 2'b11))) & inst_full;
 
-    assign  o_bus.reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui | inst_jalr | inst_jal
+    assign  o_reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui | inst_jalr | inst_jal
 `ifdef EXTENSION_Zicsr
                                 | ((op[6:2] == RV32_OPC_SYS) & inst_full)
 `endif
                                 ;
 
-    assign  o_bus.rd  = rd;
-    assign  o_bus.rs1 = inst_lui ? '0 : rs1;
-    assign  o_bus.rs2 = rs2;
-    assign  o_bus.op1_src.pc = |{inst_auipc,inst_jal};
-    assign  o_bus.op1_src.r  = !(|{inst_auipc,inst_jal});
+    assign  o_rd  = rd;
+    assign  o_rs1 = inst_lui ? '0 : rs1;
+    assign  o_rs2 = rs2;
+    assign  o_op1_src.pc = |{inst_auipc,inst_jal};
+    assign  o_op1_src.r  = !(|{inst_auipc,inst_jal});
 
-    assign  o_bus.op2_src.j = inst_jal;
-    assign  o_bus.op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store});
-    assign  o_bus.op2_src.r = !(|{inst_jal,inst_lui, inst_auipc,inst_jalr, inst_load, inst_imm,inst_store});
+    assign  o_op2_src.j = inst_jal;
+    assign  o_op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store});
+    assign  o_op2_src.r = !(|{inst_jal,inst_lui, inst_auipc,inst_jalr, inst_load, inst_imm,inst_store});
 
-    assign  o_bus.res_src.memory = inst_load;
-    assign  o_bus.res_src.pc_p4  = |{inst_jalr,inst_jal};
-    assign  o_bus.res_src.alu    = !(|{inst_load,inst_jalr,inst_jal});
+    assign  o_res_src.memory = inst_load;
+    assign  o_res_src.pc_next  = |{inst_jalr,inst_jal};
+    assign  o_res_src.alu    = !(|{inst_load,inst_jalr,inst_jal});
 
-    assign  o_bus.alu_res.cmp = |{inst_branch,inst_slts};
-    assign  o_bus.alu_res.bits = |{inst_andi,inst_and,
+    assign  o_alu_res.cmp = |{inst_branch,inst_slts};
+    assign  o_alu_res.bits = |{inst_andi,inst_and,
                                         inst_ori,inst_or,
                                         inst_xori,inst_xor};
-    assign  o_bus.alu_res.shift = |{inst_slli,inst_sll,inst_srli,inst_srl,inst_srai,inst_sra};
-    assign  o_bus.alu_res.arith = |{inst_sub, inst_add, inst_load, inst_store};
-    assign  o_bus.alu_ctrl.cmp_eq  = |{inst_beq,inst_bne};
-    assign  o_bus.alu_ctrl.cmp_lts = |{inst_slti,inst_slt,inst_blt,inst_bge};
-    assign  o_bus.alu_ctrl.cmp_ltu = inst_ltu;
-    assign  o_bus.alu_ctrl.cmp_inversed = (funct3[0] & inst_branch);
-    assign  o_bus.alu_ctrl.bits_and = |{inst_andi,inst_and};
-    assign  o_bus.alu_ctrl.bits_or  = |{inst_ori,inst_or};
-    assign  o_bus.alu_ctrl.bits_xor = |{inst_xori,inst_xor};
-    assign  o_bus.alu_ctrl.arith_shl = |{inst_slli,inst_sll};
-    assign  o_bus.alu_ctrl.arith_shr = |{inst_srli,inst_srl,inst_srai,inst_sra};
-    assign  o_bus.alu_ctrl.arith_sub = inst_sub;
-    assign  o_bus.alu_ctrl.arith_add = |{inst_add,inst_addi,inst_load,inst_store};
-    assign  o_bus.alu_ctrl.shift_arithmetical = |{inst_srai,inst_sra};
+    assign  o_alu_res.shift = |{inst_slli,inst_sll,inst_srli,inst_srl,inst_srai,inst_sra};
+    assign  o_alu_res.arith = |{inst_sub, inst_add, inst_load, inst_store};
+    assign  o_alu_ctrl.cmp_eq  = |{inst_beq,inst_bne};
+    assign  o_alu_ctrl.cmp_lts = |{inst_slti,inst_slt,inst_blt,inst_bge};
+    assign  o_alu_ctrl.cmp_ltu = inst_ltu;
+    assign  o_alu_ctrl.cmp_inversed = (funct3[0] & inst_branch);
+    assign  o_alu_ctrl.bits_and = |{inst_andi,inst_and};
+    assign  o_alu_ctrl.bits_or  = |{inst_ori,inst_or};
+    assign  o_alu_ctrl.bits_xor = |{inst_xori,inst_xor};
+    assign  o_alu_ctrl.arith_shl = |{inst_slli,inst_sll};
+    assign  o_alu_ctrl.arith_shr = |{inst_srli,inst_srl,inst_srai,inst_sra};
+    assign  o_alu_ctrl.arith_sub = inst_sub;
+    assign  o_alu_ctrl.arith_add = |{inst_add,inst_addi,inst_load,inst_store};
+    assign  o_alu_ctrl.shift_arithmetical = |{inst_srai,inst_sra};
 
-    assign  o_bus.pc = pc;
-    assign  o_bus.funct3 = (inst_full) ? funct3 : (3'b010);
-    assign  o_bus.inst_jalr = inst_jalr;
-    assign  o_bus.inst_jal = inst_jal;
-    assign  o_bus.inst_branch = inst_branch;
-    assign  o_bus.inst_store = inst_store;
-    assign  o_bus.inst_ebreak = inst_ebreak;
+    assign  o_pc = pc;
+    assign  o_funct3 = (inst_full) ? funct3 : (3'b010);
+    assign  o_inst_jalr = inst_jalr;
+    assign  o_inst_jal = inst_jal;
+    assign  o_inst_branch = inst_branch;
+    assign  o_inst_store = inst_store;
+    assign  o_inst_ebreak = inst_ebreak;
 
-    logic[31:0] pc_p4;
-    assign  pc_p4 = (pc + 
+    logic[31:0] pc_next;
+    assign  pc_next = (pc + 
 `ifdef EXTENSION_C
             ((!comp_illegal) ? 2 : 4)
 `else
             4
 `endif
         );
-    assign  o_bus.pc_p4 = pc_p4;
+    assign  o_pc_next = pc_next;
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
@@ -311,11 +334,6 @@ module rv_decode
         if (alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_OR })  dbg_ascii_alu_ctrl = "OR";
         if (alu_ctrl[3:0] == { `ALU_GRP_BITS, `ALU_BITS_AND }) dbg_ascii_alu_ctrl = "AND";
     end*/
-
-/* verilator lint_off UNUSEDSIGNAL */
-    logic   dummy;
-/* verilator lint_on UNUSEDSIGNAL */
-    assign  dummy = i_bus.ready;
 
 `ifdef TO_SIM
 /* verilator lint_off UNUSEDSIGNAL */
@@ -395,6 +413,9 @@ module rv_decode
 `endif
 
 initial
-    o_bus = '0;
+begin
+    o_inst_store = '0;
+    o_reg_write = '0;
+end
 
 endmodule

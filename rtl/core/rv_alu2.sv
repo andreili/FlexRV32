@@ -9,12 +9,38 @@ module rv_alu2
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   alu1_bus_t                  i_bus,
+    input   wire[31:0]                  i_op1,
+    input   wire[31:0]                  i_op2,
+    input   alu_res_t                   i_res,
+    input   alu_ctrl_t                  i_ctrl,
+    input   wire                        i_store,
+    input   wire                        i_reg_write,
+    input   wire[4:0]                   i_rd,
+    input   wire                        i_inst_jal_jalr,
+    input   wire                        i_inst_branch,
+    input   wire[31:0]                  i_pc_next,
+    input   wire[31:0]                  i_pc_target,
+    input   res_src_t                   i_res_src,
+    input   wire[2:0]                   i_funct3,
+    input   wire[31:0]                  i_reg_data2,
 `ifdef EXTENSION_Zicsr
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
 `endif
-    output  alu2_bus_t                  o_bus
+    output  wire                        o_cmp_result,
+    output  wire                        o_pc_select,
+    output  wire[31:0]                  o_bits_result,
+    output  wire[31:0]                  o_add,
+    output  wire[31:0]                  o_shift_result,
+    output  alu_res_t                   o_res,
+    output  wire                        o_store,
+    output  wire                        o_reg_write,
+    output  wire[4:0]                   o_rd,
+    output  wire[31:0]                  o_pc_next,
+    output  wire[31:0]                  o_pc_target,
+    output  res_src_t                   o_res_src,
+    output  wire[2:0]                   o_funct3,
+    output  wire[31:0]                  o_reg_data2
 );
 
     logic[31:0] op1, op2;
@@ -36,7 +62,7 @@ module rv_alu2
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
-    logic[31:0] pc_p4;
+    logic[31:0] pc_next;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
@@ -58,20 +84,20 @@ module rv_alu2
         end
         else
         begin
-            op1 <= i_bus.op1;
-            op2 <= i_bus.op2;
-            res <= i_bus.alu_res;
-            ctrl <= i_bus.alu_ctrl;
-            store <= i_bus.store;
-            reg_write <= i_bus.reg_write;
-            rd <= i_bus.rd;
-            inst_jal_jalr <= i_bus.inst_jal_jalr;
-            inst_branch <= i_bus.inst_branch;
-            pc_p4 <= i_bus.pc_p4;
-            pc_target <= i_bus.pc_target;
-            res_src <= i_bus.res_src;
-            funct3 <= i_bus.funct3;
-            reg_data2 <= i_bus.reg_data2;
+            op1 <= i_op1;
+            op2 <= i_op2;
+            res <= i_res;
+            ctrl <= i_ctrl;
+            store <= i_store;
+            reg_write <= i_reg_write;
+            rd <= i_rd;
+            inst_jal_jalr <= i_inst_jal_jalr;
+            inst_branch <= i_inst_branch;
+            pc_next <= i_pc_next;
+            pc_target <= i_pc_target;
+            res_src <= i_res_src;
+            funct3 <= i_funct3;
+            reg_data2 <= i_reg_data2;
     `ifdef EXTENSION_Zicsr
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
@@ -142,19 +168,19 @@ module rv_alu2
     assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32];
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  o_bus.bits_result = bits_result;
-    assign  o_bus.pc_select = pc_select;
-    assign  o_bus.cmp_result = cmp_result;
-    assign  o_bus.add = result;
-    assign  o_bus.shift_result = shift_result;
-    assign  o_bus.res = res;
-    assign  o_bus.store = store;
-    assign  o_bus.reg_write = reg_write;
-    assign  o_bus.rd = rd;
-    assign  o_bus.pc_p4 = pc_p4;
-    assign  o_bus.pc_target = pc_target;
-    assign  o_bus.res_src = res_src;
-    assign  o_bus.funct3 = funct3;
-    assign  o_bus.reg_data2 = reg_data2;
+    assign  o_bits_result = bits_result;
+    assign  o_pc_select = pc_select;
+    assign  o_cmp_result = cmp_result;
+    assign  o_add = result;
+    assign  o_shift_result = shift_result;
+    assign  o_res = res;
+    assign  o_store = store;
+    assign  o_reg_write = reg_write;
+    assign  o_rd = rd;
+    assign  o_pc_next = pc_next;
+    assign  o_pc_target = pc_target;
+    assign  o_res_src = res_src;
+    assign  o_funct3 = funct3;
+    assign  o_reg_data2 = reg_data2;
 
 endmodule

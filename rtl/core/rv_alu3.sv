@@ -9,10 +9,32 @@ module rv_alu3
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   alu2_bus_t                  i_bus,
+    input   wire                        i_cmp_result,
+    input   wire                        i_pc_select,
+    input   wire[31:0]                  i_bits_result,
+    input   wire[31:0]                  i_add,
+    input   wire[31:0]                  i_shift_result,
+    input   alu_res_t                   i_res,
+    input   wire                        i_store,
+    input   wire                        i_reg_write,
+    input   wire[4:0]                   i_rd,
+    input   wire[31:0]                  i_pc_next,
+    input   wire[31:0]                  i_pc_target,
+    input   res_src_t                   i_res_src,
+    input   wire[2:0]                   i_funct3,
+    input   wire[31:0]                  i_reg_data2,
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
-    output  alu3_bus_t                  o_bus
+    output  [2:0]                       o_funct3,
+    output  [31:0]                      o_alu_result,
+    output  [31:0]                      o_add,
+    output                              o_reg_write,
+    output  [4:0]                       o_rd,
+    output  res_src_t                   o_res_src,
+    output  [31:0]                      o_pc_next,
+    output                              o_pc_select,
+    output  [31:0]                      o_pc_target,
+    output                              o_store
 );
 
     logic       cmp_result;
@@ -25,7 +47,7 @@ module rv_alu3
     logic       store;
     logic       reg_write;
     logic[4:0]  rd;
-    logic[31:0] pc_p4;
+    logic[31:0] pc_next;
     logic[31:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
@@ -42,20 +64,20 @@ module rv_alu3
         end
         else
         begin
-            bits_result <= i_bus.bits_result;
-            pc_select <= i_bus.pc_select;
-            cmp_result <= i_bus.cmp_result;
-            add <= i_bus.add;
-            shift_result <= i_bus.shift_result;
-            res <= i_bus.res;
-            store <= i_bus.store;
-            reg_write <= i_bus.reg_write;
-            rd <= i_bus.rd;
-            pc_p4 <= i_bus.pc_p4;
-            pc_target <= i_bus.pc_target;
-            res_src <= i_bus.res_src;
-            funct3 <= i_bus.funct3;
-            reg_data2 <= i_bus.reg_data2;
+            bits_result <= i_bits_result;
+            pc_select <= i_pc_select;
+            cmp_result <= i_cmp_result;
+            add <= i_add;
+            shift_result <= i_shift_result;
+            res <= i_res;
+            store <= i_store;
+            reg_write <= i_reg_write;
+            rd <= i_rd;
+            pc_next <= i_pc_next;
+            pc_target <= i_pc_target;
+            res_src <= i_res_src;
+            funct3 <= i_funct3;
+            reg_data2 <= i_reg_data2;
         end
     end
 
@@ -104,15 +126,15 @@ module rv_alu3
     assign  dummy = res.arith;
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  o_bus.funct3 = funct3;
-    assign  o_bus.alu_result = result;
-    assign  o_bus.add = add;
-    assign  o_bus.reg_write = reg_write;
-    assign  o_bus.rd = rd;
-    assign  o_bus.res_src = res_src;
-    assign  o_bus.pc_p4 = pc_p4;
-    assign  o_bus.pc_select = pc_select;
-    assign  o_bus.pc_target = pc_target;
-    assign  o_bus.store = store;
+    assign  o_funct3 = funct3;
+    assign  o_alu_result = result;
+    assign  o_add = add;
+    assign  o_reg_write = reg_write;
+    assign  o_rd = rd;
+    assign  o_res_src = res_src;
+    assign  o_pc_next = pc_next;
+    assign  o_pc_select = pc_select;
+    assign  o_pc_target = pc_target;
+    assign  o_store = store;
 
 endmodule

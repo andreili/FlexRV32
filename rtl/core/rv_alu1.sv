@@ -9,24 +9,53 @@ module rv_alu1
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   decode_bus_t                i_bus,
+    input   wire[31:0]                  i_pc,
+    input   wire[31:0]                  i_pc_next,
+    input   wire[4:0]                   i_rd,
+    input   wire[31:0]                  i_imm_i,
+    input   wire[31:0]                  i_imm_j,
+    input   alu_res_t                   i_alu_res,
+    input   alu_ctrl_t                  i_alu_ctrl,
+    input   wire[2:0]                   i_funct3,
+    input   res_src_t                   i_res_src,
+    input   wire                        i_reg_write,
+    input   src_op1_t                   i_op1_src,
+    input   src_op2_t                   i_op2_src,
+`ifdef EXTENSION_Zicsr
+    input   wire                        i_inst_mret,
+`endif
+    input   wire                        i_inst_jalr,
+    input   wire                        i_inst_jal,
+    input   wire                        i_inst_branch,
+    input   wire                        i_inst_store,
 `ifdef EXTENSION_Zicsr
     input   wire[31:0]                  i_ret_addr,
 `endif
     input   wire[31:0]                  i_reg1_data,
     input   wire[31:0]                  i_reg2_data,
-    output  alu1_bus_t                  o_bus
+    output  wire[31:0]                  o_op1,
+    output  wire[31:0]                  o_op2,
+    output  alu_res_t                   o_res,
+    output  alu_ctrl_t                  o_ctrl,
+    output  wire                        o_store,
+    output  wire                        o_reg_write,
+    output  wire[4:0]                   o_rd,
+    output  wire                        o_inst_jal_jalr,
+    output  wire                        o_inst_branch,
+    output  wire[31:0]                  o_pc_next,
+    output  wire[31:0]                  o_pc_target,
+    output  res_src_t                   o_res_src,
+    output  wire[2:0]                   o_funct3,
+    output  wire[31:0]                  o_reg_data2
 );
 
-    logic[4:0]  rs1;
-    logic[4:0]  rs2;
     logic[4:0]  rd;
     logic[31:0] imm_i;
     logic[31:0] imm_j;
     src_op1_t   op1_sel;
     src_op2_t   op2_sel;
-    alu_res_t   alu_res;
-    alu_ctrl_t  alu_ctrl;
+    alu_res_t   res;
+    alu_ctrl_t  ctrl;
     logic       inst_jalr, inst_jal, inst_branch;
     logic       inst_mret;
     logic[2:0]  funct3;
@@ -34,7 +63,7 @@ module rv_alu1
     res_src_t   res_src;
     logic       reg_write;
     logic[31:0] pc;
-    logic[31:0] pc_p4;
+    logic[31:0] pc_next;
 
     always_ff @(posedge i_clk)
     begin
@@ -49,25 +78,23 @@ module rv_alu1
         end
         else
         begin
-            rs1  <= i_bus.rs1;
-            rs2  <= i_bus.rs2;
-            rd   <= i_bus.rd;
-            imm_i  <= i_bus.imm_i;
-            imm_j  <= i_bus.imm_j;
-            alu_res <= i_bus.alu_res;
-            alu_ctrl <= i_bus.alu_ctrl;
-            funct3  <= i_bus.funct3;
-            res_src <= i_bus.res_src;
-            op1_sel <= i_bus.op1_src;
-            op2_sel <= i_bus.op2_src;
-            reg_write   <= i_bus.reg_write;
-            inst_jalr   <= i_bus.inst_jalr;
-            inst_jal    <= i_bus.inst_jal;
-            inst_branch <= i_bus.inst_branch;
-            inst_mret   <= i_bus.inst_mret;
-            store <= i_bus.inst_store;
-            pc <= i_bus.pc;
-            pc_p4 <= i_bus.pc_p4;
+            rd   <= i_rd;
+            imm_i  <= i_imm_i;
+            imm_j  <= i_imm_j;
+            res <= i_alu_res;
+            ctrl <= i_alu_ctrl;
+            funct3  <= i_funct3;
+            res_src <= i_res_src;
+            op1_sel <= i_op1_src;
+            op2_sel <= i_op2_src;
+            reg_write   <= i_reg_write;
+            inst_jalr   <= i_inst_jalr;
+            inst_jal    <= i_inst_jal;
+            inst_branch <= i_inst_branch;
+            inst_mret   <= i_inst_mret;
+            store <= i_inst_store;
+            pc <= i_pc;
+            pc_next <= i_pc_next;
         end
     end
 
@@ -109,26 +136,26 @@ module rv_alu1
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_bus.inst_supported & op1_sel.r & op2_sel.r & (|rs1) & (|rs2) & i_bus.inst_ebreak;
+    assign  dummy = op1_sel.r & op2_sel.r;
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  o_bus.op1 = op1;
-    assign  o_bus.op2 = op2;
-    assign  o_bus.alu_res = alu_res;
-    assign  o_bus.alu_ctrl = alu_ctrl;
-    assign  o_bus.store = store;
-    assign  o_bus.reg_write = reg_write;
-    assign  o_bus.rd = rd;
-    assign  o_bus.inst_jal_jalr = inst_jal | inst_jalr
+    assign  o_op1 = op1;
+    assign  o_op2 = op2;
+    assign  o_res = res;
+    assign  o_ctrl = ctrl;
+    assign  o_store = store;
+    assign  o_reg_write = reg_write;
+    assign  o_rd = rd;
+    assign  o_inst_jal_jalr = inst_jal | inst_jalr
 `ifdef EXTENSION_Zicsr
                 | inst_mret
 `endif
     ;
-    assign  o_bus.inst_branch = inst_branch;
-    assign  o_bus.pc_p4 = pc_p4;
-    assign  o_bus.pc_target = pc_target;
-    assign  o_bus.res_src = res_src;
-    assign  o_bus.funct3 = funct3;
-    assign  o_bus.reg_data2 = i_reg2_data;
+    assign  o_inst_branch = inst_branch;
+    assign  o_pc_next = pc_next;
+    assign  o_pc_target = pc_target;
+    assign  o_res_src = res_src;
+    assign  o_funct3 = funct3;
+    assign  o_reg_data2 = i_reg2_data;
 
 endmodule
