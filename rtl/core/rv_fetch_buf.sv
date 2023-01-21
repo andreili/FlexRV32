@@ -130,13 +130,11 @@ module rv_fetch_buf
     assign  out_comp = !(&out_type);
     assign  have_valid_instr = (out_comp & (!empty)) | ((!out_comp) & (cnt > 1));
 
-    assign  o_pc_incr = (empty /*& instr_comp*/ & i_fetch_pc1) ? 2 : 4;
+    assign  o_pc_incr = (empty & i_fetch_pc1) ? 2 : 4;
     assign  o_free_dword_or_more = free_dword_or_more;
 
     assign  o_pc = pc;
-    //assign  o_instruction = move ? {buffer[1], buffer[0] } : '0;
-    assign  o_instruction[31:16] = (move & (!out_comp)) ? buffer[1] : '0;
-    assign  o_instruction[15: 0] = move ? buffer[0] : '0;
+    assign  o_instruction = move ? { buffer[1], buffer[0] } : '0;
     assign  o_ready = have_valid_instr;
 
 endmodule
