@@ -37,6 +37,7 @@ module rv_core
     write_bus_t write_bus;
 `ifdef EXTENSION_Zicsr
     logic[31:0] ret_addr;
+    csr_bus_t   csr_bus;
 `endif
 
     logic[3:0]  state_cur, state_nxt;
@@ -102,6 +103,9 @@ module rv_core
     (
         .i_clk                          (i_clk),
         .i_bus                          (fetch_bus),
+`ifdef EXTENSION_Zicsr
+        .o_csr                          (csr_bus),
+`endif
         .o_bus                          (decode_bus)
     );
 
@@ -129,15 +133,7 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_reg_data                     (reg_rdata1),
-        .i_idx                          (decode_bus.csr_idx),
-        .i_imm                          (decode_bus.csr_imm),
-        .i_imm_sel                      (decode_bus.csr_imm_sel),
-        .i_write                        (decode_bus.csr_write),
-        .i_set                          (decode_bus.csr_set),
-        .i_clear                        (decode_bus.csr_clear),
-        .i_read                         (decode_bus.csr_read),
-        .i_pc                           (decode_bus.pc_p4),
-        .i_ebreak                       (decode_bus.inst_ebreak),
+        .i_bus                          (csr_bus),
         .o_read                         (csr_read),
         .o_ret_addr                     (ret_addr),
         .o_trap_pc                      (trap_pc),

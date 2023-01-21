@@ -90,7 +90,7 @@ module rv_fetch_aligner
     assign  bus_cyc = i_start | misal;
 
     assign  o_cyc = bus_cyc;
-    assign  o_move = instr_ready | i_pc_select
+    assign  o_move = instr_ready | i_pc_select | (!i_reset_n)
     `ifdef EXTENSION_Zicsr
                 | i_ebreak
     `endif

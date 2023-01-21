@@ -6,6 +6,9 @@ module rv_decode
 (
     input   wire                        i_clk,
     input   fetch_bus_t                 i_bus,
+`ifdef EXTENSION_Zicsr
+    output  csr_bus_t                   o_csr,
+`endif
     output  decode_bus_t                o_bus
 );
 
@@ -82,13 +85,15 @@ module rv_decode
     assign  o_bus.imm_i = imm_mux;
 
 `ifdef EXTENSION_Zicsr
-    assign  o_bus.csr_idx = instruction[31:20];
-    assign  o_bus.csr_imm = instruction[19:15];
-    assign  o_bus.csr_imm_sel = funct3[2];
-    assign  o_bus.csr_write = inst_csrrw | inst_csrrwi;
-    assign  o_bus.csr_set   = inst_csrrs | inst_csrrsi;
-    assign  o_bus.csr_clear = inst_csrrc | inst_csrrci;
-    assign  o_bus.csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
+    assign  o_csr.idx = instruction[31:20];
+    assign  o_csr.imm = instruction[19:15];
+    assign  o_csr.imm_sel = funct3[2];
+    assign  o_csr.to_write = inst_csrrw | inst_csrrwi;
+    assign  o_csr.to_set   = inst_csrrs | inst_csrrsi;
+    assign  o_csr.to_clear = inst_csrrc | inst_csrrci;
+    assign  o_csr.read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
+    assign  o_csr.ebreak = inst_ebreak;
+    assign  o_csr.pc_next = pc_p4;
     assign  o_bus.inst_mret = inst_mret;
 `endif
 

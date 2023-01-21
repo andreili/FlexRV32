@@ -83,13 +83,6 @@ typedef struct packed
     logic                   inst_supported;
     logic[31:0]             pc_p4;
 `ifdef EXTENSION_Zicsr
-    logic[11:0]             csr_idx;
-    logic[4:0]              csr_imm;
-    logic                   csr_imm_sel;
-    logic                   csr_write;
-    logic                   csr_set;
-    logic                   csr_clear;
-    logic                   csr_read;
     logic                   inst_mret;
 `endif
 } decode_bus_t;
@@ -164,6 +157,21 @@ typedef struct packed
     logic[2:0]  funct3;
     logic[31:0] rdata;
 } write_bus_t;
+
+`ifdef EXTENSION_Zicsr
+typedef struct packed
+{
+    logic[11:0] idx;
+    logic[4:0]  imm;
+    logic       imm_sel;
+    logic       to_write;
+    logic       to_set;
+    logic       to_clear;
+    logic       read;
+    logic       ebreak;
+    logic[31:0] pc_next;
+} csr_bus_t;
+`endif
 
 typedef struct packed
 {
