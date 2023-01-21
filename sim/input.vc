@@ -1,2 +1,6 @@
 // This file typically lists flags required by a large project, e.g. include directories
--y ../../rtl/ -y ../../rtl/peripheral/uart -y ../../rtl/core/ -y ../../vrf/
+-y ../../rtl/
+-y ../../rtl/peripheral/uart
+-y ../../rtl/core/
+-y ../../rtl/csr/
+-y ../../vrf/
