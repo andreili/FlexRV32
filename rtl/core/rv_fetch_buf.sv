@@ -9,9 +9,10 @@ module rv_fetch_buf
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
+    input   wire                        i_flush,
+    input   wire                        i_stall,
     input   wire                        i_pc_select,
     input   wire                        i_ack,
-    input   wire                        i_decode_ready,
     input   wire[31:0]                  i_data,
     input   wire                        i_fetch_pc1,
     input   wire[31:0]                  i_fetch_pc_next,
@@ -72,7 +73,7 @@ module rv_fetch_buf
     assign  free_cnt_delta_push = free_cnt_delta1 + free_cnt_delta2;
     assign  free_cnt_delta_pop  = free_cnt_delta3 + free_cnt_delta4;
     assign  free_cnt_next_pop = free_cnt + free_cnt_delta_pop;
-    assign  free_cnt_next = ((!i_reset_n) | i_pc_select) ? INSTR_BUF_SIZE :
+    assign  free_cnt_next = ((!i_reset_n) | i_pc_select | i_flush) ? INSTR_BUF_SIZE :
                                         (free_cnt_next_pop + free_cnt_delta_push);
 
     genvar  i;
@@ -112,16 +113,15 @@ module rv_fetch_buf
     end
 
     logic       move;
-    logic       decode_ready;
+    assign  move = i_reset_n & have_valid_instr & (!i_stall);
 
-    always_ff @(posedge i_clk)
+    /*always_ff @(posedge i_clk)
     begin
-        decode_ready <= i_decode_ready;
         if (!i_reset_n)
             move <= '0;
         else
-            move <= decode_ready & have_valid_instr;
-    end
+            move <= have_valid_instr;
+    end*/
 
     logic[1:0]  out_type;
     logic       out_comp;
@@ -134,7 +134,7 @@ module rv_fetch_buf
     assign  o_free_dword_or_more = free_dword_or_more;
 
     assign  o_pc = pc;
-    assign  o_instruction = move ? { buffer[1], buffer[0] } : '0;
+    assign  o_instruction = (move & (!(i_flush | i_stall))) ? { buffer[1], buffer[0] } : '0;
     assign  o_ready = have_valid_instr;
 
 endmodule

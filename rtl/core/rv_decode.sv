@@ -5,8 +5,13 @@
 module rv_decode
 (
     input   wire                        i_clk,
+    input   wire                        i_stall,
+    input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
     input   wire[31:0]                  i_pc,
+`ifdef TO_SIM
+    output  wire[31:0]                  o_instr,
+`endif
 `ifdef EXTENSION_Zicsr
     // CSR interface
     output  wire[11:0]                  o_csr_idx,
@@ -40,7 +45,6 @@ module rv_decode
     output  wire                        o_inst_jal,
     output  wire                        o_inst_branch,
     output  wire                        o_inst_store,
-    output  wire                        o_inst_ebreak,
     output  wire                        o_inst_supported
 );
 
@@ -48,25 +52,43 @@ module rv_decode
     logic[2:0]  funct3;
     logic[6:0]  funct7;
     logic[11:0] funct12;
-    logic[31:0] pc;
-    always_ff @(posedge i_clk)
-    begin
-        pc <= i_pc;
-    end
 
-    logic[31:0] instruction;
+    logic[31:0] instr_full;
 `ifdef EXTENSION_C
+    logic       cillegal;
     logic       comp_illegal;
     rv_decode_comp
     u_comp
     (
         .i_instruction                  (i_instruction),
-        .o_instruction                  (instruction),
-        .o_illegal_instruction          (comp_illegal)
+        .o_instruction                  (instr_full),
+        .o_illegal_instruction          (cillegal)
     );
+    always_ff @(posedge i_clk)
+    begin
+        if (i_flush)
+            comp_illegal <= '0;
+        else if (!i_stall)
+            comp_illegal <= cillegal;
+    end
 `else
-    assign  instruction = i_instruction;
+    assign  instr_full = i_instruction;
 `endif
+
+    logic[31:0] instruction;
+    logic[31:0] pc;
+    always_ff @(posedge i_clk)
+    begin
+        if (i_flush)
+        begin
+            instruction <= '0;
+        end
+        else if (!i_stall)
+        begin
+            instruction <= instr_full;
+            pc <= i_pc;
+        end
+    end
 
     logic   inst_full, inst_none;
 
@@ -81,7 +103,7 @@ module rv_decode
     logic   inst_beq, inst_bne, inst_blt, inst_bge, inst_bltu, inst_bgeu;
     logic   inst_jalr;
     logic   inst_jal;
-    logic   inst_ecall, inst_ebreak, inst_mret;
+    logic   inst_ecall, inst_ebreak;
 `ifdef EXTENSION_Zifencei
     logic   inst_fence, inst_fence_i;
 `endif
@@ -89,7 +111,7 @@ module rv_decode
     logic   inst_ntl, inst_ntl_p1, inst_ntl_pall, inst_ntl_s1, inst_ntl_all;
 `endif
 `ifdef EXTENSION_Zicsr
-    logic   inst_csrrw, inst_csrrs, inst_csrrc, inst_csrrwi, inst_csrrsi, inst_csrrci;
+    logic   inst_mret, inst_csrrw, inst_csrrs, inst_csrrc, inst_csrrwi, inst_csrrsi, inst_csrrci;
 `endif
 
     logic[4:0]  rd, rs1, rs2;
@@ -207,7 +229,6 @@ module rv_decode
     // system
     assign  inst_ecall    = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000000);
     assign  inst_ebreak   = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000001);
-    assign  inst_mret     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
 `ifdef EXTENSION_Zifencei
     // fence
     assign  inst_fence    = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b000);
@@ -221,6 +242,7 @@ module rv_decode
     assign  inst_ntl_all = inst_ntl & (rs2==5'h5);
 `endif
 `ifdef EXTENSION_Zicsr
+    assign  inst_mret       = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
     assign  inst_csrrw      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b001);
     assign  inst_csrrs      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b010);
     assign  inst_csrrc      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b011);
@@ -292,7 +314,6 @@ module rv_decode
     assign  o_inst_jal = inst_jal;
     assign  o_inst_branch = inst_branch;
     assign  o_inst_store = inst_store;
-    assign  o_inst_ebreak = inst_ebreak;
 
     logic[31:0] pc_next;
     assign  pc_next = (pc + 
@@ -303,6 +324,9 @@ module rv_decode
 `endif
         );
     assign  o_pc_next = pc_next;
+`ifdef TO_SIM
+    assign  o_instr = instruction;
+`endif
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i

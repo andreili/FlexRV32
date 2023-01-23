@@ -9,6 +9,7 @@ module rv_alu2
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
+    input   wire                        i_flush,
     input   wire[31:0]                  i_op1,
     input   wire[31:0]                  i_op2,
     input   alu_res_t                   i_res,
@@ -27,20 +28,18 @@ module rv_alu2
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
 `endif
-    output  wire                        o_cmp_result,
     output  wire                        o_pc_select,
-    output  wire[31:0]                  o_bits_result,
+    output  wire[31:0]                  o_result,
     output  wire[31:0]                  o_add,
-    output  wire[31:0]                  o_shift_result,
-    output  alu_res_t                   o_res,
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
     output  wire[31:0]                  o_pc_next,
     output  wire[31:0]                  o_pc_target,
     output  res_src_t                   o_res_src,
-    output  wire[2:0]                   o_funct3,
-    output  wire[31:0]                  o_reg_data2
+    output  wire[31:0]                  o_wdata,
+    output  wire[3:0]                   o_wsel,
+    output  wire[2:0]                   o_funct3
 );
 
     logic[31:0] op1, op2;
@@ -74,8 +73,9 @@ module rv_alu2
 
     always_ff @(posedge i_clk)
     begin
-        if (!i_reset_n)
+        if ((!i_reset_n) | i_flush)
         begin
+            rd <= '0;
             inst_jal_jalr <= '0;
             inst_branch <= '0;
             store <= '0;
@@ -153,27 +153,58 @@ module rv_alu2
     end
 
     logic[31:0] result;
+
     always_comb
     begin
         case (1'b1)
     `ifdef EXTENSION_Zicsr
         csr_read:  result = csr_data;
     `endif
+        res.cmp:   result = { {31{1'b0}}, cmp_result };
+        res.bits:  result = bits_result;
+        res.shift: result = shift_result;
         default:   result = add[31:0];
+        endcase
+    end
+
+    always_comb
+    begin
+        case (funct3[1:0])
+        2'b00:   o_wdata = {4{reg_data2[0+: 8]}};
+        2'b01:   o_wdata = {2{reg_data2[0+:16]}};
+        default: o_wdata = reg_data2;
+        endcase
+    end
+
+    always_comb
+    begin
+        case (funct3[1:0])
+        2'b00: begin
+            case (add[1:0])
+            2'b00: o_wsel = 4'b0001;
+            2'b01: o_wsel = 4'b0010;
+            2'b10: o_wsel = 4'b0100;
+            2'b11: o_wsel = 4'b1000;
+            endcase
+        end
+        2'b01: begin
+            case (add[1])
+            1'b0: o_wsel = 4'b0011;
+            1'b1: o_wsel = 4'b1100;
+            endcase
+        end
+        default:  o_wsel = 4'b1111;
         endcase
     end
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32];
+    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32] & res.arith;
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  o_bits_result = bits_result;
     assign  o_pc_select = pc_select;
-    assign  o_cmp_result = cmp_result;
-    assign  o_add = result;
-    assign  o_shift_result = shift_result;
-    assign  o_res = res;
+    assign  o_result = result;
+    assign  o_add = add[31:0];
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
@@ -181,6 +212,5 @@ module rv_alu2
     assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
-    assign  o_reg_data2 = reg_data2;
 
 endmodule

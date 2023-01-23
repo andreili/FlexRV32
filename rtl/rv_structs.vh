@@ -55,6 +55,14 @@ typedef struct packed
 
 typedef struct packed
 {
+    logic   alu2;
+    logic   memory;
+    logic   write;
+    logic   wr_back;
+} ctrl_rs_bp_t;
+
+typedef struct packed
+{
     logic   enable_external;
     logic   enable_timer;
     logic   enable_soft;

@@ -9,14 +9,14 @@ module rv_fetch
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
+    input   wire                        i_stall,
+    input   wire                        i_flush,
     input   wire[31:0]                  i_pc_target,
     input   wire                        i_pc_select,
 `ifdef EXTENSION_Zicsr
     input   wire[31:0]                  i_pc_trap,
     input   wire                        i_ebreak,
 `endif
-    input   wire                        i_fetch_start,
-    //input   wire                        i_pc_inc,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ack,
     output  wire[31:0]                  o_addr,
@@ -78,24 +78,25 @@ module rv_fetch
 
 `ifdef PREFETCH_BUFFER
     logic   free_dword_or_more;
-    logic   ack_sync;
+    logic   ack;
 
     always_ff @(posedge i_clk)
     begin
-        ack_sync <= i_ack & (!i_pc_select);
+        ack <= i_ack & (!i_pc_select);
     end
 
     rv_fetch_buf
     #(
-        .INSTR_BUF_ADDR_SIZE            (2)
+        .INSTR_BUF_ADDR_SIZE            (3)
     )
     u_buf
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
+        .i_flush                        (i_flush),
+        .i_stall                        (i_stall),
         .i_pc_select                    (i_pc_select),
-        .i_ack                          (ack_sync),
-        .i_decode_ready                 (i_fetch_start),
+        .i_ack                          (ack),
         .i_data                         (i_instruction),
         .i_fetch_pc1                    (fetch_pc[1]),
         .i_fetch_pc_next                (fetch_pc_next),
@@ -106,7 +107,7 @@ module rv_fetch
         .o_ready                        (o_ready)
     );
 
-    assign  move_pc = (i_ack & free_dword_or_more) | i_pc_select
+    assign  move_pc =  (i_ack & free_dword_or_more) | i_pc_select | (!i_reset_n)
 `ifdef EXTENSION_Zicsr
             | ebreak
 `endif
@@ -121,7 +122,6 @@ module rv_fetch
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_pc                           (fetch_pc),
-        .i_start                        (i_fetch_start),
         .i_pc_select                    (i_pc_select),
     `ifdef EXTENSION_Zicsr
         .i_ebreak                       (ebreak),
@@ -140,30 +140,26 @@ module rv_fetch
 
     assign  fetch_addr = fetch_pc;
     assign  fetch_pc_incr = 32'd4;
-    assign  move_pc = i_ack | i_pc_select | (!i_reset_n)
+    assign  move_pc = (!i_reset_n) | ((!i_stall) & i_ack) | i_pc_select
 `ifdef EXTENSION_Zicsr
                 | ebreak
 `endif
                 ;
-    assign  o_cyc = i_fetch_start;
-    assign  o_ready = i_ack;
+    assign  o_cyc = (!(i_flush | i_stall));
+    assign  o_ready = i_ack & (!(i_flush | i_stall));
 
+    logic       ack;
+    logic       reset;
+    logic[31:0] pc;
     always_ff @(posedge i_clk)
     begin
-        if (!i_reset_n)
-        begin
-            o_pc <= '0;
-            o_instruction <= '0;
-        end
-        else
-        begin
-            o_pc <= fetch_pc;
-            if (i_ack & i_reset_n)
-                o_instruction <= i_instruction;
-            else
-                o_instruction <= '0;
-        end
-    end
+        ack <= i_ack;
+        reset <= i_reset_n;
+        pc <= fetch_pc;
+    end;
+
+    assign  o_pc = pc;
+    assign  o_instruction = (reset & ack) ? i_instruction : '0;
 
   `endif // EXTENSION_C
 `endif // PREFETCH_BUFFER

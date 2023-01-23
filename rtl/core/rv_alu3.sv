@@ -9,6 +9,7 @@ module rv_alu3
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
+    input   wire                        i_flush,
     input   wire                        i_cmp_result,
     input   wire                        i_pc_select,
     input   wire[31:0]                  i_bits_result,
@@ -55,8 +56,9 @@ module rv_alu3
 
     always_ff @(posedge i_clk)
     begin
-        if (!i_reset_n)
+        if ((!i_reset_n) | i_flush)
         begin
+            rd <= '0;
             pc_select <= '0;
             store <= '0;
             reg_write <= '0;

@@ -120,11 +120,7 @@ module rv_top_wb
     assign  instr_data = i_wb_dat;
     assign  data_rdata = i_wb_dat;
     assign  data_ack = i_wb_ack & (!instr_ack);
-
-    always_ff @(posedge i_clk)
-    begin
-        instr_ack <= i_wb_ack & (!data_req) & instr_req;
-    end
+    assign  instr_ack = i_wb_ack & (!data_req) & instr_req;
 
     assign o_wb_adr = data_req ? data_addr : instr_addr;
     assign o_wb_dat = data_wdata;
@@ -132,5 +128,8 @@ module rv_top_wb
     assign o_wb_sel = data_req ? data_sel : '1;
     assign o_wb_stb = '1;
     assign o_wb_cyc = '1;
+
+initial
+    instr_data = '0;
 
 endmodule
