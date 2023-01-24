@@ -318,7 +318,7 @@ module rv_core
     logic[31:0] write_data;
     logic[4:0]  write_rd;
     logic       write_op;
-    
+
     rv_write
     u_st6_write
     (
@@ -359,6 +359,7 @@ module rv_core
         .o_data2                        (reg_rdata2)
     );
 
+    logic   inv_inst;
     logic   ctrl_pc_change;
     assign  ctrl_pc_change = alu2_pc_select
     `ifdef EXTENSION_Zicsr
@@ -371,6 +372,7 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_pc_change                    (ctrl_pc_change),
+        .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
         .i_alu1_rs1                     (alu1_rs1),
@@ -394,7 +396,8 @@ module rv_core
         .o_alu1_stall                   (alu1_stall),
         .o_alu1_flush                   (alu1_flush),
         .o_alu2_flush                   (alu2_flush),
-        .o_mem_flush                    (memory_flush)
+        .o_mem_flush                    (memory_flush),
+        .o_inv_inst                     (inv_inst)
     );
 
 `ifdef TO_SIM
@@ -419,7 +422,7 @@ module rv_core
 `endif
 
 `ifdef TO_SIM
-    assign  o_debug[0] = !decode_inst_supported;
+    assign  o_debug[0] = inv_inst;
     assign  o_debug[31:1] = '0;
 `endif
 

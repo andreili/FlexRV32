@@ -8,6 +8,7 @@ module rv_ctrl
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire                        i_pc_change,
+    input   wire                        i_decode_inst_sup,
     input   wire[4:0]                   i_decode_rs1,
     input   wire[4:0]                   i_decode_rs2,
     input   wire[4:0]                   i_alu1_rs1,
@@ -31,7 +32,8 @@ module rv_ctrl
     output  wire                        o_alu1_stall,
     output  wire                        o_alu1_flush,
     output  wire                        o_alu2_flush,
-    output  wire                        o_mem_flush
+    output  wire                        o_mem_flush,
+    output  wire                        o_inv_inst
 );
 
     logic   rs1_on_alu2, rs1_on_memory, rs1_on_write, rs1_on_wr_back;
@@ -64,6 +66,15 @@ module rv_ctrl
     assign  alu1_flush   = i_pc_change | decode_stall;
     assign  alu2_flush   = i_pc_change;
 
+    logic[1:0]  inst_sup;
+    always_ff @(posedge i_clk)
+    begin
+        if (decode_flush)
+            inst_sup <= '1;
+        else if (!decode_stall)
+            inst_sup <= { inst_sup[0], i_decode_inst_sup };
+    end
+
     assign  o_decode_flush = decode_flush;
     assign  o_decode_stall = decode_stall;
     assign  o_alu1_stall = alu1_stall;
@@ -80,6 +91,8 @@ module rv_ctrl
     assign  o_rs2_bp.memory  = rs2_on_memory  & (!rs2_on_alu2);
     assign  o_rs2_bp.write   = rs2_on_write   & (!rs2_on_alu2) & (!rs2_on_memory);
     assign  o_rs2_bp.wr_back = rs2_on_wr_back & (!rs2_on_alu2) & (!rs2_on_memory) & (!rs2_on_write);
+
+    assign  o_inv_inst = !inst_sup[1];
 
 endmodule
 /* verilator lint_on UNUSEDSIGNAL */

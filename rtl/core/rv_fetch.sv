@@ -145,21 +145,35 @@ module rv_fetch
                 | ebreak
 `endif
                 ;
-    assign  o_cyc = (!(i_flush | i_stall));
-    assign  o_ready = i_ack & (!(i_flush | i_stall));
 
     logic       ack;
+    logic       stall;
     logic       reset;
     logic[31:0] pc;
     always_ff @(posedge i_clk)
     begin
         ack <= i_ack;
+        stall <= i_stall;
         reset <= i_reset_n;
-        pc <= fetch_pc;
-    end;
+        if (!i_stall)
+        begin
+            pc <= fetch_pc;
+        end
+    end
 
+    logic[31:0] instr_buf;
+    always_ff @(posedge i_clk)
+    begin
+        if (i_stall & (!ack) & (!stall))
+            instr_buf <= '0;
+        else if (!stall)
+            instr_buf <= i_instruction;
+    end
+
+    assign  o_cyc = (!i_flush);
+    assign  o_ready = ack & (!(i_flush | stall));
     assign  o_pc = pc;
-    assign  o_instruction = (reset & ack) ? i_instruction : '0;
+    assign  o_instruction = stall ? instr_buf : ((reset & ack) ? i_instruction : '0);
 
   `endif // EXTENSION_C
 `endif // PREFETCH_BUFFER
