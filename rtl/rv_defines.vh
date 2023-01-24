@@ -1,14 +1,7 @@
-`define PREFETCH_BUFFER
 //`define BRANCH_PREDICTION_SIMPLE TODO!
 
-`define EXTENSION_C
 `define EXTENSION_Zifencei //TODO - only with cache/multicore
 //`define EXTENSION_Zihintntl //TODO - only with cache
-`define EXTENSION_Zicsr
-`ifdef EXTENSION_Zicsr
-    `define EXTENSION_Zicntr
-    //`define EXTENSION_Zihpm
-`endif
 
 //`define U_MODE // TODO
 `ifdef U_MODE

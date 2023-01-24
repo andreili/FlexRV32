@@ -10,7 +10,6 @@ module rv_csr_cntr
     output  wire[31:0]                  o_data
 );
 
-`ifdef EXTENSION_Zicntr
     logic   sel_cycle;
     logic   sel_time;
     logic   sel_inst_ret;
@@ -42,17 +41,14 @@ module rv_csr_cntr
             cntr_cycle <= cntr_cycle + 1'b1;
         end
     end
-`endif
 
     assign  o_data = 
-`ifdef EXTENSION_Zicntr
                     sel_cycle ? cntr_cycle[31:0] :
                     sel_time ? cntr_time[31:0] :
                     sel_inst_ret ? cntr_inst_ret[31:0] :
                     sel_cycleh ? cntr_cycle[63:32] :
                     sel_timeh ? cntr_time[63:32] :
                     sel_inst_reth ? cntr_inst_ret[63:32] :
-`endif
-                    '1;
+                    '0;
 
 endmodule

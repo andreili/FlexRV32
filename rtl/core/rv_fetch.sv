@@ -4,7 +4,9 @@
 
 module rv_fetch
 #(
-    parameter   RESET_ADDR = 32'h0000_0000
+    parameter   RESET_ADDR              = 32'h0000_0000,
+    parameter   INSTR_BUF_ADDR_SIZE     = 2,
+    parameter   EXTENSION_Zicsr         = 0
 )
 (
     input   wire                        i_clk,
@@ -13,10 +15,8 @@ module rv_fetch
     input   wire                        i_flush,
     input   wire[31:0]                  i_pc_target,
     input   wire                        i_pc_select,
-`ifdef EXTENSION_Zicsr
     input   wire[31:0]                  i_pc_trap,
     input   wire                        i_ebreak,
-`endif
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ack,
     output  wire[31:0]                  o_addr,
@@ -51,24 +51,22 @@ module rv_fetch
 
     assign  fetch_bp_lr = 32'h0000_0010;
 `endif
-`ifdef EXTENSION_Zicsr
     logic       ebreak;
     always_ff @(posedge i_clk)
     begin
         ebreak <= i_ebreak;
     end
-`endif
 
-    assign  fetch_pc_next = 
-        (!i_reset_n) ? RESET_ADDR :
-`ifdef EXTENSION_Zicsr
-        ebreak ? i_pc_trap :
-`endif
-        i_pc_select ? i_pc_target :
+    logic       fetch_pc_next_trap_sel;
+
+    assign  fetch_pc_next_trap_sel = ebreak & EXTENSION_Zicsr;
+    assign  fetch_pc_next = (!i_reset_n) ? RESET_ADDR :
+                fetch_pc_next_trap_sel ? i_pc_trap :
+                i_pc_select ? i_pc_target :
 `ifdef BRANCH_PREDICTION_SIMPLE
         //fetch_bp_need ? fetch_bp_addr :
 `endif
-        fetch_pc + fetch_pc_incr;
+                (fetch_pc + fetch_pc_incr);
 
     always_ff @(posedge i_clk)
     begin
@@ -76,7 +74,6 @@ module rv_fetch
             fetch_pc <= fetch_pc_next;
     end
 
-`ifdef PREFETCH_BUFFER
     logic   free_dword_or_more;
     logic   ack;
 
@@ -87,7 +84,7 @@ module rv_fetch
 
     rv_fetch_buf
     #(
-        .INSTR_BUF_ADDR_SIZE            (3)
+        .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE)
     )
     u_buf
     (
@@ -107,76 +104,9 @@ module rv_fetch
         .o_ready                        (o_ready)
     );
 
-    assign  move_pc =  (i_ack & free_dword_or_more) | i_pc_select | (!i_reset_n)
-`ifdef EXTENSION_Zicsr
-            | ebreak
-`endif
-            ;
+    assign  move_pc =  (i_ack & free_dword_or_more) | i_pc_select | (!i_reset_n) | (ebreak & EXTENSION_Zicsr);
     assign  o_cyc = i_reset_n & free_dword_or_more;
     assign  fetch_addr = fetch_pc;
-`else // PREFETCH_BUFFER
-  `ifdef EXTENSION_C
-    rv_fetch_aligner
-    u_aligner
-    (
-        .i_clk                          (i_clk),
-        .i_reset_n                      (i_reset_n),
-        .i_pc                           (fetch_pc),
-        .i_pc_select                    (i_pc_select),
-    `ifdef EXTENSION_Zicsr
-        .i_ebreak                       (ebreak),
-    `endif
-        .i_instruction                  (i_instruction),
-        .i_ack                          (i_ack),
-        .o_cyc                          (o_cyc),
-        .o_move                         (move_pc),
-        .o_addr                         (fetch_addr),
-        .o_pc_incr                      (fetch_pc_incr),
-        .o_ready                        (o_ready),
-        .o_pc                           (o_pc),
-        .o_instruction                  (o_instruction)
-    );
-  `else // EXTENSION_C
-
-    assign  fetch_addr = fetch_pc;
-    assign  fetch_pc_incr = 32'd4;
-    assign  move_pc = (!i_reset_n) | ((!i_stall) & i_ack) | i_pc_select
-`ifdef EXTENSION_Zicsr
-                | ebreak
-`endif
-                ;
-
-    logic       ack;
-    logic       stall;
-    logic       reset;
-    logic[31:0] pc;
-    always_ff @(posedge i_clk)
-    begin
-        ack <= i_ack;
-        stall <= i_stall;
-        reset <= i_reset_n;
-        if (!i_stall)
-        begin
-            pc <= fetch_pc;
-        end
-    end
-
-    logic[31:0] instr_buf;
-    always_ff @(posedge i_clk)
-    begin
-        if (i_stall & (!ack) & (!stall))
-            instr_buf <= '0;
-        else if (!stall)
-            instr_buf <= i_instruction;
-    end
-
-    assign  o_cyc = (!i_flush);
-    assign  o_ready = ack & (!(i_flush | stall));
-    assign  o_pc = pc;
-    assign  o_instruction = stall ? instr_buf : ((reset & ack) ? i_instruction : '0);
-
-  `endif // EXTENSION_C
-`endif // PREFETCH_BUFFER
 
 `ifdef BRANCH_PREDICTION_SIMPLE
     assign  fetch_bp_op        = fetch_data_buf[6:0];

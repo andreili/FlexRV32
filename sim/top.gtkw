@@ -1,20 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Mon Jan 23 22:28:36 2023
+[*] Tue Jan 24 14:13:39 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Mon Jan 23 22:28:31 2023"
-[dumpfile_size] 114412
+[dumpfile_mtime] "Tue Jan 24 14:13:37 2023"
+[dumpfile_size] 573042
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 75
+[timestart] 73
 [size] 1920 1017
 [pos] -1 -1
-*-2.235526 78 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-2.235526 768064 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
 [treeopen] TOP.top.u_rv.u_core.
-[treeopen] TOP.top.u_rv.u_core.u_ctrl.
 [treeopen] TOP.top.u_rv.u_core.u_st1_fetch.
 [sst_width] 212
 [signals_width] 582
@@ -80,7 +79,7 @@ TOP.top.u_rv.i_wb_dat[31:0]
 TOP.top.u_rv.i_wb_ack
 @1000200
 -WB
-@800200
+@c00200
 -TCM
 @22
 TOP.top.u_tcm.i_addr[22:2]
@@ -96,7 +95,7 @@ TOP.top.u_tcm.o_ack
 TOP.top.u_tcm.o_data[31:0]
 @820
 TOP.top.u_tcm.o_data[31:0]
-@1000200
+@1401200
 -TCM
 @c00200
 -TOP WB
@@ -163,7 +162,9 @@ TOP.top.u_rv.u_core.u_st2_decode.i_flush
 TOP.top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
 @22
 TOP.top.u_rv.u_core.u_st2_decode.instruction[31:0]
+@23
 TOP.top.u_rv.u_core.u_st2_decode.pc[31:0]
+@22
 TOP.top.u_rv.u_core.u_st2_decode.pc_next[31:0]
 @28
 TOP.top.u_rv.u_core.u_st2_decode.o_reg_write
@@ -288,6 +289,7 @@ TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.alu2
 TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.memory
 TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.write
 TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.wr_back
+TOP.top.u_rv.u_core.u_ctrl.inst_sup[1:0]
 @1401200
 -CTRL
 @c00200

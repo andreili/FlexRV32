@@ -31,16 +31,12 @@ module rv_alu1
     input   wire                        i_reg_write,
     input   src_op1_t                   i_op1_src,
     input   src_op2_t                   i_op2_src,
-`ifdef EXTENSION_Zicsr
     input   wire                        i_inst_mret,
-`endif
     input   wire                        i_inst_jalr,
     input   wire                        i_inst_jal,
     input   wire                        i_inst_branch,
     input   wire                        i_inst_store,
-`ifdef EXTENSION_Zicsr
     input   wire[31:0]                  i_ret_addr,
-`endif
     input   wire[31:0]                  i_reg1_data,
     input   wire[31:0]                  i_reg2_data,
     output  wire[31:0]                  o_op1,
@@ -70,9 +66,7 @@ module rv_alu1
     alu_res_t   res;
     alu_ctrl_t  ctrl;
     logic       inst_jalr, inst_jal, inst_branch;
-`ifdef EXTENSION_Zicsr
     logic       inst_mret;
-`endif
     logic[2:0]  funct3;
     logic       store;
     res_src_t   res_src;
@@ -93,9 +87,7 @@ module rv_alu1
             store <= '0;
             reg_write <= '0;
             res_src <= '0;
-`ifdef EXTENSION_Zicsr
             inst_mret <= '0;
-`endif
         end
         else if (!i_stall)
         begin
@@ -114,9 +106,7 @@ module rv_alu1
             inst_jalr   <= i_inst_jalr;
             inst_jal    <= i_inst_jal;
             inst_branch <= i_inst_branch;
-`ifdef EXTENSION_Zicsr
             inst_mret   <= i_inst_mret;
-`endif
             store <= i_inst_store;
             pc <= i_pc;
             pc_next <= i_pc_next;
@@ -158,9 +148,7 @@ module rv_alu1
     always_comb
     begin
         case (1'b1)
-`ifdef EXTENSION_Zicsr
         inst_mret: pc_target = i_ret_addr;
-`endif
         inst_jalr: pc_target = pc_jalr;
         default:   pc_target = pc_jal;
         endcase
@@ -197,11 +185,7 @@ module rv_alu1
     assign  o_rs1 = rs1;
     assign  o_rs2 = rs2;
     assign  o_rd = rd;
-    assign  o_inst_jal_jalr = inst_jal | inst_jalr
-`ifdef EXTENSION_Zicsr
-                | inst_mret
-`endif
-    ;
+    assign  o_inst_jal_jalr = inst_jal | inst_jalr | inst_mret;
     assign  o_inst_branch = inst_branch;
     assign  o_pc_next = pc_next;
     assign  o_pc_target = pc_target;

@@ -24,10 +24,8 @@ module rv_alu2
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_reg_data2,
-`ifdef EXTENSION_Zicsr
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
-`endif
     output  wire                        o_pc_select,
     output  wire[31:0]                  o_result,
     output  wire[31:0]                  o_add,
@@ -66,10 +64,8 @@ module rv_alu2
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
-`ifdef EXTENSION_Zicsr
     logic       csr_read;
     logic[31:0] csr_data;
-`endif
 
     always_ff @(posedge i_clk)
     begin
@@ -98,10 +94,8 @@ module rv_alu2
             res_src <= i_res_src;
             funct3 <= i_funct3;
             reg_data2 <= i_reg_data2;
-    `ifdef EXTENSION_Zicsr
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
-    `endif
         end
     end
 
@@ -157,9 +151,7 @@ module rv_alu2
     always_comb
     begin
         case (1'b1)
-    `ifdef EXTENSION_Zicsr
         csr_read:  result = csr_data;
-    `endif
         res.cmp:   result = { {31{1'b0}}, cmp_result };
         res.bits:  result = bits_result;
         res.shift: result = shift_result;

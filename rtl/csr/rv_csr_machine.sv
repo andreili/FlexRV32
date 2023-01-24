@@ -6,6 +6,11 @@
 `endif
 
 module rv_csr_machine
+#(
+    parameter EXTENSION_C               = 0,
+    parameter EXTENSION_Zicntr          = 0,
+    parameter EXTENSION_Zihpm           = 0
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
@@ -73,9 +78,6 @@ module rv_csr_machine
     `CSR_REG(mstatush, 32, sel_mstatush)
     `CSR_REG(mie, 12, sel_mie)  // Machine Interrupt Enable
     `CSR_REG(mtvec, 32, sel_mtvec)
-`ifdef EXTENSION_Zicntr
-    `CSR_REG(mcounteren_lo, 3, sel_mcounteren)
-`endif
     `CSR_REG(mscratch, 32, sel_mscratch)
     //`CSR_REG(mepc, 32, sel_mepc)
     //`CSR_REG(mcause, 32, sel_mcause)
@@ -193,6 +195,14 @@ module rv_csr_machine
         end
     end
 
+    logic   ext_c_supp;
+    generate
+        if (EXTENSION_C)
+            assign ext_c_supp = 1'b1;
+        else
+            assign ext_c_supp = 1'b0;
+    endgenerate
+
     logic[31:0] misa_data = {
             2'b01,  // MXL - XLEN=32
             4'b0,
@@ -219,11 +229,7 @@ module rv_csr_machine
             1'b0,   // F ext
             1'b0,   // E ext
             1'b0,   // D ext
-        `ifdef EXTENSION_C
-            1'b1,   // C ext
-        `else
-            1'b0,   // C ext
-        `endif
+            ext_c_supp,
             1'b0,   // B ext
             1'b0    // A ext
             };
@@ -234,18 +240,25 @@ module rv_csr_machine
     assign  trap_bar_mode = mtvec_data[1:0];
     assign  trap_bar_base = mtvec_data[31:2];
 
-    logic[31:0]  mcounteren_lo;
+    logic[31:0] mcounteren_lo;
     logic[31:0] mcounteren_hi;
-`ifdef EXTENSION_Zicntr
-    assign  mcounteren_lo = mcounteren_lo_data;
-`else
-    assign  mcounteren_lo = '0;
-`endif
-`ifdef EXTENSION_Zihpm
-    assign  mcounteren_hi = mcounteren_hi_data;
-`else
-    assign  mcounteren_hi = '0;
-`endif
+    generate
+        if (EXTENSION_Zicntr)
+        begin
+            `CSR_REG(mcounteren_lo, 3, sel_mcounteren)
+            assign  mcounteren_lo = mcounteren_lo_data;
+        end
+        else
+            assign mcounteren_lo = '0;
+
+        if (EXTENSION_Zihpm)
+        begin
+            `CSR_REG(mcounteren_hi, 29, sel_mcounteren)
+            assign  mcounteren_hi = { mcounteren_hi_data[28:0], 3'b0 };
+        end
+        else
+            assign mcounteren_hi = '0;
+    endgenerate
 
     logic[11:0] mip_data;
     assign  mip_data = {

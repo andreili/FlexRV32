@@ -3,6 +3,10 @@
 `include "../rv_defines.vh"
 
 module rv_decode
+#(
+    parameter EXTENSION_C               = 0,
+    parameter EXTENSION_Zicsr           = 0
+)
 (
     input   wire                        i_clk,
     input   wire                        i_stall,
@@ -12,7 +16,6 @@ module rv_decode
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
-`ifdef EXTENSION_Zicsr
     // CSR interface
     output  wire[11:0]                  o_csr_idx,
     output  wire[4:0]                   o_csr_imm,
@@ -23,7 +26,6 @@ module rv_decode
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
     output  wire[31:0]                  o_csr_pc_next,
-`endif
     output  wire[31:0]                  o_pc,
     output  wire[31:0]                  o_pc_next,
     output  wire[4:0]                   o_rs1,
@@ -38,9 +40,7 @@ module rv_decode
     output  wire                        o_reg_write,
     output  src_op1_t                   o_op1_src,
     output  src_op2_t                   o_op2_src,
-`ifdef EXTENSION_Zicsr
     output  wire                        o_inst_mret,
-`endif
     output  wire                        o_inst_jalr,
     output  wire                        o_inst_jal,
     output  wire                        o_inst_branch,
@@ -54,26 +54,30 @@ module rv_decode
     logic[11:0] funct12;
 
     logic[31:0] instr_full;
-`ifdef EXTENSION_C
-    logic       cillegal;
     logic       comp_illegal;
-    rv_decode_comp
-    u_comp
-    (
-        .i_instruction                  (i_instruction),
-        .o_instruction                  (instr_full),
-        .o_illegal_instruction          (cillegal)
-    );
-    always_ff @(posedge i_clk)
-    begin
-        if (i_flush)
-            comp_illegal <= '0;
-        else if (!i_stall)
-            comp_illegal <= cillegal;
-    end
-`else
-    assign  instr_full = i_instruction;
-`endif
+
+    generate
+        if (EXTENSION_C)
+        begin
+            logic       cillegal;
+            rv_decode_comp
+            u_comp
+            (
+                .i_instruction                  (i_instruction),
+                .o_instruction                  (instr_full),
+                .o_illegal_instruction          (cillegal)
+            );
+            always_ff @(posedge i_clk)
+            begin
+                if (i_flush)
+                    comp_illegal <= '0;
+                else if (!i_stall)
+                    comp_illegal <= cillegal;
+            end
+        end
+        else
+            assign  instr_full = i_instruction;
+    endgenerate
 
     logic[31:0] instruction;
     logic[31:0] pc;
@@ -110,9 +114,7 @@ module rv_decode
 `ifdef EXTENSION_Zihintntl
     logic   inst_ntl, inst_ntl_p1, inst_ntl_pall, inst_ntl_s1, inst_ntl_all;
 `endif
-`ifdef EXTENSION_Zicsr
     logic   inst_mret, inst_csrrw, inst_csrrs, inst_csrrc, inst_csrrwi, inst_csrrsi, inst_csrrci;
-`endif
 
     logic[4:0]  rd, rs1, rs2;
 
@@ -138,7 +140,6 @@ module rv_decode
     assign  o_imm_j = inst_jal ? imm_j : imm_b;
     assign  o_imm_i = imm_mux;
 
-`ifdef EXTENSION_Zicsr
     assign  o_csr_idx = instruction[31:20];
     assign  o_csr_imm = instruction[19:15];
     assign  o_csr_imm_sel = funct3[2];
@@ -149,7 +150,6 @@ module rv_decode
     assign  o_csr_ebreak = inst_ebreak;
     assign  o_csr_pc_next = pc_next;
     assign  o_inst_mret = inst_mret;
-`endif
 
     assign  inst_full = (op[1:0] == RV32_OPC_DET);
 
@@ -175,10 +175,8 @@ module rv_decode
         `ifdef EXTENSION_Zihintntl
             | inst_ntl_p1 | inst_ntl_pall | inst_ntl_s1 | inst_ntl_all
         `endif
-        `ifdef EXTENSION_Zicsr
-            | inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci
-            | inst_mret
-        `endif
+            | ((inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci
+            | inst_mret) & EXTENSION_Zicsr)
             ;
 
     // memory read operations
@@ -241,7 +239,6 @@ module rv_decode
     assign  inst_ntl_s1 = inst_ntl & (rs2==5'h4);
     assign  inst_ntl_all = inst_ntl & (rs2==5'h5);
 `endif
-`ifdef EXTENSION_Zicsr
     assign  inst_mret       = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
     assign  inst_csrrw      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b001);
     assign  inst_csrrs      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b010);
@@ -249,7 +246,6 @@ module rv_decode
     assign  inst_csrrwi     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b101);
     assign  inst_csrrsi     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b110);
     assign  inst_csrrci     = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b111);
-`endif
 
     logic   inst_load;
     logic   inst_store;
@@ -270,9 +266,7 @@ module rv_decode
         ((op[6:2] == RV32_OPC_B) & (funct3[2:1] == 2'b11))) & inst_full;
 
     assign  o_reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui | inst_jalr | inst_jal
-`ifdef EXTENSION_Zicsr
                                 | ((op[6:2] == RV32_OPC_SYS) & inst_full)
-`endif
                                 ;
 
     assign  o_rd  = rd;
@@ -316,13 +310,7 @@ module rv_decode
     assign  o_inst_store = inst_store;
 
     logic[31:0] pc_next;
-    assign  pc_next = (pc + 
-`ifdef EXTENSION_C
-            ((!comp_illegal) ? 2 : 4)
-`else
-            4
-`endif
-        );
+    assign  pc_next = (pc + (((!comp_illegal) & EXTENSION_C) ? 2 : 4));
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;
@@ -330,10 +318,6 @@ module rv_decode
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
-`endif
-    
-`ifdef EXTENSION_Zicsr
-    //inst_csrrw inst_csrrs inst_csrrc inst_csrrwi inst_csrrsi inst_csrrci
 `endif
     
 `ifdef EXTENSION_Zihintntl
@@ -407,24 +391,22 @@ module rv_decode
         if (inst_sra)      dbg_ascii_instr = "sra";
         if (inst_or)       dbg_ascii_instr = "or";
         if (inst_and)      dbg_ascii_instr = "and";
-        
+
         if (inst_ecall)    dbg_ascii_instr = "ecall";
         if (inst_ebreak)   dbg_ascii_instr = "ebreak";
-        
+
     `ifdef EXTENSION_Zifencei
         if (inst_fence)    dbg_ascii_instr = "fence";
         if (inst_fence_i)  dbg_ascii_instr = "fence.i";
     `endif
-        
-    `ifdef EXTENSION_Zicsr
+
         if (inst_csrrw)    dbg_ascii_instr = "csrrw";
         if (inst_csrrs)    dbg_ascii_instr = "csrrs";
         if (inst_csrrc)    dbg_ascii_instr = "csrrc";
         if (inst_csrrwi)   dbg_ascii_instr = "csrrwi";
         if (inst_csrrsi)   dbg_ascii_instr = "csrrsi";
         if (inst_csrrci)   dbg_ascii_instr = "csrrci";
-    `endif
-        
+
     `ifdef EXTENSION_Zihintntl
         if (inst_ntl_p1)   dbg_ascii_instr = "ntl.p1";
         if (inst_ntl_pall) dbg_ascii_instr = "ntl.pall";

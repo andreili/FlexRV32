@@ -6,7 +6,10 @@
 
 module rv_core
 #(
-    parameter   RESET_ADDR = 32'h0000_0000
+    parameter   RESET_ADDR = 32'h0000_0000,
+    parameter   INSTR_BUF_ADDR_SIZE     = 2, // buffer size is 2**N half-words (16 bit)
+    parameter   EXTENSION_C             = 0,
+    parameter   EXTENSION_Zicsr         = 0
 )
 (
     input   wire                        i_clk,
@@ -14,7 +17,6 @@ module rv_core
 `ifdef TO_SIM
     output  wire[31:0]                  o_debug,
 `endif
-`ifdef EXTENSION_Zicsr
     // CSR interface
     output  wire[11:0]                  o_csr_idx,
     output  wire[4:0]                   o_csr_imm,
@@ -31,7 +33,6 @@ module rv_core
     input   wire[31:0]                  i_csr_ret_addr,
     input   wire[31:0]                  i_csr_data,
     output  wire[31:0]                  o_reg_rdata1,
-`endif
     // instruction interface
     output  wire                        o_instr_req,
     output  wire[31:0]                  o_instr_addr,
@@ -47,9 +48,7 @@ module rv_core
     input   wire[31:0]                  i_data_rdata
 );
 
-`ifdef EXTENSION_Zicsr
     assign  o_reg_rdata1 = reg_rdata1;
-`endif
 
     logic[31:0] reg_rdata1, reg_rdata2;
 
@@ -61,7 +60,9 @@ module rv_core
 
     rv_fetch
     #(
-        .RESET_ADDR                     (RESET_ADDR)
+        .RESET_ADDR                     (RESET_ADDR),
+        .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
+        .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st1_fetch
     (
@@ -71,10 +72,8 @@ module rv_core
         .i_flush                        (decode_flush),
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
-    `ifdef EXTENSION_Zicsr
         .i_pc_trap                      (i_csr_trap_pc),
         .i_ebreak                       (i_csr_to_trap),
-    `endif
         .i_instruction                  (i_instr_data),
         .i_ack                          (i_instr_ack),
         .o_addr                         (o_instr_addr),
@@ -98,9 +97,7 @@ module rv_core
     logic       decode_reg_write;
     src_op1_t   decode_op1_src;
     src_op2_t   decode_op2_src;
-`ifdef EXTENSION_Zicsr
     logic       decode_inst_mret;
-`endif
     logic       decode_inst_jalr;
     logic       decode_inst_jal;
     logic       decode_inst_branch;
@@ -111,6 +108,10 @@ module rv_core
 `endif
 
     rv_decode
+    #(
+        .EXTENSION_C                    (EXTENSION_C),
+        .EXTENSION_Zicsr                (EXTENSION_Zicsr)
+    )
     u_st2_decode
     (
         .i_clk                          (i_clk),
@@ -121,7 +122,6 @@ module rv_core
 `ifdef TO_SIM
         .o_instr                        (decode_instr),
 `endif
-`ifdef EXTENSION_Zicsr
         .o_csr_idx                      (o_csr_idx),
         .o_csr_imm                      (o_csr_imm),
         .o_csr_imm_sel                  (o_csr_imm_sel),
@@ -131,7 +131,6 @@ module rv_core
         .o_csr_read                     (o_csr_read),
         .o_csr_ebreak                   (o_csr_ebreak),
         .o_csr_pc_next                  (o_csr_pc_next),
-`endif
         .o_pc                           (decode_pc),
         .o_pc_next                      (decode_pc_next),
         .o_rs1                          (decode_rs1),
@@ -146,9 +145,7 @@ module rv_core
         .o_reg_write                    (decode_reg_write),
         .o_op1_src                      (decode_op1_src),
         .o_op2_src                      (decode_op2_src),
-`ifdef EXTENSION_Zicsr
         .o_inst_mret                    (decode_inst_mret),
-`endif
         .o_inst_jalr                    (decode_inst_jalr),
         .o_inst_jal                     (decode_inst_jal),
         .o_inst_branch                  (decode_inst_branch),
@@ -204,16 +201,12 @@ module rv_core
         .i_reg_write                    (decode_reg_write),
         .i_op1_src                      (decode_op1_src),
         .i_op2_src                      (decode_op2_src),
-`ifdef EXTENSION_Zicsr
         .i_inst_mret                    (decode_inst_mret),
-`endif
         .i_inst_jalr                    (decode_inst_jalr),
         .i_inst_jal                     (decode_inst_jal),
         .i_inst_branch                  (decode_inst_branch),
         .i_inst_store                   (decode_inst_store),
-`ifdef EXTENSION_Zicsr
         .i_ret_addr                     (i_csr_ret_addr),
-`endif
         .i_reg1_data                    (reg_rdata1),
         .i_reg2_data                    (reg_rdata2),
         .o_op1                          (alu1_op1),
@@ -266,10 +259,8 @@ module rv_core
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
         .i_reg_data2                    (alu1_reg_data2),
-    `ifdef EXTENSION_Zicsr
         .i_csr_read                     (i_csr_read),
         .i_csr_data                     (i_csr_data),
-    `endif
         .o_pc_select                    (alu2_pc_select),
         .o_result                       (alu2_result),
         .o_add                          (alu2_add),
@@ -361,11 +352,7 @@ module rv_core
 
     logic   inv_inst;
     logic   ctrl_pc_change;
-    assign  ctrl_pc_change = alu2_pc_select
-    `ifdef EXTENSION_Zicsr
-                | i_csr_to_trap
-    `endif
-                ;
+    assign  ctrl_pc_change = alu2_pc_select | (i_csr_to_trap & EXTENSION_Zicsr);
     rv_ctrl
     u_ctrl
     (

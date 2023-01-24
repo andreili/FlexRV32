@@ -7,6 +7,11 @@
 
 /* verilator lint_off UNUSEDSIGNAL */
 module rv_csr
+#(
+    parameter EXTENSION_C               = 0,
+    parameter EXTENSION_Zicntr          = 0,
+    parameter EXTENSION_Zihpm           = 0
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
@@ -77,19 +82,29 @@ module rv_csr
     assign  rdata_supervisor = '0;
     assign  rdata_hypervisor = '0;
 
-`ifdef EXTENSION_Zicntr
-    rv_csr_cntr
-    u_cntr
-    (
-        .i_clk                          (i_clk),
-        .i_reset_n                      (i_reset_n),
-        .i_idx                          (idx[7:0]),
-        .o_data                         (rdata_user)
-    );
-`endif
+    generate
+        if (EXTENSION_Zicntr)
+        begin
+            rv_csr_cntr
+            u_cntr
+            (
+                .i_clk                          (i_clk),
+                .i_reset_n                      (i_reset_n),
+                .i_idx                          (idx[7:0]),
+                .o_data                         (rdata_user)
+            );
+        end
+        else
+            assign rdata_user = '0;
+    endgenerate
 
     int_ctrl_csr_t o_int_ctr; // TODO
     rv_csr_machine
+    #(
+        .EXTENSION_C                    (EXTENSION_C),
+        .EXTENSION_Zicntr               (EXTENSION_Zicntr),
+        .EXTENSION_Zihpm                (EXTENSION_Zihpm)
+    )
     u_machine
     (
         .i_clk                          (i_clk),
