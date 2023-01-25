@@ -20,7 +20,8 @@ module rv_alu2
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
     input   wire[31:0]                  i_pc_next,
-    input   wire[31:0]                  i_pc_target,
+    input   wire[31:0]                  i_pc_target_base,
+    input   wire[31:0]                  i_pc_target_offset,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_reg_data2,
@@ -60,7 +61,8 @@ module rv_alu2
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
     logic[31:0] pc_next;
-    logic[31:0] pc_target;
+    logic[31:0] pc_target_base;
+    logic[31:0] pc_target_offset;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
@@ -90,7 +92,8 @@ module rv_alu2
             inst_jal_jalr <= i_inst_jal_jalr;
             inst_branch <= i_inst_branch;
             pc_next <= i_pc_next;
-            pc_target <= i_pc_target;
+            pc_target_base <= i_pc_target_base;
+            pc_target_offset <= i_pc_target_offset;
             res_src <= i_res_src;
             funct3 <= i_funct3;
             reg_data2 <= i_reg_data2;
@@ -126,8 +129,10 @@ module rv_alu2
         endcase
     end
 
-    logic   pc_select;
-    assign  pc_select = /*(!fetch_bp_need) & */(inst_jal_jalr | (inst_branch & (cmp_result)));
+    logic       pc_select;
+    logic[31:0] pc_target;
+    assign      pc_select = /*(!fetch_bp_need) & */(inst_jal_jalr | (inst_branch & (cmp_result)));
+    assign      pc_target = pc_target_base + pc_target_offset;
 
     always_comb
     begin

@@ -51,7 +51,8 @@ module rv_alu1
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
     output  wire[31:0]                  o_pc_next,
-    output  wire[31:0]                  o_pc_target,
+    output  wire[31:0]                  o_pc_target_base,
+    output  wire[31:0]                  o_pc_target_offset,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
     output  wire[31:0]                  o_reg_data2
@@ -138,21 +139,7 @@ module rv_alu1
     end
 
     logic[31:0] op1, op2;
-    logic[31:0] pc_target;
-
-    logic[31:0] pc_jalr, pc_jal;
-
-    assign  pc_jalr = bp1 + imm_i;
-    assign  pc_jal  = pc  + imm_j;
-
-    always_comb
-    begin
-        case (1'b1)
-        inst_mret: pc_target = i_ret_addr;
-        inst_jalr: pc_target = pc_jalr;
-        default:   pc_target = pc_jal;
-        endcase
-    end
+    logic[31:0] pc_target_base, pc_target_offset;
 
     always_comb
     begin
@@ -168,6 +155,24 @@ module rv_alu1
         op2_sel.i: op2 = imm_i;
         op2_sel.j: op2 = imm_j;
         default:   op2 = bp2;
+        endcase
+    end
+
+    always_comb
+    begin
+        case (1'b1)
+        inst_mret: pc_target_base = i_ret_addr;
+        inst_jalr: pc_target_base = bp1;
+        default:   pc_target_base = pc;
+        endcase
+    end
+
+    always_comb
+    begin
+        case (1'b1)
+        inst_mret: pc_target_offset = '0;
+        inst_jalr: pc_target_offset = imm_i;
+        default:   pc_target_offset = imm_j;
         endcase
     end
 
@@ -188,7 +193,8 @@ module rv_alu1
     assign  o_inst_jal_jalr = inst_jal | inst_jalr | inst_mret;
     assign  o_inst_branch = inst_branch;
     assign  o_pc_next = pc_next;
-    assign  o_pc_target = pc_target;
+    assign  o_pc_target_base = pc_target_base;
+    assign  o_pc_target_offset = pc_target_offset;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_reg_data2 = bp2;

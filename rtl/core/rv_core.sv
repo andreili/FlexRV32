@@ -165,7 +165,8 @@ module rv_core
     logic       alu1_inst_jal_jalr;
     logic       alu1_inst_branch;
     logic[31:0] alu1_pc_next;
-    logic[31:0] alu1_pc_target;
+    logic[31:0] alu1_pc_target_base;
+    logic[31:0] alu1_pc_target_offset;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
     logic[31:0] alu1_reg_data2;
@@ -221,7 +222,8 @@ module rv_core
         .o_inst_jal_jalr                (alu1_inst_jal_jalr),
         .o_inst_branch                  (alu1_inst_branch),
         .o_pc_next                      (alu1_pc_next),
-        .o_pc_target                    (alu1_pc_target),
+        .o_pc_target_base               (alu1_pc_target_base),
+        .o_pc_target_offset             (alu1_pc_target_offset),
         .o_res_src                      (alu1_res_src),
         .o_funct3                       (alu1_funct3),
         .o_reg_data2                    (alu1_reg_data2)
@@ -255,7 +257,8 @@ module rv_core
         .i_inst_jal_jalr                (alu1_inst_jal_jalr),
         .i_inst_branch                  (alu1_inst_branch),
         .i_pc_next                      (alu1_pc_next),
-        .i_pc_target                    (alu1_pc_target),
+        .i_pc_target_base               (alu1_pc_target_base),
+        .i_pc_target_offset             (alu1_pc_target_offset),
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
         .i_reg_data2                    (alu1_reg_data2),
