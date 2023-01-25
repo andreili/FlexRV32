@@ -203,7 +203,8 @@ module rv_csr_machine
             assign ext_c_supp = 1'b0;
     endgenerate
 
-    logic[31:0] misa_data = {
+    logic[31:0] misa_data;
+    assign  misa_data = {
             2'b01,  // MXL - XLEN=32
             4'b0,
             1'b0,   // Z ext

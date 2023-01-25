@@ -28,6 +28,7 @@ module rv_top_wb
     output  wire                        o_wb_cyc
 );
 
+`ifdef TO_SIM
     generate
         if (!EXTENSION_Zicsr)
         begin
@@ -37,6 +38,7 @@ module rv_top_wb
                 $error("Invalid configuration! Zihpm w/o Zicsr");
         end
     endgenerate
+`endif
 
     logic       instr_req;
     logic[31:0] instr_addr;
