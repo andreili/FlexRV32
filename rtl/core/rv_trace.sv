@@ -196,6 +196,29 @@ module rv_trace
         offset_str.hextoa(r_pc_wr + offset);
         return {"jal ", reg_number(instr[11:7]), ", 0x", offset_str};
     endfunction
+
+    function string decode_instr_system(input[31:0] instr);
+        string op, idx, imm;
+        idx.itoa(instr[31:20]);
+        imm.itoa(instr[19:15]);
+        case (instr[14:12])
+        0:  begin
+                case (instr[31:20])
+                0:      op = "ecall";
+                1:      op = "ebreak";
+                770:    op = "mret";
+                default:op = "UNDEFINED";
+                endcase
+            end
+        1:  op = { "csrrw ",  reg_number(instr[11:7]), ", ", idx, ", ", reg_number(instr[19:15]) };
+        2:  op = { "csrrs ",  reg_number(instr[11:7]), ", ", idx, ", ", reg_number(instr[19:15]) };
+        3:  op = { "csrrc ",  reg_number(instr[11:7]), ", ", idx, ", ", reg_number(instr[19:15]) };
+        5:  op = { "csrrwi ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
+        6:  op = { "csrrsi ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
+        7:  op = { "csrrci ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
+        endcase
+        return op;
+    endfunction
 /* verilator lint_on UNUSEDSIGNAL */
 
     function string decode_instr_full(input[31:0] instr);
@@ -209,6 +232,7 @@ module rv_trace
         24: return decode_instr_branch(instr);
         25: return decode_instr_jalr(instr);
         27: return decode_instr_jal(instr);
+        28: return decode_instr_system(instr);
         default: return "----------";
         endcase
     endfunction
