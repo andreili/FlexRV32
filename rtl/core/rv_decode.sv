@@ -48,7 +48,8 @@ module rv_decode
     output  wire                        o_inst_branch,
     output  wire                        o_inst_store,
     output  wire                        o_inst_supported,
-    output  wire                        o_inst_csr_req
+    output  wire                        o_inst_csr_req,
+    output  wire                        o_ra_invalidate
 );
 
     logic[6:0]  op;
@@ -124,6 +125,7 @@ module rv_decode
     logic   inst_csr_req;
 
     logic[4:0]  rd, rs1, rs2;
+    logic       ra_invalidate;
 
     assign  op        = instruction[ 6: 0];
     assign  rd        = instruction[11: 7];
@@ -132,6 +134,7 @@ module rv_decode
     assign  funct3    = instruction[14:12];
     assign  funct7    = instruction[31:25];
     assign  funct12   = instruction[31:20];
+    assign  ra_invalidate = (rd == 5'h1) & o_reg_write;
 
     logic[31:0] imm_i, imm_j, imm_s, imm_b, imm_u;
     logic[31:0] imm_mux;
@@ -324,6 +327,7 @@ module rv_decode
 `endif
     assign  o_branch_pred = branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
+    assign  o_ra_invalidate = ra_invalidate;
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i

@@ -14,8 +14,10 @@ module rv_fetch_buf
     input   wire                        i_pc_select,
     input   wire                        i_ack,
     input   wire[31:0]                  i_data,
-    input   wire[31:0]                  i_fetch_pc,
+    input   wire                        i_fetch_pc1,
+    input   wire[31:0]                  i_fetch_pc_prev,
     input   wire                        i_branch_pred,
+    input   wire                        i_branch_pred_prev,
     output  wire                        o_free_dword_or_more,
     output  wire[31:0]                  o_pc_incr,
     output  wire[31:0]                  o_pc,
@@ -41,15 +43,14 @@ module rv_fetch_buf
     assign  full         = !(|free_cnt);
     assign  empty        = free_cnt[INSTR_BUF_ADDR_SIZE];
 
-    logic[31:0] fetch_pc;
     logic[31:0] fetch_pc_p2;
     logic       push_double_word;
     logic       push_word;
     logic       pop_double_word;
     logic       pop_word;
 
-    assign  push_double_word = i_ack & (!full) & (!nearfull) & (!fetch_pc[1]);
-    assign  push_word        = i_ack & (!full) & fetch_pc[1];
+    assign  push_double_word = (!i_branch_pred_prev) & i_ack & (!full) & (!nearfull) & (!i_fetch_pc_prev[1]);
+    assign  push_word        = (!i_branch_pred_prev) & i_ack & (!full) & i_fetch_pc_prev[1];
     assign  pop_double_word  = move & (!out_comp) & (!empty);
     assign  pop_word         = move & out_comp & (!empty);
 
@@ -80,8 +81,8 @@ module rv_fetch_buf
         begin : gen_buf
             logic   update_1_word;
             logic   update_2_word;
-            assign  update_2_word = (push_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i))) |
-                                    (push_double_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i+1)));
+            assign  update_2_word = ((push_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i))) |
+                                    (push_double_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i+1))));
             assign  update_1_word = (push_double_word & (free_cnt_next_pop==(INSTR_BUF_SIZE-i)));
             logic[15:0] buf_p1;
             logic[15:0] buf_p2;
@@ -96,8 +97,8 @@ module rv_fetch_buf
                                 update_1_word ? i_data[15:0] :
                                 pop_word ? buf_p1 :
                                 buf_p2;
-            assign  next_addr[i] = (update_2_word & (!fetch_pc[1])) ? { i_branch_pred, fetch_pc_p2 } :
-                                (update_1_word | fetch_pc[1]) ? { i_branch_pred, fetch_pc } :
+            assign  next_addr[i] = (update_2_word & (!i_fetch_pc_prev[1])) ? { i_branch_pred, fetch_pc_p2 } :
+                                (update_1_word | i_fetch_pc_prev[1]) ? { i_branch_pred, i_fetch_pc_prev } :
                                 pop_word ? addr_p1 :
                                 addr_p2;
             always_ff @(posedge i_clk)
@@ -118,14 +119,13 @@ module rv_fetch_buf
 
     always_ff @(posedge i_clk)
     begin
-        fetch_pc <= i_fetch_pc;
         free_cnt <= free_cnt_next;
         cnt <= INSTR_BUF_SIZE - free_cnt_next;
     end
 
     logic   move;
     assign  move = i_reset_n & have_valid_instr & (!i_stall);
-    assign  fetch_pc_p2 = fetch_pc + 32'd2;
+    assign  fetch_pc_p2 = i_fetch_pc_prev + 32'd2;
 
     logic[1:0]  out_type;
     logic       out_comp;
@@ -134,18 +134,12 @@ module rv_fetch_buf
     assign  out_comp = !(&out_type);
     assign  have_valid_instr = (out_comp & (!empty)) | ((!out_comp) & (cnt > 1));
 
-    assign  o_pc_incr = (empty & i_fetch_pc[1]) ? 2 : 4;
+    assign  o_pc_incr = (empty & i_fetch_pc1) ? 2 : 4;
     assign  o_free_dword_or_more = free_dword_or_more;
 
     assign  o_pc = buffer_addr[0][31:0];
     assign  o_branch_pred = buffer_addr[0][32];
     assign  o_instruction = (move & (!(i_flush | i_stall))) ? { buffer[1], buffer[0] } : '0;
     assign  o_ready = have_valid_instr;
-
-/* verilator lint_off UNUSEDSIGNAL */
-    //logic test;
-    //assign  dummy = (|buffer_addr[0]) | (|fetch_pc);
-    //assign  test = (buffer_addr[0] == pc) | (!have_valid_instr);
-/* verilator lint_on UNUSEDSIGNAL */
 
 endmodule

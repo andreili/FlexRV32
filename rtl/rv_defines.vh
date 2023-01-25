@@ -1,5 +1,3 @@
-//`define BRANCH_PREDICTION_SIMPLE TODO!
-
 `define EXTENSION_Zifencei //TODO - only with cache/multicore
 //`define EXTENSION_Zihintntl //TODO - only with cache
 

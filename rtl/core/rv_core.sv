@@ -57,12 +57,14 @@ module rv_core
     logic       fetch_ready;
     logic       decode_stall;
     logic       decode_flush;
+    logic       decode_ra_invalidate;
 
     rv_fetch
     #(
         .RESET_ADDR                     (RESET_ADDR),
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
+        .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st1_fetch
@@ -77,6 +79,10 @@ module rv_core
         .i_ebreak                       (alu2_to_trap),
         .i_instruction                  (i_instr_data),
         .i_ack                          (i_instr_ack),
+        .i_ra_invalidate                (decode_ra_invalidate),
+        .i_reg_write                    (write_op),
+        .i_rd                           (write_rd),
+        .i_reg_wdata                    (write_data),
         .o_addr                         (o_instr_addr),
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
@@ -158,7 +164,8 @@ module rv_core
         .o_inst_branch                  (decode_inst_branch),
         .o_inst_store                   (decode_inst_store),
         .o_inst_supported               (decode_inst_supported),
-        .o_inst_csr_req                 (decode_inst_csr_req)
+        .o_inst_csr_req                 (decode_inst_csr_req),
+        .o_ra_invalidate                (decode_ra_invalidate)
     );
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
@@ -253,7 +260,6 @@ module rv_core
     logic       alu2_store;
     logic       alu2_reg_write;
     logic[4:0]  alu2_rd;
-    logic[31:0] alu2_pc_next;
     logic[31:0] alu2_pc_target;
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
@@ -291,7 +297,6 @@ module rv_core
         .o_store                        (alu2_store),
         .o_reg_write                    (alu2_reg_write),
         .o_rd                           (alu2_rd),
-        .o_pc_next                      (alu2_pc_next),
         .o_pc_target                    (alu2_pc_target),
         .o_res_src                      (alu2_res_src),
         .o_wdata                        (o_data_wdata),
@@ -309,7 +314,6 @@ module rv_core
     logic       memory_reg_write;
     logic[4:0]  memory_rd;
     res_src_t   memory_res_src;
-    logic[31:0] memory_pc_next;
     logic       memory_flush;
 
     always_ff @(posedge i_clk)
@@ -327,7 +331,6 @@ module rv_core
             memory_reg_write <= alu2_reg_write;
             memory_rd <= alu2_rd;
             memory_res_src <= alu2_res_src;
-            memory_pc_next <= alu2_pc_next;
         end
     end
 
@@ -344,7 +347,6 @@ module rv_core
         .i_reg_write                    (memory_reg_write),
         .i_rd                           (memory_rd),
         .i_res_src                      (memory_res_src),
-        .i_pc_next                      (memory_pc_next),
         .i_data                         (i_data_rdata),
         .o_data                         (write_data),
         .o_rd                           (write_rd),

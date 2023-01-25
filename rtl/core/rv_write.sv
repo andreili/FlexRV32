@@ -13,7 +13,6 @@ module rv_write
     input   wire                        i_reg_write,
     input   wire[4:0]                   i_rd,
     input   res_src_t                   i_res_src,
-    input   wire[31:0]                  i_pc_next,
     input   wire[31:0]                  i_data,
     output  wire[31:0]                  o_data,
     output  wire[4:0]                   o_rd,
@@ -21,7 +20,6 @@ module rv_write
 );
 
     logic[31:0] alu_result;
-    logic[31:0] pc_next;
     res_src_t   res_src;
     logic       reg_write;
     logic[4:0]  rd;
@@ -31,7 +29,6 @@ module rv_write
     always_ff @(posedge i_clk)
     begin
         alu_result <= i_alu_result;
-        pc_next <= i_pc_next;
         res_src <= i_res_src;
         reg_write <= i_reg_write;
         rd <= i_rd;
@@ -79,14 +76,13 @@ module rv_write
     begin
         case (1'b1)
         res_src.memory:  o_data = write_rdata;
-        res_src.pc_next: o_data = pc_next;
         default:         o_data = alu_result;
         endcase
     end
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = res_src.alu;
+    assign  dummy = res_src.alu | res_src.pc_next;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_rd = rd;

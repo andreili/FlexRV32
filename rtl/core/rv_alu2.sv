@@ -35,7 +35,6 @@ module rv_alu2
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
-    output  wire[31:0]                  o_pc_next,
     output  wire[31:0]                  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
@@ -140,8 +139,8 @@ module rv_alu2
 
     logic       pc_select;
     logic[31:0] pc_target;
-    assign      pc_select = /*(!fetch_bp_need) & */(inst_jal_jalr | (inst_branch & (cmp_result))) & (!branch_pred);
-    assign      pc_target = pc_target_base + pc_target_offset;
+    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ branch_pred;
+    assign      pc_target = branch_pred ? pc_next : (pc_target_base + pc_target_offset);
 
     always_comb
     begin
@@ -165,6 +164,7 @@ module rv_alu2
     always_comb
     begin
         case (1'b1)
+        res_src.pc_next: result = pc_next;
         csr_read:  result = csr_data;
         res.cmp:   result = { {31{1'b0}}, cmp_result };
         res.bits:  result = bits_result;
@@ -214,7 +214,6 @@ module rv_alu2
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
-    assign  o_pc_next = pc_next;
     assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
