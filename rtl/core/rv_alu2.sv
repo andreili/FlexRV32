@@ -27,6 +27,7 @@ module rv_alu2
     input   wire[31:0]                  i_reg_data2,
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
+    input   wire                        i_to_trap,
     output  wire                        o_pc_select,
     output  wire[31:0]                  o_result,
     output  wire[31:0]                  o_add,
@@ -38,7 +39,8 @@ module rv_alu2
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
-    output  wire[2:0]                   o_funct3
+    output  wire[2:0]                   o_funct3,
+    output  wire                        o_to_trap
 );
 
     logic[31:0] op1, op2;
@@ -68,6 +70,7 @@ module rv_alu2
     logic[31:0] reg_data2;
     logic       csr_read;
     logic[31:0] csr_data;
+    logic       to_trap;
 
     always_ff @(posedge i_clk)
     begin
@@ -79,6 +82,7 @@ module rv_alu2
             store <= '0;
             reg_write <= '0;
             res_src <= '0;
+            to_trap <= '0;
         end
         else
         begin
@@ -99,6 +103,7 @@ module rv_alu2
             reg_data2 <= i_reg_data2;
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
+            to_trap <= i_to_trap;
         end
     end
 
@@ -209,5 +214,6 @@ module rv_alu2
     assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
+    assign  o_to_trap = to_trap;
 
 endmodule

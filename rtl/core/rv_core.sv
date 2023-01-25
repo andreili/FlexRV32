@@ -48,8 +48,6 @@ module rv_core
     input   wire[31:0]                  i_data_rdata
 );
 
-    assign  o_reg_rdata1 = reg_rdata1;
-
     logic[31:0] reg_rdata1, reg_rdata2;
 
     logic[31:0] fetch_instruction;
@@ -73,7 +71,7 @@ module rv_core
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
         .i_pc_trap                      (i_csr_trap_pc),
-        .i_ebreak                       (i_csr_to_trap),
+        .i_ebreak                       (alu2_to_trap),
         .i_instruction                  (i_instr_data),
         .i_ack                          (i_instr_ack),
         .o_addr                         (o_instr_addr),
@@ -106,6 +104,8 @@ module rv_core
 `ifdef TO_SIM
     logic[31:0] decode_instr;
 `endif
+    logic       decode_to_trap;
+    logic       decode_inst_csr_req;
 
     rv_decode
     #(
@@ -150,8 +150,11 @@ module rv_core
         .o_inst_jal                     (decode_inst_jal),
         .o_inst_branch                  (decode_inst_branch),
         .o_inst_store                   (decode_inst_store),
-        .o_inst_supported               (decode_inst_supported)
+        .o_inst_supported               (decode_inst_supported),
+        .o_inst_csr_req                 (decode_inst_csr_req)
     );
+
+    assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
 
     logic[31:0] alu1_op1;
     logic[31:0] alu1_op2;
@@ -169,11 +172,13 @@ module rv_core
     logic[31:0] alu1_pc_target_offset;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
+    logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
     logic       alu1_stall;
     logic       alu1_flush;
     ctrl_rs_bp_t alu1_rs1_bp;
     ctrl_rs_bp_t alu1_rs2_bp;
+    logic       alu1_to_trap;
 
     rv_alu1
     u_st3_alu1
@@ -210,6 +215,7 @@ module rv_core
         .i_ret_addr                     (i_csr_ret_addr),
         .i_reg1_data                    (reg_rdata1),
         .i_reg2_data                    (reg_rdata2),
+        .i_to_trap                      (decode_to_trap),
         .o_op1                          (alu1_op1),
         .o_op2                          (alu1_op2),
         .o_res                          (alu1_res),
@@ -226,7 +232,9 @@ module rv_core
         .o_pc_target_offset             (alu1_pc_target_offset),
         .o_res_src                      (alu1_res_src),
         .o_funct3                       (alu1_funct3),
-        .o_reg_data2                    (alu1_reg_data2)
+        .o_reg_data1                    (alu1_reg_data1),
+        .o_reg_data2                    (alu1_reg_data2),
+        .o_to_trap                      (alu1_to_trap)
     );
 
     logic       alu2_pc_select;
@@ -240,6 +248,7 @@ module rv_core
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
+    logic       alu2_to_trap;
 
     rv_alu2
     u_st4_alu2
@@ -264,6 +273,7 @@ module rv_core
         .i_reg_data2                    (alu1_reg_data2),
         .i_csr_read                     (i_csr_read),
         .i_csr_data                     (i_csr_data),
+        .i_to_trap                      (alu1_to_trap),
         .o_pc_select                    (alu2_pc_select),
         .o_result                       (alu2_result),
         .o_add                          (alu2_add),
@@ -275,7 +285,8 @@ module rv_core
         .o_res_src                      (alu2_res_src),
         .o_wdata                        (o_data_wdata),
         .o_wsel                         (o_data_sel),
-        .o_funct3                       (alu2_funct3)
+        .o_funct3                       (alu2_funct3),
+        .o_to_trap                      (alu2_to_trap)
     );
 
     assign  o_data_req = (alu2_res_src.memory | alu2_store);
@@ -364,7 +375,9 @@ module rv_core
 
     logic   inv_inst;
     logic   ctrl_pc_change;
-    assign  ctrl_pc_change = alu2_pc_select | (i_csr_to_trap & EXTENSION_Zicsr);
+    logic   ctrl_need_pause;
+    assign  ctrl_pc_change = alu2_pc_select | (alu2_to_trap & EXTENSION_Zicsr);
+    assign  ctrl_need_pause = decode_inst_csr_req & (alu1_inst_jal_jalr | alu1_inst_branch);
     rv_ctrl
     u_ctrl
     (
@@ -388,6 +401,7 @@ module rv_core
         .i_write_reg_write              (write_op),
         .i_wr_back_rd                   (wr_back_rd),
         .i_wr_back_reg_write            (wr_back_op),
+        .i_need_pause                   (ctrl_need_pause),
         .o_decode_flush                 (decode_flush),
         .o_decode_stall                 (decode_stall),
         .o_rs1_bp                       (alu1_rs1_bp),
@@ -421,6 +435,8 @@ module rv_core
         .i_rd                           (trace_rd_data)
     );
 `endif
+
+    assign  o_reg_rdata1 = alu1_reg_data1;
 
 `ifdef TO_SIM
     assign  o_debug[0] = inv_inst;

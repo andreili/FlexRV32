@@ -45,7 +45,8 @@ module rv_decode
     output  wire                        o_inst_jal,
     output  wire                        o_inst_branch,
     output  wire                        o_inst_store,
-    output  wire                        o_inst_supported
+    output  wire                        o_inst_supported,
+    output  wire                        o_inst_csr_req
 );
 
     logic[6:0]  op;
@@ -115,6 +116,7 @@ module rv_decode
     logic   inst_ntl, inst_ntl_p1, inst_ntl_pall, inst_ntl_s1, inst_ntl_all;
 `endif
     logic   inst_mret, inst_csrrw, inst_csrrs, inst_csrrc, inst_csrrwi, inst_csrrsi, inst_csrrci;
+    logic   inst_csr_req;
 
     logic[4:0]  rd, rs1, rs2;
 
@@ -143,9 +145,9 @@ module rv_decode
     assign  o_csr_idx = instruction[31:20];
     assign  o_csr_imm = instruction[19:15];
     assign  o_csr_imm_sel = funct3[2];
-    assign  o_csr_write = inst_csrrw | inst_csrrwi;
-    assign  o_csr_set   = inst_csrrs | inst_csrrsi;
-    assign  o_csr_clear = inst_csrrc | inst_csrrci;
+    assign  o_csr_write = (inst_csrrw | inst_csrrwi) & (!i_stall) & (!i_flush);
+    assign  o_csr_set   = (inst_csrrs | inst_csrrsi) & (!i_stall) & (!i_flush);
+    assign  o_csr_clear = (inst_csrrc | inst_csrrci) & (!i_stall) & (!i_flush);
     assign  o_csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
     assign  o_csr_ebreak = inst_ebreak;
     assign  o_csr_pc_next = pc_next;
@@ -155,6 +157,7 @@ module rv_decode
 
     assign  inst_none = !(|instruction);
 
+    assign  inst_csr_req = ((inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci) & EXTENSION_Zicsr);
     assign  o_inst_supported = 
             inst_none |
             inst_lb    | inst_lh   | inst_lw   | inst_lbu   | inst_lhu  |
@@ -175,8 +178,7 @@ module rv_decode
         `ifdef EXTENSION_Zihintntl
             | inst_ntl_p1 | inst_ntl_pall | inst_ntl_s1 | inst_ntl_all
         `endif
-            | ((inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci
-            | inst_mret) & EXTENSION_Zicsr)
+            | inst_csr_req | (inst_mret & EXTENSION_Zicsr)
             ;
 
     // memory read operations
@@ -315,6 +317,7 @@ module rv_decode
 `ifdef TO_SIM
     assign  o_instr = instruction;
 `endif
+    assign  o_inst_csr_req = inst_csr_req;
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
@@ -406,6 +409,7 @@ module rv_decode
         if (inst_csrrwi)   dbg_ascii_instr = "csrrwi";
         if (inst_csrrsi)   dbg_ascii_instr = "csrrsi";
         if (inst_csrrci)   dbg_ascii_instr = "csrrci";
+        if (inst_mret)     dbg_ascii_instr = "mret";
 
     `ifdef EXTENSION_Zihintntl
         if (inst_ntl_p1)   dbg_ascii_instr = "ntl.p1";

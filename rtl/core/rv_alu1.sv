@@ -39,6 +39,7 @@ module rv_alu1
     input   wire[31:0]                  i_ret_addr,
     input   wire[31:0]                  i_reg1_data,
     input   wire[31:0]                  i_reg2_data,
+    input   wire                        i_to_trap,
     output  wire[31:0]                  o_op1,
     output  wire[31:0]                  o_op2,
     output  alu_res_t                   o_res,
@@ -55,7 +56,9 @@ module rv_alu1
     output  wire[31:0]                  o_pc_target_offset,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
-    output  wire[31:0]                  o_reg_data2
+    output  wire[31:0]                  o_reg_data1,
+    output  wire[31:0]                  o_reg_data2,
+    output  wire                        o_to_trap
 );
 
     logic[4:0]  rs1, rs2;
@@ -74,6 +77,7 @@ module rv_alu1
     logic       reg_write;
     logic[31:0] pc;
     logic[31:0] pc_next;
+    logic       to_trap;
 
     always_ff @(posedge i_clk)
     begin
@@ -89,6 +93,7 @@ module rv_alu1
             reg_write <= '0;
             res_src <= '0;
             inst_mret <= '0;
+            to_trap <= '0;
         end
         else if (!i_stall)
         begin
@@ -111,6 +116,7 @@ module rv_alu1
             store <= i_inst_store;
             pc <= i_pc;
             pc_next <= i_pc_next;
+            to_trap <= i_to_trap;
         end
     end
 
@@ -197,6 +203,8 @@ module rv_alu1
     assign  o_pc_target_offset = pc_target_offset;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
+    assign  o_reg_data1 = bp1;
     assign  o_reg_data2 = bp2;
+    assign  o_to_trap = to_trap;
 
 endmodule

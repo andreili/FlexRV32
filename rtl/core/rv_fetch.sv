@@ -51,15 +51,10 @@ module rv_fetch
 
     assign  fetch_bp_lr = 32'h0000_0010;
 `endif
-    logic       ebreak;
-    always_ff @(posedge i_clk)
-    begin
-        ebreak <= i_ebreak;
-    end
 
     logic       fetch_pc_next_trap_sel;
 
-    assign  fetch_pc_next_trap_sel = ebreak & EXTENSION_Zicsr;
+    assign  fetch_pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
     assign  fetch_pc_next = (!i_reset_n) ? RESET_ADDR :
                 fetch_pc_next_trap_sel ? i_pc_trap :
                 i_pc_select ? i_pc_target :
@@ -82,6 +77,9 @@ module rv_fetch
         ack <= i_ack & (!i_pc_select);
     end
 
+    logic   fetch_pc_need_change;
+    assign  fetch_pc_need_change = i_pc_select | (!i_reset_n) | (i_ebreak & EXTENSION_Zicsr);
+
     rv_fetch_buf
     #(
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE)
@@ -92,7 +90,7 @@ module rv_fetch
         .i_reset_n                      (i_reset_n),
         .i_flush                        (i_flush),
         .i_stall                        (i_stall),
-        .i_pc_select                    (i_pc_select),
+        .i_pc_select                    (fetch_pc_need_change),
         .i_ack                          (ack),
         .i_data                         (i_instruction),
         .i_fetch_pc1                    (fetch_pc[1]),
@@ -104,8 +102,8 @@ module rv_fetch
         .o_ready                        (o_ready)
     );
 
-    assign  move_pc =  (i_ack & free_dword_or_more) | i_pc_select | (!i_reset_n) | (ebreak & EXTENSION_Zicsr);
-    assign  o_cyc = i_reset_n & free_dword_or_more;
+    assign  move_pc =  (i_ack & free_dword_or_more) | fetch_pc_need_change;
+    assign  o_cyc = i_reset_n & free_dword_or_more & (!fetch_pc_need_change);
     assign  fetch_addr = fetch_pc;
 
 `ifdef BRANCH_PREDICTION_SIMPLE
