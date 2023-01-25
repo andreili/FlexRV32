@@ -336,6 +336,11 @@ module rv_core
         wr_back_op <= write_op;
     end
 
+`ifdef TO_SIM
+    logic[4:0]  trace_rd;
+    logic[31:0] trace_rd_data;
+`endif
+
     rv_regs
     u_regs
     (
@@ -346,6 +351,10 @@ module rv_core
         .i_rd                           (write_rd),
         .i_write                        (write_op),
         .i_data                         (write_data),
+`ifdef TO_SIM
+        .i_rd_tr                        (trace_rd),
+        .o_rd_tr                        (trace_rd_data),
+`endif
         .o_data1                        (reg_rdata1),
         .o_data2                        (reg_rdata2)
     );
@@ -404,7 +413,9 @@ module rv_core
         .i_mem_read                     (decode_res_src.memory),
         .i_reg_data                     (write_data),
         .i_exec2_flush                  (alu2_flush),
-        .i_exec_flush                   (alu1_flush)
+        .i_exec_flush                   (alu1_flush),
+        .o_rd                           (trace_rd),
+        .i_rd                           (trace_rd_data)
     );
 `endif
 

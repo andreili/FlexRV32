@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Tue Jan 24 14:13:39 2023
+[*] Wed Jan 25 11:43:35 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Tue Jan 24 14:13:37 2023"
-[dumpfile_size] 573042
+[dumpfile_mtime] "Wed Jan 25 11:42:29 2023"
+[dumpfile_size] 17025736
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 73
+[timestart] 791240
 [size] 1920 1017
 [pos] -1 -1
-*-2.235526 768064 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-2.845256 791276 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
@@ -162,9 +162,7 @@ TOP.top.u_rv.u_core.u_st2_decode.i_flush
 TOP.top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
 @22
 TOP.top.u_rv.u_core.u_st2_decode.instruction[31:0]
-@23
 TOP.top.u_rv.u_core.u_st2_decode.pc[31:0]
-@22
 TOP.top.u_rv.u_core.u_st2_decode.pc_next[31:0]
 @28
 TOP.top.u_rv.u_core.u_st2_decode.o_reg_write
@@ -211,7 +209,6 @@ TOP.top.u_rv.u_core.u_st4_alu2.op1[31:0]
 TOP.top.u_rv.u_core.u_st4_alu2.op2[31:0]
 @28
 TOP.top.u_rv.u_core.u_st4_alu2.reg_write
-TOP.top.u_rv.u_core.u_st4_alu2.store
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.rd[4:0]
 @28
@@ -225,11 +222,6 @@ TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
 -ST4 ALU2
 @c00200
 -ST6 MEM'
-@28
-TOP.top.u_rv.u_core.memory_flush
-TOP.top.u_rv.u_core.memory_reg_write
-@22
-TOP.top.u_rv.u_core.memory_rd[4:0]
 @1401200
 -ST6 MEM'
 @c00200
@@ -260,10 +252,6 @@ TOP.top.u_rv.u_core.u_ctrl.i_alu1_rd[4:0]
 TOP.top.u_rv.u_core.u_ctrl.i_alu2_mem_rd
 @22
 TOP.top.u_rv.u_core.u_ctrl.i_alu2_rd[4:0]
-TOP.top.u_rv.u_core.u_ctrl.i_memory_rd[4:0]
-@28
-TOP.top.u_rv.u_core.u_ctrl.i_memory_reg_write
-@22
 TOP.top.u_rv.u_core.u_ctrl.i_write_rd[4:0]
 @28
 TOP.top.u_rv.u_core.u_ctrl.i_write_reg_write
@@ -272,21 +260,16 @@ TOP.top.u_rv.u_core.u_ctrl.i_wr_back_rd[4:0]
 @28
 TOP.top.u_rv.u_core.u_ctrl.i_wr_back_reg_write
 TOP.top.u_rv.u_core.u_ctrl.need_mem_data1
-TOP.top.u_rv.u_core.u_ctrl.need_mem_data2
-TOP.top.u_rv.u_core.u_ctrl.rs1_on_memory
 TOP.top.u_rv.u_core.u_ctrl.rs1_on_write
-TOP.top.u_rv.u_core.u_ctrl.rs2_on_memory
 TOP.top.u_rv.u_core.u_ctrl.rs2_on_write
 TOP.top.u_rv.u_core.u_ctrl.decode_stall
 TOP.top.u_rv.u_core.u_ctrl.decode_flush
 TOP.top.u_rv.u_core.u_ctrl.alu1_stall
 TOP.top.u_rv.u_core.u_ctrl.alu2_flush
 TOP.top.u_rv.u_core.u_ctrl.o_rs1_bp.alu2
-TOP.top.u_rv.u_core.u_ctrl.o_rs1_bp.memory
 TOP.top.u_rv.u_core.u_ctrl.o_rs1_bp.write
 TOP.top.u_rv.u_core.u_ctrl.o_rs1_bp.wr_back
 TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.alu2
-TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.memory
 TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.write
 TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.wr_back
 TOP.top.u_rv.u_core.u_ctrl.inst_sup[1:0]
@@ -331,6 +314,14 @@ TOP.top.u_rv.u_core.u_regs.r_reg_file[30][31:0]
 TOP.top.u_rv.u_core.u_regs.r_reg_file[31][31:0]
 @1401200
 -REGS
+@22
+TOP.top.u_rv.u_core.u_trace.i_mem_addr[31:0]
+TOP.top.u_rv.u_core.u_trace.i_mem_data[31:0]
+TOP.top.u_rv.u_core.u_trace.i_bus_data[31:0]
+TOP.top.u_rv.u_core.u_trace.r_instr_exec[31:0]
+TOP.top.u_rv.u_core.u_trace.r_instr_exec2[31:0]
+@23
+TOP.top.u_rv.u_core.u_trace.r_instr_mem[31:0]
 @22
 TOP.top.u_rv.u_core.u_trace.r_instr_wr[31:0]
 TOP.top.u_rv.o_debug[31:0]
