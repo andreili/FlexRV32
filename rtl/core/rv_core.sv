@@ -52,6 +52,7 @@ module rv_core
 
     logic[31:0] fetch_instruction;
     logic[31:0] fetch_pc;
+    logic       fetch_branch_pred;
     logic       fetch_ready;
     logic       decode_stall;
     logic       decode_flush;
@@ -78,6 +79,7 @@ module rv_core
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
         .o_pc                           (fetch_pc),
+        .o_branch_pred                  (fetch_branch_pred),
         .o_ready                        (fetch_ready)
     );
 
@@ -106,6 +108,7 @@ module rv_core
 `endif
     logic       decode_to_trap;
     logic       decode_inst_csr_req;
+    logic       decode_branch_pred;
 
     rv_decode
     #(
@@ -119,6 +122,7 @@ module rv_core
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
         .i_pc                           (fetch_pc),
+        .i_branch_pred                  (fetch_branch_pred),
 `ifdef TO_SIM
         .o_instr                        (decode_instr),
 `endif
@@ -132,6 +136,7 @@ module rv_core
         .o_csr_ebreak                   (o_csr_ebreak),
         .o_csr_pc_next                  (o_csr_pc_next),
         .o_pc                           (decode_pc),
+        .o_branch_pred                  (decode_branch_pred),
         .o_pc_next                      (decode_pc_next),
         .o_rs1                          (decode_rs1),
         .o_rs2                          (decode_rs2),
@@ -179,6 +184,7 @@ module rv_core
     ctrl_rs_bp_t alu1_rs1_bp;
     ctrl_rs_bp_t alu1_rs2_bp;
     logic       alu1_to_trap;
+    logic       alu1_branch_pred;
 
     rv_alu1
     u_st3_alu1
@@ -195,6 +201,7 @@ module rv_core
         .i_wr_back_data                 (wr_back_data),
         .i_pc                           (decode_pc),
         .i_pc_next                      (decode_pc_next),
+        .i_branch_pred                  (decode_branch_pred),
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
@@ -228,6 +235,7 @@ module rv_core
         .o_inst_jal_jalr                (alu1_inst_jal_jalr),
         .o_inst_branch                  (alu1_inst_branch),
         .o_pc_next                      (alu1_pc_next),
+        .o_branch_pred                  (alu1_branch_pred),
         .o_pc_target_base               (alu1_pc_target_base),
         .o_pc_target_offset             (alu1_pc_target_offset),
         .o_res_src                      (alu1_res_src),
@@ -266,6 +274,7 @@ module rv_core
         .i_inst_jal_jalr                (alu1_inst_jal_jalr),
         .i_inst_branch                  (alu1_inst_branch),
         .i_pc_next                      (alu1_pc_next),
+        .i_branch_pred                  (alu1_branch_pred),
         .i_pc_target_base               (alu1_pc_target_base),
         .i_pc_target_offset             (alu1_pc_target_offset),
         .i_res_src                      (alu1_res_src),

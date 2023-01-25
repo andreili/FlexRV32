@@ -19,6 +19,7 @@ module rv_alu1
     input   wire[31:0]                  i_wr_back_data,
     input   wire[31:0]                  i_pc,
     input   wire[31:0]                  i_pc_next,
+    input   wire                        i_branch_pred,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
     input   wire[4:0]                   i_rd,
@@ -52,6 +53,7 @@ module rv_alu1
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
     output  wire[31:0]                  o_pc_next,
+    output  wire                        o_branch_pred,
     output  wire[31:0]                  o_pc_target_base,
     output  wire[31:0]                  o_pc_target_offset,
     output  res_src_t                   o_res_src,
@@ -78,6 +80,7 @@ module rv_alu1
     logic[31:0] pc;
     logic[31:0] pc_next;
     logic       to_trap;
+    logic       branch_pred;
 
     always_ff @(posedge i_clk)
     begin
@@ -94,6 +97,7 @@ module rv_alu1
             res_src <= '0;
             inst_mret <= '0;
             to_trap <= '0;
+            branch_pred <= '0;
         end
         else if (!i_stall)
         begin
@@ -117,6 +121,7 @@ module rv_alu1
             pc <= i_pc;
             pc_next <= i_pc_next;
             to_trap <= i_to_trap;
+            branch_pred <= i_branch_pred;
         end
     end
 
@@ -206,5 +211,6 @@ module rv_alu1
     assign  o_reg_data1 = bp1;
     assign  o_reg_data2 = bp2;
     assign  o_to_trap = to_trap;
+    assign  o_branch_pred = branch_pred;
 
 endmodule

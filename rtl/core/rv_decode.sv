@@ -13,6 +13,7 @@ module rv_decode
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
     input   wire[31:0]                  i_pc,
+    input   wire                        i_branch_pred,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
@@ -27,6 +28,7 @@ module rv_decode
     output  wire                        o_csr_ebreak,
     output  wire[31:0]                  o_csr_pc_next,
     output  wire[31:0]                  o_pc,
+    output  wire                        o_branch_pred,
     output  wire[31:0]                  o_pc_next,
     output  wire[4:0]                   o_rs1,
     output  wire[4:0]                   o_rs2,
@@ -56,6 +58,7 @@ module rv_decode
 
     logic[31:0] instr_full;
     logic       comp_illegal;
+    logic       branch_pred;
 
     generate
         if (EXTENSION_C)
@@ -87,11 +90,13 @@ module rv_decode
         if (i_flush)
         begin
             instruction <= '0;
+            branch_pred <= '0;
         end
         else if (!i_stall)
         begin
             instruction <= instr_full;
             pc <= i_pc;
+            branch_pred <= i_branch_pred;
         end
     end
 
@@ -317,12 +322,13 @@ module rv_decode
 `ifdef TO_SIM
     assign  o_instr = instruction;
 `endif
+    assign  o_branch_pred = branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
 `endif
-    
+
 `ifdef EXTENSION_Zihintntl
     //inst_ntl_p1 inst_ntl_pall inst_ntl_s1 inst_ntl_all
 `endif

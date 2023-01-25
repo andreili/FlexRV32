@@ -5,7 +5,7 @@
 module rv_top_wb
 #(
     parameter RESET_ADDR                = 32'h0000_0000,
-    parameter INSTR_BUF_ADDR_SIZE       = 3,
+    parameter INSTR_BUF_ADDR_SIZE       = 2,
     parameter EXTENSION_C               = 1,
     parameter EXTENSION_Zicsr           = 1,
     parameter EXTENSION_Zicntr          = 1,

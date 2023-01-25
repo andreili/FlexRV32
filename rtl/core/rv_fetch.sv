@@ -23,6 +23,7 @@ module rv_fetch
     output  wire                        o_cyc,
     output  wire[31:0]                  o_instruction,
     output  wire[31:0]                  o_pc,
+    output  wire                        o_branch_pred,
     output  wire                        o_ready
 );
 
@@ -31,6 +32,7 @@ module rv_fetch
     logic[31:0] fetch_pc_next;
     logic[31:0] fetch_pc_incr;
     logic       move_pc;
+    logic       branch_pred;
 `ifdef BRANCH_PREDICTION_SIMPLE
     logic[31:0] fetch_bp_lr;    // TODO
     logic[6:0]  fetch_bp_op;
@@ -93,11 +95,12 @@ module rv_fetch
         .i_pc_select                    (fetch_pc_need_change),
         .i_ack                          (ack),
         .i_data                         (i_instruction),
-        .i_fetch_pc1                    (fetch_pc[1]),
-        .i_fetch_pc_next                (fetch_pc_next),
+        .i_fetch_pc                     (fetch_pc),
+        .i_branch_pred                  (branch_pred),
         .o_free_dword_or_more           (free_dword_or_more),
         .o_pc_incr                      (fetch_pc_incr),
         .o_pc                           (o_pc),
+        .o_branch_pred                  (o_branch_pred),
         .o_instruction                  (o_instruction),
         .o_ready                        (o_ready)
     );
@@ -130,6 +133,8 @@ module rv_fetch
         fetch_bp_is_jal:  fetch_bp_addr = fetch_bp_jal_addr;
         endcase
     end
+`else
+    assign  branch_pred = '0;
 `endif // BRANCH_PREDICTION_SIMPLE
 
     assign  o_addr = fetch_addr;

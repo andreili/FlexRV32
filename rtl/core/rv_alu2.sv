@@ -20,6 +20,7 @@ module rv_alu2
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
     input   wire[31:0]                  i_pc_next,
+    input   wire                        i_branch_pred,
     input   wire[31:0]                  i_pc_target_base,
     input   wire[31:0]                  i_pc_target_offset,
     input   res_src_t                   i_res_src,
@@ -71,6 +72,7 @@ module rv_alu2
     logic       csr_read;
     logic[31:0] csr_data;
     logic       to_trap;
+    logic       branch_pred;
 
     always_ff @(posedge i_clk)
     begin
@@ -83,6 +85,7 @@ module rv_alu2
             reg_write <= '0;
             res_src <= '0;
             to_trap <= '0;
+            branch_pred <= '0;
         end
         else
         begin
@@ -104,6 +107,7 @@ module rv_alu2
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
             to_trap <= i_to_trap;
+            branch_pred <= i_branch_pred;
         end
     end
 
@@ -201,7 +205,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32] & res.arith;
+    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32] & res.arith & branch_pred;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_pc_select = pc_select;
