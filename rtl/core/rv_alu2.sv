@@ -140,7 +140,7 @@ module rv_alu2
 
     logic       pc_select;
     logic[31:0] pc_target;
-    assign      pc_select = /*(!fetch_bp_need) & */(inst_jal_jalr | (inst_branch & (cmp_result)));
+    assign      pc_select = /*(!fetch_bp_need) & */(inst_jal_jalr | (inst_branch & (cmp_result))) & (!branch_pred);
     assign      pc_target = pc_target_base + pc_target_offset;
 
     always_comb
@@ -205,7 +205,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32] & res.arith & branch_pred;
+    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32] & res.arith;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_pc_select = pc_select;

@@ -7,8 +7,8 @@
 
 module rv_csr_machine
 #(
-    parameter EXTENSION_C               = 0,
-    parameter EXTENSION_Zicntr          = 0,
+    parameter EXTENSION_C               = 1,
+    parameter EXTENSION_Zicntr          = 1,
     parameter EXTENSION_Zihpm           = 0
 )
 (

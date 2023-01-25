@@ -5,8 +5,9 @@
 module rv_fetch
 #(
     parameter   RESET_ADDR              = 32'h0000_0000,
+    parameter   BRANCH_PREDICTION       = 1,
     parameter   INSTR_BUF_ADDR_SIZE     = 2,
-    parameter   EXTENSION_Zicsr         = 0
+    parameter   EXTENSION_Zicsr         = 1
 )
 (
     input   wire                        i_clk,

@@ -5,6 +5,7 @@
 module rv_top_wb
 #(
     parameter RESET_ADDR                = 32'h0000_0000,
+    parameter BRANCH_PREDICTION         = 1,
     parameter INSTR_BUF_ADDR_SIZE       = 2,
     parameter EXTENSION_C               = 1,
     parameter EXTENSION_Zicsr           = 1,
@@ -71,6 +72,7 @@ module rv_top_wb
     rv_core
     #(
         .RESET_ADDR                     (RESET_ADDR),
+        .BRANCH_PREDICTION              (BRANCH_PREDICTION),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)

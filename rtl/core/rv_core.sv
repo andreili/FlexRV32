@@ -7,9 +7,10 @@
 module rv_core
 #(
     parameter   RESET_ADDR = 32'h0000_0000,
+    parameter   BRANCH_PREDICTION       = 1,
     parameter   INSTR_BUF_ADDR_SIZE     = 2, // buffer size is 2**N half-words (16 bit)
-    parameter   EXTENSION_C             = 0,
-    parameter   EXTENSION_Zicsr         = 0
+    parameter   EXTENSION_C             = 1,
+    parameter   EXTENSION_Zicsr         = 1
 )
 (
     input   wire                        i_clk,
@@ -60,6 +61,7 @@ module rv_core
     rv_fetch
     #(
         .RESET_ADDR                     (RESET_ADDR),
+        .BRANCH_PREDICTION              (BRANCH_PREDICTION),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )

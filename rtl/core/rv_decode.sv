@@ -4,8 +4,8 @@
 
 module rv_decode
 #(
-    parameter EXTENSION_C               = 0,
-    parameter EXTENSION_Zicsr           = 0
+    parameter EXTENSION_C               = 1,
+    parameter EXTENSION_Zicsr           = 1
 )
 (
     input   wire                        i_clk,
