@@ -24,7 +24,8 @@ Multi-cycle core, for comparasion only:
 Pipelined core:
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|PB(2)+C+BP|-|123|251462|143.12|1.164|
+|PB(2)+C+BP|981|123|251462|143.12|1.164|
+
 Agenda:
 - PB - Prefetch buffer. Number - size of buffer addres bits, e.g. "2" - for 4 half-word buffer.
 - BP - Branch Prediction module.
