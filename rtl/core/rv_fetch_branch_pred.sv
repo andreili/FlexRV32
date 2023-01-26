@@ -21,28 +21,13 @@ module rv_fetch_branch_pred
     output  wire[31:0]                  o_bp_addr
 );
     logic       ra_valid;
-    logic[6:0]  bp_op;
     logic       bp_need;
     logic       bp_prev;
-    logic[4:0]  bp_rs;
-    logic       bp_b_sign;
-    logic[31:0] bp_b_offs;
-    logic[31:0] bp_jalr_offs;
-    logic[31:0] bp_jal_offs;
-    logic[31:0] bp_b_addr;
-    logic[31:0] bp_jalr_addr;
-    logic[31:0] bp_jal_addr;
-    logic       bp_is_b;
-    logic       bp_is_res;
-    logic       bp_is_jalr;
-    logic       bp_is_jal;
     logic[31:0] bp_ra;
     logic[31:0] instr_mux;
     logic[31:0] instr_full;
     logic       reset;
-    logic[31:0] bp_addr;
-    logic       is_branch;
-    
+
     assign      instr_mux = i_ack ? i_instruction : '0;
     generate
         if (EXTENSION_C)
@@ -127,31 +112,47 @@ module rv_fetch_branch_pred
         bp_prev <= bp_need;
     end
 
+    logic[6:0]  bp_op;
+    logic[4:0]  bp_rs;
+    logic       bp_b_sign;
+    logic       is_branch;
+    logic       bp_is_b;
+    logic       bp_is_jalr;
+    logic       bp_is_jal;
+
     assign  bp_op        = instr_full[6:0];
     assign  bp_rs        = instr_full[19:15];
     assign  bp_b_sign    = instr_full[31];
-    assign  bp_b_offs    = { {20{instr_full[31]}}, instr_full[7], instr_full[30:25], instr_full[11:8], 1'b0 };
-    assign  bp_jalr_offs = { {21{instr_full[31]}}, instr_full[30:20] };
-    assign  bp_jal_offs  = { {12{instr_full[31]}}, instr_full[19:12], instr_full[20], instr_full[30:21], 1'b0 };
-    assign  bp_b_addr    = i_pc_prev + bp_b_offs;
-    assign  bp_jalr_addr = bp_ra + bp_jalr_offs;
-    assign  bp_jal_addr  = i_pc_prev + bp_jal_offs;
     assign  is_branch    = ({ bp_op[6:4], bp_op[1:0] } == 5'b11011);
     assign  bp_is_b      = (bp_op[3:2] == 2'b00) && bp_b_sign;
     assign  bp_is_jalr   = (bp_op[3:2] == 2'b01) && (bp_rs == 5'd1) & ra_valid & (!i_ra_invalidate); /*ra, ret*/
-    assign  bp_is_res    = (bp_op[3:2] == 2'b10);
+    //assign  bp_is_res    = (bp_op[3:2] == 2'b10);
     assign  bp_is_jal    = (bp_op[3:2] == 2'b11);
 
-    assign  bp_need = (bp_is_jalr | bp_is_jal | bp_is_b) & is_branch & reset & (!bp_prev);
+    logic[31:0] base, offset;
     always_comb
     begin
         case (1'b1)
-        bp_is_b:    bp_addr = bp_b_addr;
-        bp_is_jalr: bp_addr = bp_jalr_addr;
-        bp_is_jal:  bp_addr = bp_jal_addr;
-        default:    bp_addr = pc;
+        bp_is_b:    base = i_pc_prev;
+        bp_is_jalr: base = bp_ra;
+        bp_is_jal:  base = i_pc_prev;
+        default:    base = '0;
         endcase
     end
+    always_comb
+    begin
+        case (1'b1)
+        bp_is_b:    offset[19:0] = { {8{instr_full[31]}}, instr_full[7], instr_full[30:25], instr_full[11:8], 1'b0 };
+        bp_is_jalr: offset[19:0] = { {9{instr_full[31]}}, instr_full[30:20] };
+        bp_is_jal:  offset[19:0] = { instr_full[19:12], instr_full[20], instr_full[30:21], 1'b0 };
+        default:    offset[19:0] = '0;
+        endcase
+    end
+    assign  offset[31:20] = { 12{instr_full[31]} };
+
+    logic[31:0] bp_addr;
+    assign  bp_need = (bp_is_jalr | bp_is_jal | bp_is_b) & is_branch & reset & (!bp_prev);
+    assign  bp_addr = base + offset;
 
     assign  o_bp_need = bp_need;
     assign  o_bp_need_prev = bp_prev;
