@@ -38,6 +38,8 @@ module rv_top_wb
             if (EXTENSION_Zihpm)
                 $error("Invalid configuration! Zihpm w/o Zicsr");
         end
+        if (BRANCH_PREDICTION & EXTENSION_C)
+            $error("Invalid configuration! C and branch prediction");
     endgenerate
 `endif
 
