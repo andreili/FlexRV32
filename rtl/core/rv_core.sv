@@ -189,7 +189,6 @@ module rv_core
     logic[2:0]  alu1_funct3;
     logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
-    logic       alu1_stall;
     logic       alu1_flush;
     ctrl_rs_bp_t alu1_rs1_bp;
     ctrl_rs_bp_t alu1_rs2_bp;
@@ -201,7 +200,6 @@ module rv_core
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
-        .i_stall                        (alu1_stall),
         .i_flush                        (alu1_flush),
         .i_rs1_bp                       (alu1_rs1_bp),
         .i_rs2_bp                       (alu1_rs2_bp),
@@ -318,24 +316,14 @@ module rv_core
     logic       memory_reg_write;
     logic[4:0]  memory_rd;
     res_src_t   memory_res_src;
-    logic       memory_flush;
 
     always_ff @(posedge i_clk)
     begin
-        if (memory_flush)
-        begin
-            memory_rd <= '0;
-            memory_reg_write <= '0;
-            memory_res_src <= '0;
-        end
-        else
-        begin
-            memory_funct3  <= alu2_funct3;
-            memory_result <= alu2_result;
-            memory_reg_write <= alu2_reg_write;
-            memory_rd <= alu2_rd;
-            memory_res_src <= alu2_res_src;
-        end
+        memory_funct3  <= alu2_funct3;
+        memory_result <= alu2_result;
+        memory_reg_write <= alu2_reg_write;
+        memory_rd <= alu2_rd;
+        memory_res_src <= alu2_res_src;
     end
 
     logic[31:0] write_data;
@@ -399,7 +387,6 @@ module rv_core
     u_ctrl
     (
         .i_clk                          (i_clk),
-        .i_reset_n                      (i_reset_n),
         .i_pc_change                    (ctrl_pc_change),
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
@@ -412,7 +399,6 @@ module rv_core
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
         .i_memory_rd                    (memory_rd),
-        .i_memory_mem_rd                (memory_res_src.memory),
         .i_memory_reg_write             (memory_reg_write),
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
@@ -423,10 +409,8 @@ module rv_core
         .o_decode_stall                 (decode_stall),
         .o_rs1_bp                       (alu1_rs1_bp),
         .o_rs2_bp                       (alu1_rs2_bp),
-        .o_alu1_stall                   (alu1_stall),
         .o_alu1_flush                   (alu1_flush),
         .o_alu2_flush                   (alu2_flush),
-        .o_mem_flush                    (memory_flush),
         .o_inv_inst                     (inv_inst)
     );
 

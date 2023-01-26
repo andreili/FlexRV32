@@ -9,7 +9,6 @@ module rv_alu1
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   wire                        i_stall,
     input   wire                        i_flush,
     input   ctrl_rs_bp_t                i_rs1_bp,
     input   ctrl_rs_bp_t                i_rs2_bp,
@@ -99,7 +98,7 @@ module rv_alu1
             to_trap <= '0;
             branch_pred <= '0;
         end
-        else if (!i_stall)
+        else
         begin
             rs1 <= i_rs1;
             rs2 <= i_rs2;
