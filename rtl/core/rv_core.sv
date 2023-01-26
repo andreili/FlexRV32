@@ -46,7 +46,8 @@ module rv_core
     output  wire[31:0]                  o_data_wdata,
     output  wire[3:0]                   o_data_sel,
     input   wire                        i_data_ack,
-    input   wire[31:0]                  i_data_rdata
+    input   wire[31:0]                  i_data_rdata,
+    output  wire                        o_instr_issued
 );
 
     logic[31:0] reg_rdata1, reg_rdata2;
@@ -309,6 +310,9 @@ module rv_core
     assign  o_data_write = alu2_store;
     assign  o_data_addr = alu2_add;
 
+    logic   instr_issued;
+    assign  instr_issued = (alu2_res_src.memory | alu2_store | alu2_reg_write);
+
     logic[2:0]  memory_funct3;
     logic[31:0] memory_result;
     logic       memory_reg_write;
@@ -450,6 +454,7 @@ module rv_core
 `endif
 
     assign  o_reg_rdata1 = alu1_reg_data1;
+    assign  o_instr_issued = instr_issued;
 
 `ifdef TO_SIM
     assign  o_debug[0] = inv_inst;

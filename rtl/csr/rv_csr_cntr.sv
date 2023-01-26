@@ -7,6 +7,7 @@ module rv_csr_cntr
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire[7:0]                   i_idx,
+    input   wire                        i_instr_issued,
     output  wire[31:0]                  o_data
 );
 
@@ -34,12 +35,19 @@ module rv_csr_cntr
         begin
             cntr_cycle <= '0;
             cntr_time <= '0;
-            cntr_inst_ret <= '0;
         end
         else
         begin
             cntr_cycle <= cntr_cycle + 1'b1;
         end
+    end
+
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+            cntr_inst_ret <= '0;
+        else if (i_instr_issued)
+            cntr_inst_ret <= cntr_inst_ret + 1'b1;
     end
 
     assign  o_data = 

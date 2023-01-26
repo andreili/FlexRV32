@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Wed Jan 25 23:20:19 2023
+[*] Thu Jan 26 15:26:20 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Wed Jan 25 23:20:14 2023"
-[dumpfile_size] 571030
+[dumpfile_mtime] "Thu Jan 26 15:26:16 2023"
+[dumpfile_size] 566033
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 4284
+[timestart] 1
 [size] 1920 1017
-[pos] -9 -9
-*-2.956882 4287 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-4.956882 86368 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
@@ -100,7 +100,7 @@ TOP.top.u_tcm.o_data[31:0]
 TOP.top.u_tcm.o_data[31:0]
 @1401200
 -TCM
-@c00200
+@800200
 -TOP WB
 @28
 TOP.top.u_rv.instr_req
@@ -121,9 +121,9 @@ TOP.top.u_rv.data_sel[3:0]
 TOP.top.u_rv.data_ack
 @22
 TOP.top.u_rv.data_rdata[31:0]
-@1401200
+@1000200
 -TOP WB
-@800200
+@c00200
 -ST1 FETCH
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.i_reset_n
@@ -162,13 +162,11 @@ TOP.top.u_rv.u_core.u_st1_fetch.u_buf.buffer[3][15:0]
 -BUF
 @800200
 -PREDICTION
-@29
-TOP.top.u_rv.u_core.u_st1_fetch.i_ra_invalidate
 @28
+TOP.top.u_rv.u_core.u_st1_fetch.i_ra_invalidate
 TOP.top.u_rv.u_core.u_st1_fetch.bp_need
 @22
 TOP.top.u_rv.u_core.u_st1_fetch.bp_addr[31:0]
-TOP.top.u_rv.u_core.u_st1_fetch.pred.bp_ra[31:0]
 @1000200
 -PREDICTION
 @22
@@ -181,14 +179,15 @@ TOP.top.u_rv.u_core.u_st1_fetch.o_pc[31:0]
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.o_ready
 TOP.top.u_rv.u_core.u_st1_fetch.o_branch_pred
-@1000200
+@1401200
 -ST1 FETCH
 @22
 TOP.top.u_rv.u_core.i_csr_trap_pc[31:0]
 @800200
 -ST2 DECODE
-@28
+@29
 TOP.top.u_rv.u_core.u_st2_decode.i_stall
+@28
 TOP.top.u_rv.u_core.u_st2_decode.i_flush
 @820
 TOP.top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
@@ -331,7 +330,7 @@ TOP.top.u_rv.u_core.u_ctrl.o_rs2_bp.wr_back
 TOP.top.u_rv.u_core.u_ctrl.inst_sup[1:0]
 @1401200
 -CTRL
-@800200
+@c00200
 -REGS
 @28
 TOP.top.u_rv.u_core.u_regs.i_write
@@ -369,7 +368,7 @@ TOP.top.u_rv.u_core.u_regs.r_reg_file[28][31:0]
 TOP.top.u_rv.u_core.u_regs.r_reg_file[29][31:0]
 TOP.top.u_rv.u_core.u_regs.r_reg_file[30][31:0]
 TOP.top.u_rv.u_core.u_regs.r_reg_file[31][31:0]
-@1000200
+@1401200
 -REGS
 @22
 TOP.top.u_rv.genblk2.u_st3_csr.o_data[31:0]

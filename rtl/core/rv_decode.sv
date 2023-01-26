@@ -81,7 +81,10 @@ module rv_decode
             end
         end
         else
+        begin
             assign  instr_full = i_instruction;
+            assign  comp_illegal = '1;
+        end
     endgenerate
 
     logic[31:0] instruction;

@@ -7,7 +7,7 @@ module rv_top_wb
     parameter RESET_ADDR                = 32'h0000_0000,
     parameter BRANCH_PREDICTION         = 1,
     parameter INSTR_BUF_ADDR_SIZE       = 2,
-    parameter EXTENSION_C               = 1,
+    parameter EXTENSION_C               = 0,
     parameter EXTENSION_Zicsr           = 1,
     parameter EXTENSION_Zicntr          = 1,
     parameter EXTENSION_Zihpm           = 0
@@ -68,6 +68,7 @@ module rv_top_wb
     logic[31:0] csr_trap_pc;
     logic       csr_oread;
     logic[31:0] reg_rdata1;
+    logic       instr_issued;
 
     rv_core
     #(
@@ -109,7 +110,8 @@ module rv_top_wb
         .o_data_wdata                   (data_wdata),
         .o_data_sel                     (data_sel),
         .i_data_ack                     (data_ack),
-        .i_data_rdata                   (data_rdata)
+        .i_data_rdata                   (data_rdata),
+        .o_instr_issued                 (instr_issued)
     );
 
     generate
@@ -135,6 +137,7 @@ module rv_top_wb
                 .i_read                         (csr_read),
                 .i_ebreak                       (csr_ebreak),
                 .i_pc_next                      (csr_pc_next),
+                .i_instr_issued                 (instr_issued),
                 .o_read                         (csr_oread),
                 .o_ret_addr                     (ret_addr),
                 .o_csr_to_trap                  (csr_to_trap),

@@ -24,6 +24,7 @@ module rv_csr
     input   wire                        i_clear,
     input   wire                        i_read,
     input   wire                        i_ebreak,
+    input   wire                        i_instr_issued,
     input   wire[31:0]                  i_pc_next,
     output  wire[31:0]                  o_data,
     output  wire[31:0]                  o_ret_addr,
@@ -91,6 +92,7 @@ module rv_csr
                 .i_clk                          (i_clk),
                 .i_reset_n                      (i_reset_n),
                 .i_idx                          (idx[7:0]),
+                .i_instr_issued                 (i_instr_issued),
                 .o_data                         (rdata_user)
             );
         end
