@@ -6,6 +6,9 @@
 `endif
 
 module rv_alu1
+#(
+    parameter IADDR_SPACE_BITS          = 32
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
@@ -16,8 +19,8 @@ module rv_alu1
     input   wire[31:0]                  i_memory_data,
     input   wire[31:0]                  i_write_data,
     input   wire[31:0]                  i_wr_back_data,
-    input   wire[31:0]                  i_pc,
-    input   wire[31:0]                  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
@@ -36,7 +39,7 @@ module rv_alu1
     input   wire                        i_inst_jal,
     input   wire                        i_inst_branch,
     input   wire                        i_inst_store,
-    input   wire[31:0]                  i_ret_addr,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_ret_addr,
     input   wire[31:0]                  i_reg1_data,
     input   wire[31:0]                  i_reg2_data,
     input   wire                        i_to_trap,
@@ -51,10 +54,10 @@ module rv_alu1
     output  wire[4:0]                   o_rd,
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
-    output  wire[31:0]                  o_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
     output  wire                        o_branch_pred,
-    output  wire[31:0]                  o_pc_target_base,
-    output  wire[31:0]                  o_pc_target_offset,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target_base,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target_offset,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
     output  wire[31:0]                  o_reg_data1,
@@ -76,8 +79,8 @@ module rv_alu1
     logic       store;
     res_src_t   res_src;
     logic       reg_write;
-    logic[31:0] pc;
-    logic[31:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
     logic       to_trap;
     logic       branch_pred;
 
@@ -149,12 +152,12 @@ module rv_alu1
     end
 
     logic[31:0] op1, op2;
-    logic[31:0] pc_target_base, pc_target_offset;
+    logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset;
 
     always_comb
     begin
         case (1'b1)
-        op1_sel.pc: op1 = pc;
+        op1_sel.pc: op1 = { {(32-IADDR_SPACE_BITS){1'b0}}, pc };
         default:    op1 = bp1;
         endcase
     end
@@ -172,7 +175,7 @@ module rv_alu1
     begin
         case (1'b1)
         inst_mret: pc_target_base = i_ret_addr;
-        inst_jalr: pc_target_base = bp1;
+        inst_jalr: pc_target_base = bp1[IADDR_SPACE_BITS-1:0];
         default:   pc_target_base = pc;
         endcase
     end
@@ -181,8 +184,8 @@ module rv_alu1
     begin
         case (1'b1)
         inst_mret: pc_target_offset = '0;
-        inst_jalr: pc_target_offset = imm_i;
-        default:   pc_target_offset = imm_j;
+        inst_jalr: pc_target_offset = imm_i[IADDR_SPACE_BITS-1:0];
+        default:   pc_target_offset = imm_j[IADDR_SPACE_BITS-1:0];
         endcase
     end
 

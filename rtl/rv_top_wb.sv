@@ -5,11 +5,12 @@
 module rv_top_wb
 #(
     parameter RESET_ADDR                = 32'h0000_0000,
+    parameter IADDR_SPACE_BITS          = 16,
     parameter BRANCH_PREDICTION         = 0,
     parameter INSTR_BUF_ADDR_SIZE       = 2,
     parameter EXTENSION_C               = 0,
-    parameter EXTENSION_Zicsr           = 0,
-    parameter EXTENSION_Zicntr          = 0,
+    parameter EXTENSION_Zicsr           = 1,
+    parameter EXTENSION_Zicntr          = 1,
     parameter EXTENSION_Zihpm           = 0
 )
 (
@@ -44,7 +45,7 @@ module rv_top_wb
 `endif
 
     logic       instr_req;
-    logic[31:0] instr_addr;
+    logic[IADDR_SPACE_BITS-1:0] instr_addr;
     logic       instr_ack;
     logic[31:0] instr_data;
     logic       data_req;
@@ -63,11 +64,11 @@ module rv_top_wb
     logic       csr_clear;
     logic       csr_read;
     logic       csr_ebreak;
-    logic[31:0] csr_pc_next;
+    logic[IADDR_SPACE_BITS-1:0] csr_pc_next;
     logic[31:0] csr_rdata;
-    logic[31:0] ret_addr;
+    logic[IADDR_SPACE_BITS-1:0] ret_addr;
     logic       csr_to_trap;
-    logic[31:0] csr_trap_pc;
+    logic[IADDR_SPACE_BITS-1:0] csr_trap_pc;
     logic       csr_oread;
     logic[31:0] reg_rdata1;
     logic       instr_issued;
@@ -75,6 +76,7 @@ module rv_top_wb
     rv_core
     #(
         .RESET_ADDR                     (RESET_ADDR),
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_C                    (EXTENSION_C),
@@ -121,6 +123,7 @@ module rv_top_wb
         begin
             rv_csr
             #(
+                .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
                 .EXTENSION_C                    (EXTENSION_C),
                 .EXTENSION_Zicntr               (EXTENSION_Zicntr),
                 .EXTENSION_Zihpm                (EXTENSION_Zihpm)
@@ -167,7 +170,7 @@ module rv_top_wb
     assign  data_ack = i_wb_ack & (!instr_ack);
     assign  instr_ack = i_wb_ack & (!data_req) & instr_req;
 
-    assign o_wb_adr = data_req ? data_addr : instr_addr;
+    assign o_wb_adr = data_req ? data_addr : { RESET_ADDR[31:IADDR_SPACE_BITS], instr_addr };
     assign o_wb_dat = data_wdata;
     assign o_wb_we = data_req ? data_write : '0;
     assign o_wb_sel = data_req ? data_sel : '1;

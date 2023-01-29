@@ -4,6 +4,7 @@
 
 module rv_decode
 #(
+    parameter IADDR_SPACE_BITS          = 32,
     parameter EXTENSION_C               = 1,
     parameter EXTENSION_Zicsr           = 1
 )
@@ -13,7 +14,7 @@ module rv_decode
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ready,
-    input   wire[31:0]                  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire                        i_branch_pred,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
@@ -27,10 +28,10 @@ module rv_decode
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
-    output  wire[31:0]                  o_csr_pc_next,
-    output  wire[31:0]                  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_csr_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire                        o_branch_pred,
-    output  wire[31:0]                  o_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
     output  wire[4:0]                   o_rs1,
     output  wire[4:0]                   o_rs2,
     output  wire[4:0]                   o_rd,
@@ -88,7 +89,7 @@ module rv_decode
     endgenerate
 
     logic[31:0] instruction;
-    logic[31:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc;
     always_ff @(posedge i_clk)
     begin
         if (i_flush)
@@ -320,7 +321,7 @@ module rv_decode
     assign  o_inst_branch = inst_branch;
     assign  o_inst_store = inst_store;
 
-    logic[31:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
     assign  pc_next = (pc + (((!comp_illegal) & EXTENSION_C) ? 2 : 4));
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM

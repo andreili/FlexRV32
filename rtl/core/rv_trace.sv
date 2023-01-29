@@ -3,10 +3,13 @@
 `include "../rv_defines.vh"
 
 module rv_trace
+#(
+    parameter IADDR_SPACE_BITS          = 32
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   wire[31:0]                  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire[31:0]                  i_instr,
     input   wire[31:0]                  i_bus_data,
     input   wire[31:0]                  i_mem_addr,
@@ -22,14 +25,18 @@ module rv_trace
     input   wire[31:0]                  i_rd
 );
 
-    logic[31:0] r_instr_exec, r_pc_exec;
+    logic[31:0] r_instr_exec;
+    logic[IADDR_SPACE_BITS-1:0] r_pc_exec;
     logic       r_reg_write_exec, r_mem_write_exec, r_mem_read_exec;
-    logic[31:0] r_instr_exec2, r_pc_exec2;
+    logic[31:0] r_instr_exec2;
+    logic[IADDR_SPACE_BITS-1:0] r_pc_exec2;
     logic       r_reg_write_exec2, r_mem_write_exec2, r_mem_read_exec2;
-    logic[31:0] r_instr_mem, r_pc_mem, r_wdata_mem, r_addr_mem;
+    logic[31:0] r_instr_mem, r_wdata_mem, r_addr_mem;
+    logic[IADDR_SPACE_BITS-1:0] r_pc_mem;
     logic[3:0]  r_sel_mem;
     logic       r_reg_write_mem, r_mem_write_mem, r_mem_read_mem;
-    logic[31:0] r_instr_wr, r_pc_wr, r_wdata_wr, r_addr_wr, r_rdata_wr;
+    logic[31:0] r_instr_wr, r_wdata_wr, r_addr_wr, r_rdata_wr;
+    logic[IADDR_SPACE_BITS-1:0] r_pc_wr;
     logic[3:0]  r_sel_wr;
     logic       r_reg_write_wr, r_mem_write_wr, r_mem_read_wr;
 
@@ -127,7 +134,7 @@ module rv_trace
         int imm;
         string value;
         imm = { instr[31:12], {12{1'b0}} };
-        imm += r_pc_wr;
+        imm += { {(32-IADDR_SPACE_BITS){1'b0}}, r_pc_wr };
         value.hextoa(imm);
         return { "auipc ", reg_number(instr[11:7]), ", 0x", value};
     endfunction
@@ -177,7 +184,7 @@ module rv_trace
         7:  op = "bgeu";
         endcase
         imm = signed'( { {20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0 });
-        imm_str.hextoa(r_pc_wr + imm);
+        imm_str.hextoa({ {(32-IADDR_SPACE_BITS){1'b0}}, r_pc_wr } + imm);
         return { op, " ", reg_number(instr[19:15]), ", ", reg_number(instr[24:20]), ", 0x", imm_str};
     endfunction
 
@@ -193,7 +200,7 @@ module rv_trace
         int offset;
         string offset_str;
         offset = signed'({ {12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0 });
-        offset_str.hextoa(r_pc_wr + offset);
+        offset_str.hextoa({ {(32-IADDR_SPACE_BITS){1'b0}}, r_pc_wr } + offset);
         return {"jal ", reg_number(instr[11:7]), ", 0x", offset_str};
     endfunction
 
@@ -248,7 +255,8 @@ module rv_trace
         endcase
     endfunction
 
-    function void print_decode(input[31:0] addr, input[31:0] instr, input[31:0] pc, input mem_read, input mem_write);
+    function void print_decode(input[31:0] addr, input[31:0] instr, input[IADDR_SPACE_BITS-1:0] pc,
+                               input mem_read, input mem_write);
         string reg_op, mem_op, addr_str, opcode;
         string instr_str = decode_instr(instr);
         addr_str.hextoa(addr);

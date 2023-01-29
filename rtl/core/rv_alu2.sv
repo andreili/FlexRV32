@@ -6,6 +6,9 @@
 `endif
 
 module rv_alu2
+#(
+    parameter IADDR_SPACE_BITS          =32
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
@@ -19,10 +22,10 @@ module rv_alu2
     input   wire[4:0]                   i_rd,
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
-    input   wire[31:0]                  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
-    input   wire[31:0]                  i_pc_target_base,
-    input   wire[31:0]                  i_pc_target_offset,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target_base,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target_offset,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_reg_data2,
@@ -35,7 +38,7 @@ module rv_alu2
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
-    output  wire[31:0]                  o_pc_target,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
@@ -62,9 +65,9 @@ module rv_alu2
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
-    logic[31:0] pc_next;
-    logic[31:0] pc_target_base;
-    logic[31:0] pc_target_offset;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc_target_base;
+    logic[IADDR_SPACE_BITS-1:0] pc_target_offset;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
@@ -138,7 +141,7 @@ module rv_alu2
     end
 
     logic       pc_select;
-    logic[31:0] pc_target;
+    logic[IADDR_SPACE_BITS-1:0] pc_target;
     assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ branch_pred;
     assign      pc_target = branch_pred ? pc_next : (pc_target_base + pc_target_offset);
 
@@ -164,7 +167,7 @@ module rv_alu2
     always_comb
     begin
         case (1'b1)
-        res_src.pc_next: result = pc_next;
+        res_src.pc_next: result = { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next };
         csr_read:  result = csr_data;
         res.cmp:   result = { {31{1'b0}}, cmp_result };
         res.bits:  result = bits_result;

@@ -6,6 +6,7 @@
 module rv_fetch
 #(
     parameter   RESET_ADDR              = 32'h0000_0000,
+    parameter   IADDR_SPACE_BITS        = 16,
     parameter   BRANCH_PREDICTION       = 1,
     parameter   INSTR_BUF_ADDR_SIZE     = 2,
     parameter   EXTENSION_C             = 1,
@@ -16,32 +17,32 @@ module rv_fetch
     input   wire                        i_reset_n,
     input   wire                        i_stall,
     input   wire                        i_flush,
-    input   wire[31:0]                  i_pc_target,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   wire                        i_pc_select,
-    input   wire[31:0]                  i_pc_trap,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_trap,
     input   wire                        i_ebreak,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ack,
-    output  wire[31:0]                  o_addr,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_addr,
     output  wire                        o_cyc,
     output  wire[31:0]                  o_instruction,
-    output  wire[31:0]                  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire                        o_branch_pred,
     output  wire                        o_ready
 );
 /* verilator lint_on UNUSEDPARAM */
 
-    logic[31:0] pc;
-    logic[31:0] addr;
-    logic[31:0] pc_next;
-    logic[31:0] pc_incr;
+    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] addr;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc_incr;
     logic       move_pc;
-    logic[31:0] pc_prev;
+    logic[IADDR_SPACE_BITS-1:0] pc_prev;
 
     logic       pc_next_trap_sel;
 
     assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
-    assign  pc_next = (!i_reset_n) ? RESET_ADDR :
+    assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:0] :
                 pc_next_trap_sel ? i_pc_trap :
                 i_pc_select ? i_pc_target :
                 (pc + pc_incr);
@@ -64,13 +65,13 @@ module rv_fetch
 
     logic   empty, full;
 
-    assign pc_incr = (!full) ? 32'd4 : '0;
+    assign pc_incr = (!full) ? 4 : 0;
     assign move_pc = (i_ack & (!full)) | pc_need_change;
     assign o_cyc = (!full) & i_reset_n;
 
     fifo
     #(
-        .WIDTH                  (32+32),
+        .WIDTH                  (IADDR_SPACE_BITS+32),
         .DEPTH_BITS             (2)
     )
     u_fifo
