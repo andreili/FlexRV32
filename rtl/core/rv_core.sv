@@ -58,7 +58,6 @@ module rv_core
     logic       fetch_ready;
     logic       decode_stall;
     logic       decode_flush;
-    logic       decode_ra_invalidate;
 
     rv_fetch
     #(
@@ -80,10 +79,6 @@ module rv_core
         .i_ebreak                       (alu2_to_trap),
         .i_instruction                  (i_instr_data),
         .i_ack                          (i_instr_ack),
-        .i_ra_invalidate                (decode_ra_invalidate),
-        .i_reg_write                    (write_op),
-        .i_rd                           (write_rd),
-        .i_reg_wdata                    (write_data),
         .o_addr                         (o_instr_addr),
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
@@ -130,6 +125,7 @@ module rv_core
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
+        .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
         .i_branch_pred                  (fetch_branch_pred),
 `ifdef TO_SIM
@@ -165,8 +161,7 @@ module rv_core
         .o_inst_branch                  (decode_inst_branch),
         .o_inst_store                   (decode_inst_store),
         .o_inst_supported               (decode_inst_supported),
-        .o_inst_csr_req                 (decode_inst_csr_req),
-        .o_ra_invalidate                (decode_ra_invalidate)
+        .o_inst_csr_req                 (decode_inst_csr_req)
     );
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
@@ -387,6 +382,7 @@ module rv_core
     u_ctrl
     (
         .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_pc_change                    (ctrl_pc_change),
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
@@ -447,7 +443,7 @@ module rv_core
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_data_ack | fetch_ready;
+    assign  dummy = i_data_ack;
 /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule

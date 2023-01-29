@@ -5,11 +5,11 @@
 module rv_top_wb
 #(
     parameter RESET_ADDR                = 32'h0000_0000,
-    parameter BRANCH_PREDICTION         = 1,
+    parameter BRANCH_PREDICTION         = 0,
     parameter INSTR_BUF_ADDR_SIZE       = 2,
     parameter EXTENSION_C               = 0,
-    parameter EXTENSION_Zicsr           = 1,
-    parameter EXTENSION_Zicntr          = 1,
+    parameter EXTENSION_Zicsr           = 0,
+    parameter EXTENSION_Zicntr          = 0,
     parameter EXTENSION_Zihpm           = 0
 )
 (
@@ -158,7 +158,7 @@ module rv_top_wb
             assign csr_trap_pc = '0;
             assign csr_rdata = '0;
             assign dummy = (|reg_rdata1) | (|csr_idx) | (|csr_imm) | csr_imm_sel | csr_write | csr_set
-                            | csr_clear | csr_read | csr_ebreak | (|csr_pc_next);
+                            | csr_clear | csr_read | csr_ebreak | (|csr_pc_next) | instr_issued;
         end
     endgenerate
 

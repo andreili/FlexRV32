@@ -5,6 +5,7 @@
 module rv_ctrl
 (
     input   wire                        i_clk,
+    input   wire                        i_reset_n,
     input   wire                        i_pc_change,
     input   wire                        i_decode_inst_sup,
     input   wire[4:0]                   i_decode_rs1,
@@ -48,12 +49,12 @@ module rv_ctrl
     assign  need_mem_data2 = i_alu2_mem_rd & (|i_alu2_rd) & ((i_decode_rs1 == i_alu2_rd) | (i_decode_rs2 == i_alu2_rd));
 
     logic   decode_stall;
-    assign  decode_stall = need_mem_data2 | need_mem_data1 | i_need_pause;
+    assign  decode_stall = (!i_reset_n) | need_mem_data2 | need_mem_data1 | i_need_pause;
 
     logic   decode_flush, alu1_flush, alu2_flush;
-    assign  decode_flush = i_pc_change;
-    assign  alu1_flush   = i_pc_change | decode_stall;
-    assign  alu2_flush   = i_pc_change;
+    assign  decode_flush = (!i_reset_n) | i_pc_change;
+    assign  alu1_flush   = (!i_reset_n) | i_pc_change | decode_stall;
+    assign  alu2_flush   = (!i_reset_n) | i_pc_change;
 
     logic[1:0]  inst_sup;
     always_ff @(posedge i_clk)
