@@ -2,7 +2,6 @@
 
 `include "../rv_defines.vh"
 
-/* verilator lint_off UNUSEDPARAM */
 module rv_fetch
 #(
     parameter   RESET_ADDR              = 32'h0000_0000,
@@ -30,7 +29,6 @@ module rv_fetch
     output  wire                        o_branch_pred,
     output  wire                        o_ready
 );
-/* verilator lint_on UNUSEDPARAM */
 
     logic[IADDR_SPACE_BITS-1:0] pc;
     logic[IADDR_SPACE_BITS-1:0] addr;
@@ -63,22 +61,65 @@ module rv_fetch
     logic   pc_need_change;
     assign  pc_need_change = i_pc_select | (!i_reset_n) | (i_ebreak & EXTENSION_Zicsr);
 
-    logic   empty, full;
+    logic       empty, full;
+    logic[31:0] instruction;
 
-    assign pc_incr = (!full) ? 4 : 0;
-    assign move_pc = (i_ack & (!full)) | pc_need_change;
-    assign o_cyc = (!full) & i_reset_n;
+    generate
+        if (EXTENSION_C)
+        begin
+            /* verilator lint_off UNUSEDSIGNAL */
+            logic[15:0] inst_prev_hi;
+            logic       buf_hi_valid;
+            logic[31:0] inst_mux;
+            logic       cillegal;
+
+            always_ff @(posedge i_clk)
+            begin
+                if (ack & pc_prev[1])
+                begin
+                    inst_prev_hi <= i_instruction[31:16];
+                    buf_hi_valid <= '1;
+                end
+                else
+                begin
+                    buf_hi_valid <= '0;
+                end
+            end
+            /* verilator lint_on UNUSEDSIGNAL */
+
+            assign inst_mux = buf_hi_valid ? { i_instruction[15:0], inst_prev_hi } : i_instruction;
+
+            rv_decode_comp
+            u_comp
+            (
+                .i_instruction                  (inst_mux),
+                .o_instruction                  (instruction),
+                .o_illegal_instruction          (cillegal)
+            );
+
+            assign pc_incr = (!full) ? 2 : 0;
+            assign move_pc = (i_ack & (!full)) | pc_need_change;
+            assign o_cyc = (!full) & i_reset_n;
+        end
+        else
+        begin
+            assign pc_incr = (!full) ? 4 : 0;
+            assign move_pc = (i_ack & (!full)) | pc_need_change;
+            assign o_cyc = (!full) & i_reset_n;
+            assign instruction = i_instruction;
+        end
+    endgenerate
 
     fifo
     #(
         .WIDTH                  (IADDR_SPACE_BITS+32),
-        .DEPTH_BITS             (2)
+        .DEPTH_BITS             (INSTR_BUF_ADDR_SIZE)
     )
     u_fifo
     (
         .i_clk                  (i_clk),
         .i_reset_n              (i_reset_n & (!i_flush)),
-        .i_data                 ({ pc_prev, i_instruction }),
+        .i_data                 ({ pc_prev, instruction }),
         .i_push                 (ack),
         .o_data                 ({ o_pc, o_instruction }),
         .i_pop                  ((!i_stall) & (!i_flush) & (!empty)),
