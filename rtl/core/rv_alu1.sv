@@ -128,66 +128,34 @@ module rv_alu1
     end
 
     logic[31:0] bp1, bp2;
-
-    always_comb
-    begin
-        case (1'b1)
-        i_rs1_bp.alu2:    bp1 = i_alu2_data;
-        i_rs1_bp.memory:  bp1 = i_memory_data;
-        i_rs1_bp.write:   bp1 = i_write_data;
-        i_rs1_bp.wr_back: bp1 = i_wr_back_data;
-        default:          bp1 = i_reg1_data;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        i_rs2_bp.alu2:    bp2 = i_alu2_data;
-        i_rs2_bp.memory:  bp2 = i_memory_data;
-        i_rs2_bp.write:   bp2 = i_write_data;
-        i_rs2_bp.wr_back: bp2 = i_wr_back_data;
-        default:          bp2 = i_reg2_data;
-        endcase
-    end
-
     logic[31:0] op1, op2;
+
+    assign  bp1 = i_rs1_bp.alu2    ? i_alu2_data :
+                  i_rs1_bp.memory  ? i_memory_data :
+                  i_rs1_bp.write   ? i_write_data :
+                  i_rs1_bp.wr_back ? i_wr_back_data :
+                  i_rs1_bp.memory  ? i_memory_data :
+                  i_reg1_data;
+    assign  bp2 = i_rs2_bp.alu2    ? i_alu2_data :
+                  i_rs2_bp.memory  ? i_memory_data :
+                  i_rs2_bp.write   ? i_write_data :
+                  i_rs2_bp.wr_back ? i_wr_back_data :
+                  i_rs2_bp.memory  ? i_memory_data :
+                  i_reg2_data;
+    assign  op1 = op1_sel.pc ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } :
+                  bp1;
+    assign  op2 = op2_sel.i  ? imm_i :
+                  op2_sel.j  ? imm_j :
+                  bp2;
+
     logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset;
 
-    always_comb
-    begin
-        case (1'b1)
-        op1_sel.pc: op1 = { {(32-IADDR_SPACE_BITS){1'b0}}, pc };
-        default:    op1 = bp1;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        op2_sel.i: op2 = imm_i;
-        op2_sel.j: op2 = imm_j;
-        default:   op2 = bp2;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        inst_mret: pc_target_base = i_ret_addr;
-        inst_jalr: pc_target_base = bp1[IADDR_SPACE_BITS-1:0];
-        default:   pc_target_base = pc;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        inst_mret: pc_target_offset = '0;
-        inst_jalr: pc_target_offset = imm_i[IADDR_SPACE_BITS-1:0];
-        default:   pc_target_offset = imm_j[IADDR_SPACE_BITS-1:0];
-        endcase
-    end
+    assign  pc_target_base   = inst_mret ? i_ret_addr :
+                               inst_jalr ? bp1[IADDR_SPACE_BITS-1:0] :
+                               pc;
+    assign  pc_target_offset = inst_mret ? '0 :
+                               inst_jalr ? imm_i[IADDR_SPACE_BITS-1:0] :
+                               imm_j[IADDR_SPACE_BITS-1:0];
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;

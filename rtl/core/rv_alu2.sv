@@ -51,9 +51,6 @@ module rv_alu2
     logic[32:0] add;
     logic[31:0] xor_, or_, and_, shl;
     logic[32:0] shr;
-    logic[31:0] shift_result;
-    logic       cmp_result;
-    logic[31:0] bits_result;
     logic       carry;
     logic       op_b_sel;
     logic[31:0] op_b;
@@ -131,50 +128,30 @@ module rv_alu2
     assign  shl = op1 << op2[4:0];
     assign  shr = $signed({ctrl.shift_arithmetical ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
-    always_comb
-    begin
-        case (1'b1)
-        ctrl.cmp_lts: cmp_result = lts;
-        ctrl.cmp_ltu: cmp_result = ltu;
-        default:      cmp_result = eq;
-        endcase
-    end
 
     logic       pc_select;
     logic[IADDR_SPACE_BITS-1:0] pc_target;
     assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ branch_pred;
     assign      pc_target = branch_pred ? pc_next : (pc_target_base + pc_target_offset);
 
-    always_comb
-    begin
-        case (1'b1)
-        ctrl.bits_xor: bits_result = xor_;
-        ctrl.bits_or:  bits_result = or_;
-        default:       bits_result = and_;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        ctrl.arith_shr: shift_result = shr[31:0];
-        default:        shift_result = shl;
-        endcase
-    end
-
+    logic       cmp_result;
+    logic[31:0] bits_result;
+    logic[31:0] shift_result;
     logic[31:0] result;
 
-    always_comb
-    begin
-        case (1'b1)
-        res_src.pc_next: result = { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next };
-        csr_read:  result = csr_data;
-        res.cmp:   result = { {31{1'b0}}, cmp_result };
-        res.bits:  result = bits_result;
-        res.shift: result = shift_result;
-        default:   result = add[31:0];
-        endcase
-    end
+    assign  cmp_result = ctrl.cmp_lts ? lts :
+                         ctrl.cmp_ltu ? ltu :
+                         eq;
+    assign  bits_result = ctrl.bits_xor ? xor_ :
+                          ctrl.bits_or ? or_ :
+                          and_;
+    assign  shift_result = ctrl.arith_shr ? shr[31:0] : shl;
+    assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
+                     csr_read        ? csr_data :
+                     res.cmp         ? { {31{1'b0}}, cmp_result } :
+                     res.bits        ? bits_result :
+                     res.shift       ? shift_result :
+                     add[31:0];
 
     always_comb
     begin
