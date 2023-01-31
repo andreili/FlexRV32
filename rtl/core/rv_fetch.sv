@@ -27,6 +27,7 @@ module rv_fetch
     output  wire                        o_cyc,
     output  wire[31:0]                  o_instruction,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire                        o_is_compressed,
     output  wire                        o_branch_pred,
     output  wire                        o_ready
 );
@@ -113,16 +114,16 @@ module rv_fetch
 
     fifo
     #(
-        .WIDTH                  (IADDR_SPACE_BITS+32),
+        .WIDTH                  (IADDR_SPACE_BITS+32+2),
         .DEPTH_BITS             (INSTR_BUF_ADDR_SIZE)
     )
     u_fifo
     (
         .i_clk                  (i_clk),
         .i_reset_n              (i_reset_n & (!i_flush)),
-        .i_data                 ({ pc_prev, instruction }),
+        .i_data                 ({ 1'b0, 1'b0, pc_prev, instruction }),
         .i_push                 (ack),
-        .o_data                 ({ o_pc, o_instruction }),
+        .o_data                 ({ o_branch_pred, o_is_compressed, o_pc, o_instruction }),
         .i_pop                  ((!i_stall) & (!i_flush) & (!empty)),
         .o_empty                (empty),
         .o_full                 (full)
@@ -162,7 +163,6 @@ module rv_fetch
         end
         else
         begin
-            assign o_branch_pred = '0;
         end
     endgenerate
 

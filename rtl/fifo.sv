@@ -43,11 +43,21 @@ module fifo
             tail <= tail_next;
     end
 
-    always_ff @(posedge i_clk)
-    begin
-        if (i_push)
-            data[head[DEPTH_BITS-1:0]] <= i_data;
-    end
+    generate
+        genvar i;
+        for (i=0 ; i<(2**DEPTH_BITS) ; ++i)
+        begin : fifo
+            always_ff @(posedge i_clk)
+            begin
+                if (!i_reset_n)
+                begin
+                    data[i] <= '0;
+                end
+                else if (i_push & (i == head[DEPTH_BITS-1:0]))
+                    data[i] <= i_data;
+            end
+        end
+    endgenerate
 
     assign  o_data = data[tail[DEPTH_BITS-1:0]];
     assign  o_empty = empty;

@@ -5,17 +5,16 @@
 module rv_decode
 #(
     parameter IADDR_SPACE_BITS          = 32,
-    parameter EXTENSION_C               = 1,
     parameter EXTENSION_Zicsr           = 1
 )
 (
-    input   wire                        i_clk,
     input   wire                        i_stall,
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ready,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire                        i_branch_pred,
+    input   wire                        i_is_compressed,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
@@ -57,53 +56,9 @@ module rv_decode
     logic[2:0]  funct3;
     logic[6:0]  funct7;
     logic[11:0] funct12;
-
-    logic[31:0] instr_full;
-    logic       comp_illegal;
-    logic       branch_pred;
-
-    generate
-        if (EXTENSION_C)
-        begin
-            logic       cillegal;
-            rv_decode_comp
-            u_comp
-            (
-                .i_instruction                  (i_instruction),
-                .o_instruction                  (instr_full),
-                .o_illegal_instruction          (cillegal)
-            );
-            always_ff @(posedge i_clk)
-            begin
-                if (i_flush)
-                    comp_illegal <= '0;
-                else if (!i_stall)
-                    comp_illegal <= cillegal;
-            end
-        end
-        else
-        begin
-            assign  instr_full = i_instruction;
-            assign  comp_illegal = '1;
-        end
-    endgenerate
-
     logic[31:0] instruction;
-    logic[IADDR_SPACE_BITS-1:0] pc;
-    always_ff @(posedge i_clk)
-    begin
-        if (i_flush)
-        begin
-            instruction <= '0;
-            branch_pred <= '0;
-        end
-        else if (!i_stall)
-        begin
-            instruction <= i_ready ? instr_full : 0;
-            pc <= i_pc;
-            branch_pred <= i_branch_pred;
-        end
-    end
+
+    assign  instruction = (i_ready & (!i_flush)) ? i_instruction : 0;
 
     logic   inst_full, inst_none;
 
@@ -314,7 +269,7 @@ module rv_decode
     assign  o_alu_ctrl.arith_add = |{inst_add,inst_addi,inst_load,inst_store};
     assign  o_alu_ctrl.shift_arithmetical = |{inst_srai,inst_sra};
 
-    assign  o_pc = pc;
+    assign  o_pc = i_pc;
     assign  o_funct3 = (inst_full) ? funct3 : (3'b010);
     assign  o_inst_jalr = inst_jalr;
     assign  o_inst_jal = inst_jal;
@@ -322,12 +277,12 @@ module rv_decode
     assign  o_inst_store = inst_store;
 
     logic[IADDR_SPACE_BITS-1:0] pc_next;
-    assign  pc_next = (pc + (((!comp_illegal) & EXTENSION_C) ? 2 : 4));
+    assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}}, (!i_is_compressed), i_is_compressed, 1'b0 });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;
 `endif
-    assign  o_branch_pred = branch_pred;
+    assign  o_branch_pred = i_branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
         
 `ifdef EXTENSION_Zifencei
