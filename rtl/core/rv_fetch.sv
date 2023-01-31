@@ -16,6 +16,7 @@ module rv_fetch
     input   wire                        i_reset_n,
     input   wire                        i_stall,
     input   wire                        i_flush,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_br,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   wire                        i_pc_select,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_trap,
@@ -131,7 +132,7 @@ module rv_fetch
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_flush;
+    assign  dummy = i_flush | (|i_pc_br);
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  addr = pc;

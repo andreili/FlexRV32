@@ -54,6 +54,7 @@ module rv_alu1
     output  wire[4:0]                   o_rd,
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
     output  wire                        o_branch_pred,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target_base,
@@ -173,6 +174,7 @@ module rv_alu1
     assign  o_rd = rd;
     assign  o_inst_jal_jalr = inst_jal | inst_jalr | inst_mret;
     assign  o_inst_branch = inst_branch;
+    assign  o_pc = pc;
     assign  o_pc_next = pc_next;
     assign  o_pc_target_base = pc_target_base;
     assign  o_pc_target_offset = pc_target_offset;

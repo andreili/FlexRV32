@@ -22,6 +22,7 @@ module rv_alu2
     input   wire[4:0]                   i_rd,
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target_base,
@@ -38,6 +39,7 @@ module rv_alu2
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
@@ -62,6 +64,7 @@ module rv_alu2
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
+    logic[IADDR_SPACE_BITS-1:0] pc;
     logic[IADDR_SPACE_BITS-1:0] pc_next;
     logic[IADDR_SPACE_BITS-1:0] pc_target_base;
     logic[IADDR_SPACE_BITS-1:0] pc_target_offset;
@@ -97,6 +100,7 @@ module rv_alu2
             rd <= i_rd;
             inst_jal_jalr <= i_inst_jal_jalr;
             inst_branch <= i_inst_branch;
+            pc <= i_pc;
             pc_next <= i_pc_next;
             pc_target_base <= i_pc_target_base;
             pc_target_offset <= i_pc_target_offset;
@@ -194,6 +198,7 @@ module rv_alu2
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
+    assign  o_pc = pc;
     assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;

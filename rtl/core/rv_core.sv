@@ -75,6 +75,7 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
+        .i_pc_br                        (alu2_pc),
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
         .i_pc_trap                      (i_csr_trap_pc),
@@ -180,6 +181,7 @@ module rv_core
     logic[4:0]  alu1_rd;
     logic       alu1_inst_jal_jalr;
     logic       alu1_inst_branch;
+    logic[IADDR_SPACE_BITS-1:0] alu1_pc;
     logic[IADDR_SPACE_BITS-1:0] alu1_pc_next;
     logic[IADDR_SPACE_BITS-1:0] alu1_pc_target_base;
     logic[IADDR_SPACE_BITS-1:0] alu1_pc_target_offset;
@@ -243,6 +245,7 @@ module rv_core
         .o_rd                           (alu1_rd),
         .o_inst_jal_jalr                (alu1_inst_jal_jalr),
         .o_inst_branch                  (alu1_inst_branch),
+        .o_pc                           (alu1_pc),
         .o_pc_next                      (alu1_pc_next),
         .o_branch_pred                  (alu1_branch_pred),
         .o_pc_target_base               (alu1_pc_target_base),
@@ -260,6 +263,7 @@ module rv_core
     logic       alu2_store;
     logic       alu2_reg_write;
     logic[4:0]  alu2_rd;
+    logic[IADDR_SPACE_BITS-1:0] alu2_pc;
     logic[IADDR_SPACE_BITS-1:0] alu2_pc_target;
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
@@ -284,6 +288,7 @@ module rv_core
         .i_rd                           (alu1_rd),
         .i_inst_jal_jalr                (alu1_inst_jal_jalr),
         .i_inst_branch                  (alu1_inst_branch),
+        .i_pc                           (alu1_pc),
         .i_pc_next                      (alu1_pc_next),
         .i_branch_pred                  (alu1_branch_pred),
         .i_pc_target_base               (alu1_pc_target_base),
@@ -300,6 +305,7 @@ module rv_core
         .o_store                        (alu2_store),
         .o_reg_write                    (alu2_reg_write),
         .o_rd                           (alu2_rd),
+        .o_pc                           (alu2_pc),
         .o_pc_target                    (alu2_pc_target),
         .o_res_src                      (alu2_res_src),
         .o_wdata                        (o_data_wdata),
