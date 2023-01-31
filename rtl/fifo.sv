@@ -24,8 +24,8 @@ module fifo
     assign  head_next = head + 2'd1;
     assign  tail_next = tail + 2'd1;
     assign  empty = (head == tail);
-    assign  full = ((head_next == tail_next) &
-                    (head_next[DEPTH_BITS] != tail_next[DEPTH_BITS]));
+    assign  full = ((head[DEPTH_BITS-1:0] == tail[DEPTH_BITS-1:0]) &
+                    (head[DEPTH_BITS] != tail[DEPTH_BITS]));
 
     always_ff @(posedge i_clk)
     begin
