@@ -7,7 +7,8 @@
 
 module rv_alu2
 #(
-    parameter IADDR_SPACE_BITS          =32
+    parameter IADDR_SPACE_BITS          = 32,
+    parameter BRANCH_PREDICTION         = 1
 )
 (
     input   wire                        i_clk,
@@ -25,8 +26,7 @@ module rv_alu2
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target_base,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target_offset,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_reg_data2,
@@ -66,8 +66,7 @@ module rv_alu2
     logic       inst_jal_jalr, inst_branch;
     logic[IADDR_SPACE_BITS-1:0] pc;
     logic[IADDR_SPACE_BITS-1:0] pc_next;
-    logic[IADDR_SPACE_BITS-1:0] pc_target_base;
-    logic[IADDR_SPACE_BITS-1:0] pc_target_offset;
+    logic[IADDR_SPACE_BITS-1:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
@@ -102,8 +101,7 @@ module rv_alu2
             inst_branch <= i_inst_branch;
             pc <= i_pc;
             pc_next <= i_pc_next;
-            pc_target_base <= i_pc_target_base;
-            pc_target_offset <= i_pc_target_offset;
+            pc_target <= i_pc_target;
             res_src <= i_res_src;
             funct3 <= i_funct3;
             reg_data2 <= i_reg_data2;
@@ -133,10 +131,11 @@ module rv_alu2
     assign  shr = $signed({ctrl.shift_arithmetical ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
 
-    logic       pc_select;
-    logic[IADDR_SPACE_BITS-1:0] pc_target;
-    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ branch_pred;
-    assign      pc_target = branch_pred ? pc_next : (pc_target_base + pc_target_offset);
+    logic       pc_select, pred_ok;
+    logic[IADDR_SPACE_BITS-1:0] pc_out;
+    assign      pred_ok = (pc_target == i_pc);
+    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ (branch_pred & pred_ok & BRANCH_PREDICTION);
+    assign      pc_out = (branch_pred & pred_ok) ? pc_next : pc_target;
 
     logic       cmp_result;
     logic[31:0] bits_result;
@@ -199,7 +198,7 @@ module rv_alu2
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
     assign  o_pc = pc;
-    assign  o_pc_target = pc_target;
+    assign  o_pc_target = pc_out;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_to_trap = to_trap;

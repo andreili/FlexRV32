@@ -57,8 +57,7 @@ module rv_alu1
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
     output  wire                        o_branch_pred,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target_base,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target_offset,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
     output  wire[31:0]                  o_reg_data1,
@@ -149,7 +148,7 @@ module rv_alu1
                   op2_sel.j  ? imm_j :
                   bp2;
 
-    logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset;
+    logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset, pc_target;
 
     assign  pc_target_base   = inst_mret ? i_ret_addr :
                                inst_jalr ? bp1[IADDR_SPACE_BITS-1:0] :
@@ -157,6 +156,7 @@ module rv_alu1
     assign  pc_target_offset = inst_mret ? '0 :
                                inst_jalr ? imm_i[IADDR_SPACE_BITS-1:0] :
                                imm_j[IADDR_SPACE_BITS-1:0];
+    assign  pc_target = pc_target_base + pc_target_offset;
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
@@ -176,8 +176,7 @@ module rv_alu1
     assign  o_inst_branch = inst_branch;
     assign  o_pc = pc;
     assign  o_pc_next = pc_next;
-    assign  o_pc_target_base = pc_target_base;
-    assign  o_pc_target_offset = pc_target_offset;
+    assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_reg_data1 = bp1;
