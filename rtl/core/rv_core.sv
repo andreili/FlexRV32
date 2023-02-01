@@ -128,10 +128,10 @@ module rv_core
     )
     u_st2_decode
     (
+        .i_clk                          (i_clk),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
-        .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
         .i_branch_pred                  (fetch_branch_pred),
         .i_is_compressed                (fetch_is_compressed),
@@ -173,14 +173,41 @@ module rv_core
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
 
+    logic[31:0] data_hz1;
+    logic[31:0] data_hz2;
+    ctrl_rs_bp_t rs1_bp;
+    ctrl_rs_bp_t rs2_bp;
+
+    rv_hazard
+    u_dhz1
+    (
+        .i_clk                          (i_clk),
+        .i_reg_data                     (reg_rdata1),
+        .i_alu2_data                    (alu2_result),
+        .i_mem_data                     (memory_result),
+        .i_wr_data                      (write_data),
+        .i_bp                           (rs1_bp),
+        .o_data                         (data_hz1)
+    );
+
+    rv_hazard
+    u_dhz2
+    (
+        .i_clk                          (i_clk),
+        .i_reg_data                     (reg_rdata2),
+        .i_alu2_data                    (alu2_result),
+        .i_mem_data                     (memory_result),
+        .i_wr_data                      (write_data),
+        .i_bp                           (rs2_bp),
+        .o_data                         (data_hz2)
+    );
+
     logic[31:0] alu1_op1;
     logic[31:0] alu1_op2;
     alu_res_t   alu1_res;
     alu_ctrl_t  alu1_ctrl;
     logic       alu1_store;
     logic       alu1_reg_write;
-    logic[4:0]  alu1_rs1;
-    logic[4:0]  alu1_rs2;
     logic[4:0]  alu1_rd;
     logic       alu1_inst_jal_jalr;
     logic       alu1_inst_branch;
@@ -192,8 +219,6 @@ module rv_core
     logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
     logic       alu1_flush;
-    ctrl_rs_bp_t alu1_rs1_bp;
-    ctrl_rs_bp_t alu1_rs2_bp;
     logic       alu1_to_trap;
     logic       alu1_branch_pred;
 
@@ -206,17 +231,9 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_flush                        (alu1_flush),
-        .i_rs1_bp                       (alu1_rs1_bp),
-        .i_rs2_bp                       (alu1_rs2_bp),
-        .i_alu2_data                    (alu2_result),
-        .i_memory_data                  (memory_result),
-        .i_write_data                   (write_data),
-        .i_wr_back_data                 (wr_back_data),
         .i_pc                           (decode_pc),
         .i_pc_next                      (decode_pc_next),
         .i_branch_pred                  (decode_branch_pred),
-        .i_rs1                          (decode_rs1),
-        .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
         .i_imm_i                        (decode_imm_i),
         .i_imm_j                        (decode_imm_j),
@@ -233,8 +250,8 @@ module rv_core
         .i_inst_branch                  (decode_inst_branch),
         .i_inst_store                   (decode_inst_store),
         .i_ret_addr                     (i_csr_ret_addr),
-        .i_reg1_data                    (reg_rdata1),
-        .i_reg2_data                    (reg_rdata2),
+        .i_reg1_data                    (data_hz1),
+        .i_reg2_data                    (data_hz2),
         .i_to_trap                      (decode_to_trap),
         .o_op1                          (alu1_op1),
         .o_op2                          (alu1_op2),
@@ -242,8 +259,6 @@ module rv_core
         .o_ctrl                         (alu1_ctrl),
         .o_store                        (alu1_store),
         .o_reg_write                    (alu1_reg_write),
-        .o_rs1                          (alu1_rs1),
-        .o_rs2                          (alu1_rs2),
         .o_rd                           (alu1_rd),
         .o_inst_jal_jalr                (alu1_inst_jal_jalr),
         .o_inst_branch                  (alu1_inst_branch),
@@ -356,16 +371,6 @@ module rv_core
         .o_write_op                     (write_op)
     );
 
-    logic[31:0] wr_back_data;
-    logic[4:0]  wr_back_rd;
-    logic       wr_back_op;
-    always_ff @(posedge i_clk)
-    begin
-        wr_back_rd <= write_rd;
-        wr_back_data <= write_data;
-        wr_back_op <= write_op;
-    end
-
 `ifdef TO_SIM
     logic[4:0]  trace_rd;
     logic[31:0] trace_rd_data;
@@ -401,26 +406,25 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_pc_change                    (ctrl_pc_change),
         .i_decode_inst_sup              (decode_inst_supported),
+        .i_decode_inp_ready             (fetch_ready),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
-        .i_alu1_rs1                     (alu1_rs1),
-        .i_alu1_rs2                     (alu1_rs2),
         .i_alu1_mem_rd                  (alu1_res_src.memory),
+        .i_alu1_reg_write               (alu1_reg_write),
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_mem_rd                  (alu2_res_src.memory),
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
         .i_memory_rd                    (memory_rd),
         .i_memory_reg_write             (memory_reg_write),
+        .i_memory_mem_rd                (memory_res_src.memory),
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
-        .i_wr_back_rd                   (wr_back_rd),
-        .i_wr_back_reg_write            (wr_back_op),
         .i_need_pause                   (ctrl_need_pause),
         .o_decode_flush                 (decode_flush),
         .o_decode_stall                 (decode_stall),
-        .o_rs1_bp                       (alu1_rs1_bp),
-        .o_rs2_bp                       (alu1_rs2_bp),
+        .o_rs1_bp                       (rs1_bp),
+        .o_rs2_bp                       (rs2_bp),
         .o_alu1_flush                   (alu1_flush),
         .o_alu2_flush                   (alu2_flush),
         .o_inv_inst                     (inv_inst)
