@@ -57,8 +57,10 @@ module rv_decode
     logic[6:0]  funct7;
     logic[11:0] funct12;
     logic[31:0] instruction;
+    logic       branch_pred;
 
     assign  instruction = (i_ready & (!i_flush)) ? i_instruction : 0;
+    assign  branch_pred = (i_ready & (!i_flush)) ? i_branch_pred : 0;
 
     logic   inst_full, inst_none;
 
@@ -282,7 +284,7 @@ module rv_decode
 `ifdef TO_SIM
     assign  o_instr = instruction;
 `endif
-    assign  o_branch_pred = i_branch_pred;
+    assign  o_branch_pred = branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
         
 `ifdef EXTENSION_Zifencei

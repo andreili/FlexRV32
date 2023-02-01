@@ -9,6 +9,7 @@ module rv_core
     parameter   RESET_ADDR = 32'h0000_0000,
     parameter   IADDR_SPACE_BITS        = 16,
     parameter   BRANCH_PREDICTION       = 1,
+    parameter   BRANCH_TABLE_SIZE_BITS  = 2,
     parameter   INSTR_BUF_ADDR_SIZE     = 2, // buffer size is 2**N half-words (16 bit)
     parameter   EXTENSION_C             = 1,
     parameter   EXTENSION_Zicsr         = 1
@@ -66,6 +67,7 @@ module rv_core
         .RESET_ADDR                     (RESET_ADDR),
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
+        .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)

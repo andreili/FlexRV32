@@ -7,6 +7,7 @@ module rv_fetch
     parameter   RESET_ADDR              = 32'h0000_0000,
     parameter   IADDR_SPACE_BITS        = 16,
     parameter   BRANCH_PREDICTION       = 1,
+    parameter   BRANCH_TABLE_SIZE_BITS  = 2,
     parameter   INSTR_BUF_ADDR_SIZE     = 2,
     parameter   EXTENSION_C             = 1,
     parameter   EXTENSION_Zicsr         = 1
@@ -33,11 +34,13 @@ module rv_fetch
 );
 
     logic[IADDR_SPACE_BITS-1:0] pc;
-    logic[IADDR_SPACE_BITS-1:0] addr;
     logic[IADDR_SPACE_BITS-1:0] pc_next;
     logic[IADDR_SPACE_BITS-1:0] pc_incr;
-    logic       move_pc;
+    logic                       move_pc;
     logic[IADDR_SPACE_BITS-1:0] pc_prev;
+    logic[IADDR_SPACE_BITS-1:0] pc_bp;
+    logic                       branch_predicted;
+    logic                       branch_predicted_prev;
 
     logic       pc_next_trap_sel;
 
@@ -45,6 +48,7 @@ module rv_fetch
     assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:0] :
                 pc_next_trap_sel ? i_pc_trap :
                 i_pc_select ? i_pc_target :
+                branch_predicted ? pc_bp :
                 (pc + pc_incr);
 
     always_ff @(posedge i_clk)
@@ -121,7 +125,7 @@ module rv_fetch
     (
         .i_clk                  (i_clk),
         .i_reset_n              (i_reset_n & (!i_flush)),
-        .i_data                 ({ 1'b0, 1'b0, pc_prev, instruction }),
+        .i_data                 ({ branch_predicted_prev, 1'b0, pc_prev, instruction }),
         .i_push                 (ack),
         .o_data                 ({ o_branch_pred, o_is_compressed, o_pc, o_instruction }),
         .i_pop                  ((!i_stall) & (!i_flush) & (!empty)),
@@ -136,37 +140,39 @@ module rv_fetch
     assign  dummy = i_flush | (|i_pc_br);
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  addr = pc;
-
     generate
         if (BRANCH_PREDICTION)
         begin : pred
-            /*rv_fetch_branch_pred
+            rv_fetch_branch_pred
             #(
-                .EXTENSION_C            (EXTENSION_C)
+                .IADDR_SPACE_BITS       (IADDR_SPACE_BITS),
+                .TABLE_SIZE_BITS        (BRANCH_TABLE_SIZE_BITS)
             )
             u_pred
             (
                 .i_clk                  (i_clk),
                 .i_reset_n              (i_reset_n),
-                .i_instruction          (i_instruction),
-                .i_ack                  (ack),
-                .i_ra_invalidate        (i_ra_invalidate),
-                .i_reg_write            (i_reg_write),
-                .i_rd                   (i_rd),
-                .i_reg_wdata            (i_reg_wdata),
-                .i_pc_prev              (pc_prev),
-                .o_bp_need              (bp_need),
-                .o_bp_need_prev         (bp_prev),
-                .o_bp_addr              (bp_addr)
-            );*/
+                .i_pc_current           (pc),
+                .i_pc_select            (i_pc_select),
+                .i_pc_branch            (i_pc_br),
+                .i_pc_target            (i_pc_target),
+                .o_pc_new               (pc_bp),
+                .o_pc_predicted         (branch_predicted)
+            );
         end
         else
         begin
+            assign branch_predicted = '0;
+            assign pc_bp = '0;
         end
     endgenerate
 
-    assign  o_addr = addr;
+    always_ff @(posedge i_clk)
+    begin
+        branch_predicted_prev <= branch_predicted;
+    end
+
+    assign  o_addr = pc;
 
 initial
 begin
