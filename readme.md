@@ -25,12 +25,12 @@ Multi-cycle core, for comparasion only:
 Pipelined core:
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|RV32I+PB(2)|||226052|128.66|1.046|
-|PB(2)+C+BP|981|117.87|251462|143.12|1.164|
+|RV32I+PB(2)|647|120|232053|132.07|1.101|
+|PB(2)+BTB|833|120|261880|149.05|1.242|
 
 Agenda:
 - PB - Prefetch buffer. Number - size of buffer addres bits, e.g. "2" - for 4 half-word buffer.
-- BP - Branch Prediction module.
+- BTB - Branch Target Buffer.
 
 # Features
 - Prefetch buffer - need to pipelined architecture for more performance.
