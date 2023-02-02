@@ -59,8 +59,8 @@ module rv_core
     logic       fetch_branch_pred;
     logic       fetch_is_compressed;
     logic       fetch_ready;
-    logic       decode_stall;
-    logic       decode_flush;
+    logic       fetch_stall;
+    logic       fetch_flush;
 
     rv_fetch
     #(
@@ -76,8 +76,8 @@ module rv_core
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
-        .i_stall                        (decode_stall),
-        .i_flush                        (decode_flush),
+        .i_stall                        (fetch_stall),
+        .i_flush                        (fetch_flush),
         .i_pc_br                        (alu2_pc),
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
@@ -94,6 +94,8 @@ module rv_core
         .o_ready                        (fetch_ready)
     );
 
+    logic       decode_stall;
+    logic       decode_flush;
     logic[IADDR_SPACE_BITS-1:0] decode_pc;
     logic[IADDR_SPACE_BITS-1:0] decode_pc_next;
     logic[4:0]  decode_rs1;
@@ -421,6 +423,8 @@ module rv_core
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
         .i_need_pause                   (ctrl_need_pause),
+        .o_fetch_flush                  (fetch_flush),
+        .o_fetch_stall                  (fetch_stall),
         .o_decode_flush                 (decode_flush),
         .o_decode_stall                 (decode_stall),
         .o_rs1_bp                       (rs1_bp),

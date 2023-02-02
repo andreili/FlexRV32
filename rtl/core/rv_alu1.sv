@@ -114,7 +114,9 @@ module rv_alu1
 
     logic[31:0] op1, op2;
 
-    assign  op1 = op1_sel.pc ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } : i_reg1_data;
+    assign  op1 = op1_sel.pc ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } :
+                               op1_sel.zero ? '0 :
+                               i_reg1_data;
     assign  op2 = op2_sel.i  ? imm_i :
                   op2_sel.j  ? imm_j :
                   i_reg2_data;

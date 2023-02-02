@@ -11,6 +11,7 @@ typedef struct packed
 typedef struct packed
 {
     logic                   pc;
+    logic                   zero;
     // always latest - it's default
     logic                   r;
 } src_op1_t;

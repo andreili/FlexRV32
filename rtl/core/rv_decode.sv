@@ -112,7 +112,7 @@ module rv_decode
 
     assign  op        = instruction[ 6: 0];
     assign  rd        = instruction[11: 7];
-    assign  rs1       = inst_lui ? '0 : instruction[19:15];
+    assign  rs1       = instruction[19:15];
     assign  rs2       = instruction[24:20];
     assign  funct3    = instruction[14:12];
     assign  funct7    = instruction[31:25];
@@ -265,7 +265,8 @@ module rv_decode
     assign  o_rs1 = inst_lui ? '0 : rs1;
     assign  o_rs2 = rs2;
     assign  o_op1_src.pc = |{inst_auipc,inst_jal};
-    assign  o_op1_src.r  = !(|{inst_auipc,inst_jal});
+    assign  o_op1_src.zero = inst_lui;
+    assign  o_op1_src.r  = !(|{inst_auipc,inst_jal,inst_lui});
 
     assign  o_op2_src.j = inst_jal;
     assign  o_op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store});
