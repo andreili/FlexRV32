@@ -8,10 +8,10 @@ module rv_decode
     parameter EXTENSION_Zicsr           = 1
 )
 (
-    input   wire                        i_clk,
     input   wire                        i_stall,
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
+    input   wire                        i_ready,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire                        i_branch_pred,
     input   wire                        i_is_compressed,
@@ -58,32 +58,9 @@ module rv_decode
     logic[11:0] funct12;
     logic[31:0] instruction;
     logic       branch_pred;
-    logic       is_compressed;
-    logic       stall;
-    logic[IADDR_SPACE_BITS-1:0] pc;
 
-    always_ff @(posedge i_clk)
-    begin
-        if (i_flush)
-        begin
-            instruction <= '0;
-            branch_pred <= '0;
-            pc <= '0;
-            is_compressed <= '0;
-        end
-        else if (!i_stall)
-        begin
-            instruction <= i_instruction;
-            branch_pred <= i_branch_pred;
-            pc <= i_pc;
-            is_compressed <= i_is_compressed;
-        end
-    end
-
-    always_ff @(posedge i_clk)
-    begin
-        stall <= i_stall;
-    end
+    assign  instruction = (i_ready & (!i_flush)) ? i_instruction : 0;
+    assign  branch_pred = (i_ready & (!i_flush)) ? i_branch_pred : 0;
 
     logic   inst_full, inst_none;
 
@@ -135,9 +112,9 @@ module rv_decode
     assign  o_csr_idx = instruction[31:20];
     assign  o_csr_imm = instruction[19:15];
     assign  o_csr_imm_sel = funct3[2];
-    assign  o_csr_write = (inst_csrrw | inst_csrrwi) & (!stall);
-    assign  o_csr_set   = (inst_csrrs | inst_csrrsi) & (!stall);
-    assign  o_csr_clear = (inst_csrrc | inst_csrrci) & (!stall);
+    assign  o_csr_write = (inst_csrrw | inst_csrrwi) & (!i_stall);
+    assign  o_csr_set   = (inst_csrrs | inst_csrrsi) & (!i_stall);
+    assign  o_csr_clear = (inst_csrrc | inst_csrrci) & (!i_stall);
     assign  o_csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
     assign  o_csr_ebreak = inst_ebreak;
     assign  o_csr_pc_next = pc_next;
@@ -295,7 +272,7 @@ module rv_decode
     assign  o_alu_ctrl.arith_add = |{inst_add,inst_addi,inst_load,inst_store};
     assign  o_alu_ctrl.shift_arithmetical = |{inst_srai,inst_sra};
 
-    assign  o_pc = pc;
+    assign  o_pc = i_pc;
     assign  o_funct3 = (inst_full) ? funct3 : (3'b010);
     assign  o_inst_jalr = inst_jalr;
     assign  o_inst_jal = inst_jal;
@@ -303,7 +280,7 @@ module rv_decode
     assign  o_inst_store = inst_store;
 
     logic[IADDR_SPACE_BITS-1:0] pc_next;
-    assign  pc_next = (pc + { {(IADDR_SPACE_BITS-3){1'b0}}, (!is_compressed), is_compressed, 1'b0 });
+    assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}}, (!i_is_compressed), i_is_compressed, 1'b0 });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;

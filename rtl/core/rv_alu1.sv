@@ -16,6 +16,8 @@ module rv_alu1
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
+    input   wire[4:0]                   i_rs1,
+    input   wire[4:0]                   i_rs2,
     input   wire[4:0]                   i_rd,
     input   wire[31:0]                  i_imm_i,
     input   wire[31:0]                  i_imm_j,
@@ -41,6 +43,8 @@ module rv_alu1
     output  alu_ctrl_t                  o_ctrl,
     output  wire                        o_store,
     output  wire                        o_reg_write,
+    output  wire[4:0]                   o_rs1,
+    output  wire[4:0]                   o_rs2,
     output  wire[4:0]                   o_rd,
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
@@ -55,6 +59,8 @@ module rv_alu1
     output  wire                        o_to_trap
 );
 
+    logic[4:0]  rs1;
+    logic[4:0]  rs2;
     logic[4:0]  rd;
     logic[31:0] imm_i;
     logic[31:0] imm_j;
@@ -90,6 +96,8 @@ module rv_alu1
         end
         else
         begin
+            rs1  <= i_rs1;
+            rs2  <= i_rs2;
             rd   <= i_rd;
             imm_i  <= i_imm_i;
             imm_j  <= i_imm_j;
@@ -142,6 +150,8 @@ module rv_alu1
     assign  o_ctrl = ctrl;
     assign  o_store = store;
     assign  o_reg_write = reg_write;
+    assign  o_rs1 = rs1;
+    assign  o_rs2 = rs2;
     assign  o_rd = rd;
     assign  o_inst_jal_jalr = inst_jal | inst_jalr | inst_mret;
     assign  o_inst_branch = inst_branch;

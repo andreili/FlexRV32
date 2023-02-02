@@ -130,10 +130,10 @@ module rv_core
     )
     u_st2_decode
     (
-        .i_clk                          (i_clk),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
+        .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
         .i_branch_pred                  (fetch_branch_pred),
         .i_is_compressed                (fetch_is_compressed),
@@ -183,11 +183,11 @@ module rv_core
     rv_hazard
     u_dhz1
     (
-        .i_clk                          (i_clk),
         .i_reg_data                     (reg_rdata1),
         .i_alu2_data                    (alu2_result),
         .i_mem_data                     (memory_result),
         .i_wr_data                      (write_data),
+        .i_wr_back_data                 (wr_back_data),
         .i_bp                           (rs1_bp),
         .o_data                         (data_hz1)
     );
@@ -195,11 +195,11 @@ module rv_core
     rv_hazard
     u_dhz2
     (
-        .i_clk                          (i_clk),
         .i_reg_data                     (reg_rdata2),
         .i_alu2_data                    (alu2_result),
         .i_mem_data                     (memory_result),
         .i_wr_data                      (write_data),
+        .i_wr_back_data                 (wr_back_data),
         .i_bp                           (rs2_bp),
         .o_data                         (data_hz2)
     );
@@ -210,6 +210,8 @@ module rv_core
     alu_ctrl_t  alu1_ctrl;
     logic       alu1_store;
     logic       alu1_reg_write;
+    logic[4:0]  alu1_rs1;
+    logic[4:0]  alu1_rs2;
     logic[4:0]  alu1_rd;
     logic       alu1_inst_jal_jalr;
     logic       alu1_inst_branch;
@@ -236,6 +238,8 @@ module rv_core
         .i_pc                           (decode_pc),
         .i_pc_next                      (decode_pc_next),
         .i_branch_pred                  (decode_branch_pred),
+        .i_rs1                          (decode_rs1),
+        .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
         .i_imm_i                        (decode_imm_i),
         .i_imm_j                        (decode_imm_j),
@@ -261,6 +265,8 @@ module rv_core
         .o_ctrl                         (alu1_ctrl),
         .o_store                        (alu1_store),
         .o_reg_write                    (alu1_reg_write),
+        .o_rs1                          (alu1_rs1),
+        .o_rs2                          (alu1_rs2),
         .o_rd                           (alu1_rd),
         .o_inst_jal_jalr                (alu1_inst_jal_jalr),
         .o_inst_branch                  (alu1_inst_branch),
@@ -378,6 +384,16 @@ module rv_core
     logic[31:0] trace_rd_data;
 `endif
 
+    logic[31:0] wr_back_data;
+    logic[4:0]  wr_back_rd;
+    logic       wr_back_op;
+    always_ff @(posedge i_clk)
+    begin
+        wr_back_rd <= write_rd;
+        wr_back_data <= write_data;
+        wr_back_op <= write_op;
+    end
+
     rv_regs
     u_regs
     (
@@ -408,20 +424,21 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_pc_change                    (ctrl_pc_change),
         .i_decode_inst_sup              (decode_inst_supported),
-        .i_decode_inp_ready             (fetch_ready),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
+        .i_alu_rs1                      (alu1_rs1),
+        .i_alu_rs2                      (alu1_rs2),
         .i_alu1_mem_rd                  (alu1_res_src.memory),
-        .i_alu1_reg_write               (alu1_reg_write),
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_mem_rd                  (alu2_res_src.memory),
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
         .i_memory_rd                    (memory_rd),
         .i_memory_reg_write             (memory_reg_write),
-        .i_memory_mem_rd                (memory_res_src.memory),
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
+        .i_wr_back_rd                   (wr_back_rd),
+        .i_wr_back_reg_write            (wr_back_op),
         .i_need_pause                   (ctrl_need_pause),
         .o_fetch_flush                  (fetch_flush),
         .o_fetch_stall                  (fetch_stall),
