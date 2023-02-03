@@ -31,10 +31,6 @@ module rv_trace
     logic[31:0] r_instr_exec2;
     logic[IADDR_SPACE_BITS-1:0] r_pc_exec2;
     logic       r_reg_write_exec2, r_mem_write_exec2, r_mem_read_exec2;
-    logic[31:0] r_instr_mem, r_wdata_mem, r_addr_mem;
-    logic[IADDR_SPACE_BITS-1:0] r_pc_mem;
-    logic[3:0]  r_sel_mem;
-    logic       r_reg_write_mem, r_mem_write_mem, r_mem_read_mem;
     logic[31:0] r_instr_wr, r_wdata_wr, r_addr_wr, r_rdata_wr;
     logic[IADDR_SPACE_BITS-1:0] r_pc_wr;
     logic[3:0]  r_sel_wr;
@@ -48,11 +44,11 @@ module rv_trace
     endfunction
 
     function static void print_head();
-        $fwrite(f, { "+----------+----------+----------+------------",
-                    "-------------------------------------------+\n" });
+        $fwrite(f, "+----------+----------+----------+------------"+
+                    "-------------------------------------------+\n");
         $fwrite(f, "| %8s | %8s | %8s | %-53s |\n", "Time", "PC", "Opcode", "Instruction/Event");
-        $fwrite(f, { "+----------+----------+----------+------------",
-                    "-------------------------------------------+\n" });
+        $fwrite(f, "+----------+----------+----------+------------"+
+                    "-------------------------------------------+\n");
         $fwrite(f, "|%8.3fns|%10s|%10s| %-53s |\n", get_ts(), "", "", "Trace started.");
     endfunction
 
@@ -348,24 +344,15 @@ module rv_trace
 
     always_ff @(posedge i_clk)
     begin
-        r_pc_mem <= r_pc_exec2;
-        r_instr_mem <= r_instr_exec2;
-        r_reg_write_mem <= r_reg_write_exec2;
-        r_mem_write_mem <= r_mem_write_exec2;
-        r_mem_read_mem <= r_mem_read_exec2;
-        r_wdata_mem <= i_mem_data;
-        r_addr_mem <= i_mem_addr;
-        r_sel_mem <= i_mem_sel;
-        //
-        r_pc_wr <= r_pc_mem;
-        r_instr_wr <= r_instr_mem;
-        r_reg_write_wr <= r_reg_write_mem;
-        r_mem_write_wr <= r_mem_write_mem;
-        r_mem_read_wr <= r_mem_read_mem;
-        r_wdata_wr <= r_wdata_mem;
+        r_pc_wr <= r_pc_exec2;
+        r_instr_wr <= r_instr_exec2;
+        r_reg_write_wr <= r_reg_write_exec2;
+        r_mem_write_wr <= r_mem_write_exec2;
+        r_mem_read_wr <= r_mem_read_exec2;
+        r_wdata_wr <= i_mem_data;
         r_rdata_wr <= i_bus_data;
-        r_addr_wr <= r_addr_mem;
-        r_sel_wr <= r_sel_mem;
+        r_addr_wr <= i_mem_addr;
+        r_sel_wr <= i_mem_sel;
     end
 
     initial
@@ -383,11 +370,6 @@ module rv_trace
         r_mem_write_exec2 = '0;
         r_mem_read_exec2 = '0;
         //
-        r_instr_mem = '0;
-        r_reg_write_mem = '0;
-        r_mem_write_mem = '0;
-        r_mem_read_mem = '0;
-        //
         r_instr_wr = '0;
         r_reg_write_wr = '0;
         r_mem_write_wr = '0;
@@ -401,16 +383,13 @@ module rv_trace
     begin
         if (|r_instr_wr)
             print_decode(r_addr_wr, r_instr_wr, r_pc_wr, r_mem_read_wr, r_mem_write_wr);
-        rd = r_instr_mem[11:7];
-        if (|r_instr_mem)
-            print_decode(r_addr_mem, r_instr_mem, r_pc_mem, r_mem_read_mem, r_mem_write_mem);
         rd = r_instr_exec2[11:7];
         if (|r_instr_exec2)
             print_decode(i_mem_addr, r_instr_exec2, r_pc_exec2, r_mem_read_exec2,
                 r_mem_write_exec2);
         $fwrite(f, "|%8.3fns|%10s|%10s| %-53s |\n", get_ts(), "", "", "Trace finished.");
-        $fwrite(f, { "+----------+----------+----------+------------",
-                    "-------------------------------------------+\n" });
+        $fwrite(f, "+----------+----------+----------+------------"+
+                    "-------------------------------------------+\n");
     end
 
     assign  o_rd = rd;

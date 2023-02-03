@@ -185,7 +185,6 @@ module rv_core
     (
         .i_reg_data                     (reg_rdata1),
         .i_alu2_data                    (alu2_result),
-        .i_mem_data                     (memory_result),
         .i_wr_data                      (write_data),
         .i_wr_back_data                 (wr_back_data),
         .i_bp                           (rs1_bp),
@@ -197,7 +196,6 @@ module rv_core
     (
         .i_reg_data                     (reg_rdata2),
         .i_alu2_data                    (alu2_result),
-        .i_mem_data                     (memory_result),
         .i_wr_data                      (write_data),
         .i_wr_back_data                 (wr_back_data),
         .i_bp                           (rs2_bp),
@@ -345,21 +343,6 @@ module rv_core
     logic   instr_issued;
     assign  instr_issued = (alu2_res_src.memory | alu2_store | alu2_reg_write);
 
-    logic[2:0]  memory_funct3;
-    logic[31:0] memory_result;
-    logic       memory_reg_write;
-    logic[4:0]  memory_rd;
-    res_src_t   memory_res_src;
-
-    always_ff @(posedge i_clk)
-    begin
-        memory_funct3  <= alu2_funct3;
-        memory_result <= alu2_result;
-        memory_reg_write <= alu2_reg_write;
-        memory_rd <= alu2_rd;
-        memory_res_src <= alu2_res_src;
-    end
-
     logic[31:0] write_data;
     logic[4:0]  write_rd;
     logic       write_op;
@@ -368,11 +351,11 @@ module rv_core
     u_st6_write
     (
         .i_clk                          (i_clk),
-        .i_funct3                       (memory_funct3),
-        .i_alu_result                   (memory_result),
-        .i_reg_write                    (memory_reg_write),
-        .i_rd                           (memory_rd),
-        .i_res_src                      (memory_res_src),
+        .i_funct3                       (alu2_funct3),
+        .i_alu_result                   (alu2_result),
+        .i_reg_write                    (alu2_reg_write),
+        .i_rd                           (alu2_rd),
+        .i_res_src                      (alu2_res_src),
         .i_data                         (i_data_rdata),
         .o_data                         (write_data),
         .o_rd                           (write_rd),
@@ -433,8 +416,6 @@ module rv_core
         .i_alu2_mem_rd                  (alu2_res_src.memory),
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
-        .i_memory_rd                    (memory_rd),
-        .i_memory_reg_write             (memory_reg_write),
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
         .i_wr_back_rd                   (wr_back_rd),
