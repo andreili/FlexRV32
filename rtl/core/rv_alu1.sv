@@ -7,7 +7,7 @@
 
 module rv_alu1
 #(
-    parameter IADDR_SPACE_BITS          = 32
+    parameter int IADDR_SPACE_BITS      = 32
 )
 (
     input   wire                        i_clk,

@@ -47,8 +47,10 @@ module rv_ctrl
     assign  rs2_on_wr_back = i_wr_back_reg_write & (|i_wr_back_rd) & (i_alu_rs2 == i_wr_back_rd);
 
     logic   need_mem_data1, need_mem_data2;
-    assign  need_mem_data1 = i_alu1_mem_rd   & (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) | (i_decode_rs2 == i_alu1_rd  ));
-    assign  need_mem_data2 = i_alu2_mem_rd   & (|i_alu2_rd  ) & ((i_decode_rs1 == i_alu2_rd  ) | (i_decode_rs2 == i_alu2_rd  ));
+    assign  need_mem_data1 = i_alu1_mem_rd   & (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
+                             (i_decode_rs2 == i_alu1_rd  ));
+    assign  need_mem_data2 = i_alu2_mem_rd   & (|i_alu2_rd  ) & ((i_decode_rs1 == i_alu2_rd  ) |
+                             (i_decode_rs2 == i_alu2_rd  ));
 
     logic   decode_stall, fetch_stall;
     assign  decode_stall = (!i_reset_n) | need_mem_data2 | need_mem_data1 | i_need_pause;

@@ -2,8 +2,8 @@
 
 module fifo
 #(
-    parameter WIDTH                     = 8,
-    parameter DEPTH_BITS                = 2
+    parameter int WIDTH                 = 8,
+    parameter int DEPTH_BITS            = 2
 )
 (
     input   wire                        i_clk,
@@ -48,7 +48,7 @@ module fifo
     generate
         genvar i;
         for (i=0 ; i<(2**DEPTH_BITS) ; ++i)
-        begin : fifo
+        begin : g_fifo
             always_ff @(posedge i_clk)
             begin
                 if (!i_reset_n)

@@ -2,9 +2,9 @@
 
 module nic
 #(
-    parameter   ADDR_SEL_WIDTH	= 2,
-    parameter   SLAVES_COUNT	= 2 ** ADDR_SEL_WIDTH,
-    parameter   DATA_WIDTH		= 32
+    parameter int ADDR_SEL_WIDTH        = 2,
+    parameter int SLAVES_COUNT          = 2 ** ADDR_SEL_WIDTH,
+    parameter int DATA_WIDTH            = 32
 )
 (
     input   wire                        i_clk,
@@ -23,7 +23,7 @@ module nic
     genvar i;
     generate
         for(i=0 ; i<SLAVES_COUNT ; i++)
-        begin : slave_loop
+        begin : g_slave_loop
             assign w_select[i] = (i_addr_sel == i) && i_nic_sel;
             assign o_rdata = r_select[i] ? i_rdata[i*DATA_WIDTH+:32] : { DATA_WIDTH{1'bZ} };
             assign o_ack = r_select[i] ? i_ack[i] : 1'bZ;

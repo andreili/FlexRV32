@@ -2,8 +2,8 @@
 
 module debounce
 #(
-    parameter   LENGTH = 6,
-    parameter   ACTIVE_LEVEL = 1'b0
+    parameter int LENGTH                = 6,
+    parameter logic ACTIVE_LEVEL        = 1'b0
 )
 (
     input   wire                        i_clk,

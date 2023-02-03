@@ -7,9 +7,9 @@
 
 module rv_csr_machine
 #(
-    parameter EXTENSION_C               = 1,
-    parameter EXTENSION_Zicntr          = 1,
-    parameter EXTENSION_Zihpm           = 0
+    parameter logic EXTENSION_C         = 1,
+    parameter logic EXTENSION_Zicntr    = 1,
+    parameter logic EXTENSION_Zihpm     = 0
 )
 (
     input   wire                        i_clk,
@@ -90,7 +90,7 @@ module rv_csr_machine
         if (!i_reset_n)
             cur_mode <= MODE_M;
     end
-    
+
     logic[31:0] mstatus_data;
     logic[31:0] mstatush_data;
     logic       SD, TSR, TW, TVM, MXR, SUM, MPRV, MPIE, UBE, MIE, MBE;
@@ -150,7 +150,7 @@ module rv_csr_machine
     end
 
     logic   xPP_next;
-    assign  xPP_next = (cur_mode == MODE_M) ? 
+    assign  xPP_next = (cur_mode == MODE_M) ?
 
     logic   xIE;
 `ifdef S_MODE
@@ -169,12 +169,12 @@ module rv_csr_machine
         else if (sel_mepc & i_write)
             mepc_data <= i_data;
     end
-    
+
     logic[31:0] mcause_data;
     logic       mcause_is_int;
     logic[7:0]  mcause_code;
     assign      mcause_data = { mcause_is_int, {(32-1-8){1'b0}}, mcause_code };
-    
+
     logic       mcause_is_int_next;
     logic[7:0]  mcause_code_next;
     assign      mcause_is_int_next = 1'b0;
@@ -245,7 +245,7 @@ module rv_csr_machine
     logic[31:0] mcounteren_hi;
     generate
         if (EXTENSION_Zicntr)
-        begin
+        begin : g_cntr
             `CSR_REG(mcounteren_lo, 3, sel_mcounteren)
             assign  mcounteren_lo = mcounteren_lo_data;
         end
@@ -253,7 +253,7 @@ module rv_csr_machine
             assign mcounteren_lo = '0;
 
         if (EXTENSION_Zihpm)
-        begin
+        begin : g_hpm
             `CSR_REG(mcounteren_hi, 29, sel_mcounteren)
             assign  mcounteren_hi = { mcounteren_hi_data[28:0], 3'b0 };
         end

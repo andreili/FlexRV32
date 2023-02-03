@@ -4,8 +4,8 @@
 
 module rv_decode
 #(
-    parameter IADDR_SPACE_BITS          = 32,
-    parameter EXTENSION_Zicsr           = 1
+    parameter int IADDR_SPACE_BITS      = 32,
+    parameter logic EXTENSION_Zicsr     = 1
 )
 (
     input   wire                        i_stall,
@@ -100,9 +100,11 @@ module rv_decode
 
     assign  imm_i = { {21{instruction[31]}}, instruction[30:20] };
     assign  imm_s = { {21{instruction[31]}}, instruction[30:25], instruction[11:7] };
-    assign  imm_b = { {20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0 };
+    assign  imm_b = { {20{instruction[31]}}, instruction[7], instruction[30:25],
+                      instruction[11:8], 1'b0 };
     assign  imm_u = { instruction[31:12], {12{1'b0}} };
-    assign  imm_j = { {12{instruction[31]}}, instruction[19:12], instruction[20], instruction[30:21], 1'b0 };
+    assign  imm_j = { {12{instruction[31]}}, instruction[19:12], instruction[20],
+                      instruction[30:21], 1'b0 };
 
     assign  imm_mux = (|{inst_lui, inst_auipc}) ? imm_u :
                       (inst_store) ? imm_s : imm_i;
@@ -124,8 +126,9 @@ module rv_decode
 
     assign  inst_none = !(|instruction);
 
-    assign  inst_csr_req = ((inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi | inst_csrrsi | inst_csrrci) & EXTENSION_Zicsr);
-    assign  o_inst_supported = 
+    assign  inst_csr_req = ((inst_csrrw | inst_csrrs | inst_csrrc | inst_csrrwi |
+                             inst_csrrsi | inst_csrrci) & EXTENSION_Zicsr);
+    assign  o_inst_supported =
             inst_none |
             inst_lb    | inst_lh   | inst_lw   | inst_lbu   | inst_lhu  |
             inst_addi  | inst_slli | inst_slti | inst_sltiu |
@@ -160,8 +163,10 @@ module rv_decode
     assign  inst_slti     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b010);
     assign  inst_sltiu    = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b011);
     assign  inst_xori     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b100);
-    assign  inst_srli     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b101) & (funct7 == 7'b0000000);
-    assign  inst_srai     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b101) & (funct7 == 7'b0100000);
+    assign  inst_srli     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b101) &
+                            (funct7 == 7'b0000000);
+    assign  inst_srai     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b101) &
+                            (funct7 == 7'b0100000);
     assign  inst_ori      = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b110);
     assign  inst_andi     = (op[6:2] == RV32_OPC_ARI) & inst_full & (funct3 == 3'b111);
     // add upper immediate to PC
@@ -171,16 +176,26 @@ module rv_decode
     assign  inst_sh       = (op[6:2] == RV32_OPC_STR) & inst_full & (funct3 == 3'b001);
     assign  inst_sw       = (op[6:2] == RV32_OPC_STR) & inst_full & (funct3 == 3'b010);
     // arifmetical with register
-    assign  inst_add      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b000) & (funct7 == 7'b0000000);
-    assign  inst_sub      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b000) & (funct7 == 7'b0100000);
-    assign  inst_sll      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b001) & (funct7 == 7'b0000000);
-    assign  inst_slt      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b010) & (funct7 == 7'b0000000);
-    assign  inst_sltu     = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b011) & (funct7 == 7'b0000000);
-    assign  inst_xor      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b100) & (funct7 == 7'b0000000);
-    assign  inst_srl      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b101) & (funct7 == 7'b0000000);
-    assign  inst_sra      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b101) & (funct7 == 7'b0100000);
-    assign  inst_or       = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b110) & (funct7 == 7'b0000000);
-    assign  inst_and      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b111) & (funct7 == 7'b0000000);
+    assign  inst_add      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b000) &
+                            (funct7 == 7'b0000000);
+    assign  inst_sub      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b000) &
+                            (funct7 == 7'b0100000);
+    assign  inst_sll      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b001) &
+                            (funct7 == 7'b0000000);
+    assign  inst_slt      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b010) &
+                            (funct7 == 7'b0000000);
+    assign  inst_sltu     = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b011) &
+                            (funct7 == 7'b0000000);
+    assign  inst_xor      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b100) &
+                            (funct7 == 7'b0000000);
+    assign  inst_srl      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b101) &
+                            (funct7 == 7'b0000000);
+    assign  inst_sra      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b101) &
+                            (funct7 == 7'b0100000);
+    assign  inst_or       = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b110) &
+                            (funct7 == 7'b0000000);
+    assign  inst_and      = (op[6:2] == RV32_OPC_ARR) & inst_full & (funct3 == 3'b111) &
+                            (funct7 == 7'b0000000);
     // load upper immediate
     assign  inst_lui      = (op[6:2] == RV32_OPC_LUI) & inst_full;
     // branches
@@ -194,8 +209,10 @@ module rv_decode
     assign  inst_jalr     = (op[6:2] == RV32_OPC_JALR) & inst_full & (funct3 == 3'b000);
     assign  inst_jal      = (op[6:2] == RV32_OPC_JAL)  & inst_full;
     // system
-    assign  inst_ecall    = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000000);
-    assign  inst_ebreak   = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b000000000001);
+    assign  inst_ecall    = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) &
+                            (funct12 == 12'b000000000000);
+    assign  inst_ebreak   = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) &
+                            (funct12 == 12'b000000000001);
 `ifdef EXTENSION_Zifencei
     // fence
     assign  inst_fence    = (op[6:2] == RV32_OPC_MEM) & inst_full & (funct3 == 3'b000);
@@ -208,7 +225,8 @@ module rv_decode
     assign  inst_ntl_s1 = inst_ntl & (rs2==5'h4);
     assign  inst_ntl_all = inst_ntl & (rs2==5'h5);
 `endif
-    assign  inst_mret       = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
+    assign  inst_mret       = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b000) &
+                              (funct12 == 12'b001100000010);
     assign  inst_csrrw      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b001);
     assign  inst_csrrs      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b010);
     assign  inst_csrrc      = (op[6:2] == RV32_OPC_SYS) & inst_full & (funct3 == 3'b011);
@@ -231,12 +249,12 @@ module rv_decode
     assign  inst_slts   = ((op[6:2] == RV32_OPC_ARI) |
                                 ( (op[6:2] == RV32_OPC_ARR) & (funct7 == 7'b0000000)))
                                 & inst_full & (funct3[2:1] == 2'b01);
-    assign  inst_ltu    = ((((op[6:2] == RV32_OPC_ARI) | ((op[6:2] == RV32_OPC_ARR) & (funct7 == 7'b0000000))) & (funct3 == 3'b011)) |
-        ((op[6:2] == RV32_OPC_B) & (funct3[2:1] == 2'b11))) & inst_full;
+    assign  inst_ltu    = ((((op[6:2] == RV32_OPC_ARI) | ((op[6:2] == RV32_OPC_ARR) &
+                             (funct7 == 7'b0000000))) & (funct3 == 3'b011)) |
+                           ((op[6:2] == RV32_OPC_B) & (funct3[2:1] == 2'b11))) & inst_full;
 
-    assign  o_reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui | inst_jalr | inst_jal
-                                | ((op[6:2] == RV32_OPC_SYS) & inst_full)
-                                ;
+    assign  o_reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui |
+                                inst_jalr | inst_jal | ((op[6:2] == RV32_OPC_SYS) & inst_full);
 
     assign  o_rd  = rd;
     assign  o_rs1 = inst_lui ? '0 : rs1;
@@ -247,7 +265,8 @@ module rv_decode
 
     assign  o_op2_src.j = inst_jal;
     assign  o_op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store});
-    assign  o_op2_src.r = !(|{inst_jal,inst_lui, inst_auipc,inst_jalr, inst_load, inst_imm,inst_store});
+    assign  o_op2_src.r = !(|{inst_jal,inst_lui, inst_auipc,inst_jalr, inst_load,
+                            inst_imm,inst_store});
 
     assign  o_res_src.memory = inst_load;
     assign  o_res_src.pc_next  = |{inst_jalr,inst_jal};
@@ -280,14 +299,15 @@ module rv_decode
     assign  o_inst_store = inst_store;
 
     logic[IADDR_SPACE_BITS-1:0] pc_next;
-    assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}}, (!i_is_compressed), i_is_compressed, 1'b0 });
+    assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}},
+                       (!i_is_compressed), i_is_compressed, 1'b0 });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;
 `endif
     assign  o_branch_pred = branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
-        
+
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
 `endif
@@ -319,7 +339,8 @@ module rv_decode
 /* verilator lint_off UNUSEDSIGNAL */
     logic [127:0] dbg_ascii_instr;
     /* verilator lint_on UNUSEDSIGNAL */
-    always @* begin
+    always_comb
+    begin
         dbg_ascii_instr = '0;
 
         if (inst_lui)      dbg_ascii_instr = "lui";

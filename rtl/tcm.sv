@@ -3,7 +3,7 @@
 module tcm
 #
 (
-    parameter   MEM_ADDR_WIDTH          = 8
+    parameter int MEM_ADDR_WIDTH        = 8
 )
 (
     input   wire                        i_clk,
@@ -16,7 +16,7 @@ module tcm
     output  wire[31:0]                  o_data
 );
 
-    localparam  MEM_SIZE = 2 ** MEM_ADDR_WIDTH;
+    localparam  int MemSize = 2 ** MEM_ADDR_WIDTH;
     logic[31:0] r_out;
     logic       r_ack;
 
@@ -34,7 +34,7 @@ module tcm
     `define QUADRANT_3 24+:8
 `endif
 
-    logic `MEM_DEF r_mem[0:MEM_SIZE-1];
+    logic `MEM_DEF r_mem[MemSize];
 
     always_ff @(posedge i_clk)
     begin
@@ -49,7 +49,7 @@ module tcm
             r_out <= r_mem[i_addr];
         end;
     end
-    
+
     always_ff @(posedge i_clk)
     begin
         r_ack <= i_dev_sel;
@@ -68,7 +68,7 @@ module tcm
             $readmemh("fw.vh", r_mem);
     `else
       `ifndef QUARTUS
-            $readmemh("../sim/test_fw/out/risc.vh", r_mem);
+            $readmemh("../fw/test/out/risc.vh", r_mem);
       `endif
     `endif
     end

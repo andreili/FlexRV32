@@ -4,8 +4,8 @@
 
 module rv_fetch_branch_pred
 #(
-    parameter IADDR_SPACE_BITS          = 32,
-    parameter TABLE_SIZE_BITS           = 4
+    parameter int IADDR_SPACE_BITS      = 32,
+    parameter int TABLE_SIZE_BITS       = 4
 )
 (
     input   wire                        i_clk,
@@ -18,8 +18,8 @@ module rv_fetch_branch_pred
     output  wire                        o_pc_predicted
 );
 
-    localparam  TABLE_SIZE = 2 ** TABLE_SIZE_BITS;
-    localparam  VALID_SIZE = TABLE_SIZE;
+    localparam int TABLE_SIZE = 2 ** TABLE_SIZE_BITS;
+    localparam int VALID_SIZE = TABLE_SIZE;
 
     logic[IADDR_SPACE_BITS-1:0] tb_pc_cur[TABLE_SIZE];
     logic[IADDR_SPACE_BITS-1:0] tb_pc_tar[TABLE_SIZE];
@@ -36,7 +36,7 @@ module rv_fetch_branch_pred
     genvar i;
     generate
         for (i=0 ; i<TABLE_SIZE ; ++i)
-        begin : idx_gen
+        begin : g_idx
             assign tb_idx[(i * TABLE_SIZE_BITS)+:TABLE_SIZE_BITS] = i;
         end
     endgenerate
@@ -59,7 +59,7 @@ module rv_fetch_branch_pred
 
     generate
         for (i=0 ; i<TABLE_SIZE ; ++i)
-        begin : btb
+        begin : g_btb
             logic[(VALID_SIZE-1):0] valid_cur;
             logic[(VALID_SIZE-2):0] valid_prev;
             logic      have_entry;
@@ -85,11 +85,13 @@ module rv_fetch_branch_pred
                 end
                 else if (tb_is_update)
                 begin
-                    tb_valid[(i*VALID_SIZE)+:VALID_SIZE] <= { 1'b0, tb_valid[(i*VALID_SIZE+1)+:(VALID_SIZE-1)] };
+                    tb_valid[(i*VALID_SIZE)+:VALID_SIZE] <= { 1'b0,
+                        tb_valid[(i*VALID_SIZE+1)+:(VALID_SIZE-1)] };
                 end
             end
 
-            assign to_update = ((i == tb_free_idx) & (!tb_have_same) & i_pc_select) | (i_pc_select & tb_have_same & (i == tb_same_idx));
+            assign to_update = ((i == tb_free_idx) & (!tb_have_same) & i_pc_select) |
+                (i_pc_select & tb_have_same & (i == tb_same_idx));
             assign is_predicted = ((|valid_cur) & (tb_pc_cur[i] == i_pc_current));
             assign tb_is_update = (to_update & (tb_pc_tar[i] != i_pc_target)) ? '1 : 'z;
             assign tb_win_idx = is_predicted ? i : 'z;

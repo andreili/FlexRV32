@@ -7,8 +7,8 @@
 
 module rv_alu2
 #(
-    parameter IADDR_SPACE_BITS          = 32,
-    parameter BRANCH_PREDICTION         = 1
+    parameter int IADDR_SPACE_BITS      = 32,
+    parameter logic BRANCH_PREDICTION   = 1
 )
 (
     input   wire                        i_clk,
@@ -134,7 +134,8 @@ module rv_alu2
     logic       pc_select, pred_ok;
     logic[IADDR_SPACE_BITS-1:0] pc_out;
     assign      pred_ok = (pc_target == i_pc);
-    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ (branch_pred & pred_ok & BRANCH_PREDICTION);
+    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^
+                            (branch_pred & pred_ok & BRANCH_PREDICTION);
     assign      pc_out = (branch_pred & pred_ok) ? pc_next : pc_target;
 
     logic       cmp_result;
@@ -188,7 +189,8 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add & shr[32] & res.arith;
+    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add &
+                    shr[32] & res.arith;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_pc_select = pc_select;

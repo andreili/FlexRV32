@@ -8,10 +8,10 @@
 /* verilator lint_off UNUSEDSIGNAL */
 module rv_csr
 #(
-    parameter IADDR_SPACE_BITS          = 32,
-    parameter EXTENSION_C               = 1,
-    parameter EXTENSION_Zicntr          = 1,
-    parameter EXTENSION_Zihpm           = 0
+    parameter int IADDR_SPACE_BITS      = 32,
+    parameter logic EXTENSION_C         = 1,
+    parameter logic EXTENSION_Zicntr    = 1,
+    parameter logic EXTENSION_Zihpm     = 0
 )
 (
     input   wire                        i_clk,
@@ -86,7 +86,7 @@ module rv_csr
 
     generate
         if (EXTENSION_Zicntr)
-        begin
+        begin : g_cntr
             rv_csr_cntr
             u_cntr
             (

@@ -2,7 +2,7 @@
 
 module rv_csr_reg
 #(
-    parameter   WIDTH = 32
+    parameter int WIDTH                 = 32
 )
 (
     input   wire                        i_clk,
@@ -37,7 +37,7 @@ module rv_csr_reg
         if (WIDTH == 32)
             assign  o_data = data;
         else
-        begin
+        begin : g_out
             assign  o_data = { {(32-WIDTH){1'b0}}, data};
         /* verilator lint_off UNUSEDSIGNAL */
             logic  dummy;

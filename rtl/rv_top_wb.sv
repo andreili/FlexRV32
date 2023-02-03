@@ -4,15 +4,15 @@
 
 module rv_top_wb
 #(
-    parameter RESET_ADDR                = 32'h0000_0000,
-    parameter IADDR_SPACE_BITS          = 16,
-    parameter BRANCH_PREDICTION         = 1,
-    parameter BRANCH_TABLE_SIZE_BITS    = 2,
-    parameter INSTR_BUF_ADDR_SIZE       = 2,
-    parameter EXTENSION_C               = 0,
-    parameter EXTENSION_Zicsr           = 1,
-    parameter EXTENSION_Zicntr          = 1,
-    parameter EXTENSION_Zihpm           = 0
+    parameter logic[31:0] RESET_ADDR    = 32'h0000_0000,
+    parameter int IADDR_SPACE_BITS      = 16,
+    parameter logic BRANCH_PREDICTION   = 1,
+    parameter int BRANCH_TABLE_SIZE_BITS= 2,
+    parameter int INSTR_BUF_ADDR_SIZE   = 2,
+    parameter logic EXTENSION_C         = 0,
+    parameter logic EXTENSION_Zicsr     = 1,
+    parameter logic EXTENSION_Zicntr    = 1,
+    parameter logic EXTENSION_Zihpm     = 0
 )
 (
     input   wire                        i_clk,
@@ -34,7 +34,7 @@ module rv_top_wb
 `ifdef TO_SIM
     generate
         if (!EXTENSION_Zicsr)
-        begin
+        begin : g_csr_check
             if (EXTENSION_Zicntr)
                 $error("Invalid configuration! Zicntr w/o Zicsr");
             if (EXTENSION_Zihpm)
@@ -122,7 +122,7 @@ module rv_top_wb
 
     generate
         if (EXTENSION_Zicsr)
-        begin
+        begin : g_csr
             rv_csr
             #(
                 .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
@@ -153,7 +153,7 @@ module rv_top_wb
             );
         end
         else
-        begin
+        begin : g_nocsr
             /* verilator lint_off UNUSEDSIGNAL */
             logic dummy;
             /* verilator lint_on UNUSEDSIGNAL */
@@ -162,8 +162,9 @@ module rv_top_wb
             assign csr_to_trap = '0;
             assign csr_trap_pc = '0;
             assign csr_rdata = '0;
-            assign dummy = (|reg_rdata1) | (|csr_idx) | (|csr_imm) | csr_imm_sel | csr_write | csr_set
-                            | csr_clear | csr_read | csr_ebreak | (|csr_pc_next) | instr_issued;
+            assign dummy = (|reg_rdata1) | (|csr_idx) | (|csr_imm) | csr_imm_sel |
+                            csr_write | csr_set | csr_clear | csr_read | csr_ebreak |
+                            (|csr_pc_next) | instr_issued;
         end
     endgenerate
 

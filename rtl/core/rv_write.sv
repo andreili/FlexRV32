@@ -25,7 +25,7 @@ module rv_write
     logic[4:0]  rd;
     logic[2:0]  funct3;
     logic[31:0] rdata;
-    
+
     always_ff @(posedge i_clk)
     begin
         alu_result <= i_alu_result;
@@ -43,40 +43,38 @@ module rv_write
     always_comb
     begin
         case (alu_result[1:0])
-        2'b00: write_byte = rdata[ 0+:8];
-        2'b01: write_byte = rdata[ 8+:8];
-        2'b10: write_byte = rdata[16+:8];
-        2'b11: write_byte = rdata[24+:8];
+        2'b00  : write_byte = rdata[ 0+:8];
+        2'b01  : write_byte = rdata[ 8+:8];
+        2'b10  : write_byte = rdata[16+:8];
+        default: write_byte = rdata[24+:8];
         endcase
     end
 
     always_comb
     begin
         case (alu_result[1])
-        1'b0: write_half_word = rdata[ 0+:16];
-        1'b1: write_half_word = rdata[16+:16];
+        1'b0   : write_half_word = rdata[ 0+:16];
+        default: write_half_word = rdata[16+:16];
         endcase
     end
 
     always_comb
     begin
         case (funct3)
-        3'b000: write_rdata = { {24{write_byte[7]}}, write_byte};
-        3'b001: write_rdata = { {16{write_half_word[15]}}, write_half_word};
-        3'b010: write_rdata = rdata;
-        3'b011: write_rdata = '0;
-        3'b100: write_rdata = { {24{1'b0}}, write_byte};
-        3'b101: write_rdata = { {16{1'b0}}, write_half_word};
-        3'b110: write_rdata = '0;
-        3'b111: write_rdata = '0;
+        3'b000 : write_rdata = { {24{write_byte[7]}}, write_byte};
+        3'b001 : write_rdata = { {16{write_half_word[15]}}, write_half_word};
+        3'b010 : write_rdata = rdata;
+        3'b100 : write_rdata = { {24{1'b0}}, write_byte};
+        3'b101 : write_rdata = { {16{1'b0}}, write_half_word};
+        default: write_rdata = '0;
         endcase
     end
 
     always_comb
     begin
         case (1'b1)
-        res_src.memory:  o_data = write_rdata;
-        default:         o_data = alu_result;
+        res_src.memory: o_data = write_rdata;
+        default       : o_data = alu_result;
         endcase
     end
 

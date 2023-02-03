@@ -4,13 +4,13 @@
 
 module rv_fetch
 #(
-    parameter   RESET_ADDR              = 32'h0000_0000,
-    parameter   IADDR_SPACE_BITS        = 16,
-    parameter   BRANCH_PREDICTION       = 1,
-    parameter   BRANCH_TABLE_SIZE_BITS  = 2,
-    parameter   INSTR_BUF_ADDR_SIZE     = 2,
-    parameter   EXTENSION_C             = 1,
-    parameter   EXTENSION_Zicsr         = 1
+    parameter logic[31:0]  RESET_ADDR   = 32'h0000_0000,
+    parameter int IADDR_SPACE_BITS      = 16,
+    parameter logic BRANCH_PREDICTION   = 1,
+    parameter int BRANCH_TABLE_SIZE_BITS= 2,
+    parameter int INSTR_BUF_ADDR_SIZE   = 2,
+    parameter logic EXTENSION_C         = 1,
+    parameter logic EXTENSION_Zicsr     = 1
 )
 (
     input   wire                        i_clk,
@@ -72,7 +72,7 @@ module rv_fetch
 
     generate
         if (EXTENSION_C)
-        begin
+        begin : g_comp
             /* verilator lint_off UNUSEDSIGNAL */
             logic[15:0] inst_prev_hi;
             logic       buf_hi_valid;
@@ -108,7 +108,7 @@ module rv_fetch
             assign o_cyc = (!full) & i_reset_n;
         end
         else
-        begin
+        begin : g_noncomp
             assign pc_incr = (!full) ? 4 : 0;
             assign move_pc = (i_ack & (!full)) | pc_need_change;
             assign o_cyc = (!full) & i_reset_n;
@@ -142,7 +142,7 @@ module rv_fetch
 
     generate
         if (BRANCH_PREDICTION)
-        begin : pred
+        begin : g_pred
             rv_fetch_branch_pred
             #(
                 .IADDR_SPACE_BITS       (IADDR_SPACE_BITS),
@@ -161,7 +161,7 @@ module rv_fetch
             );
         end
         else
-        begin
+        begin : g_nopred
             assign branch_predicted = '0;
             assign pc_bp = '0;
         end

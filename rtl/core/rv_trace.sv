@@ -4,7 +4,7 @@
 
 module rv_trace
 #(
-    parameter IADDR_SPACE_BITS          = 32
+    parameter int IADDR_SPACE_BITS      = 32
 )
 (
     input   wire                        i_clk,
@@ -42,29 +42,31 @@ module rv_trace
 
     int f;
 
-    function real get_ts;
+    function static real get_ts();
         real ts = $time;
         return ts / 1000.0;
     endfunction
 
-    function void print_head;
-        $fwrite(f, "+----------+----------+----------+-------------------------------------------------------+\n");
+    function static void print_head();
+        $fwrite(f, { "+----------+----------+----------+------------",
+                    "-------------------------------------------+\n" });
         $fwrite(f, "| %8s | %8s | %8s | %-53s |\n", "Time", "PC", "Opcode", "Instruction/Event");
-        $fwrite(f, "+----------+----------+----------+-------------------------------------------------------+\n");
+        $fwrite(f, { "+----------+----------+----------+------------",
+                    "-------------------------------------------+\n" });
         $fwrite(f, "|%8.3fns|%10s|%10s| %-53s |\n", get_ts(), "", "", "Trace started.");
     endfunction
 
-    function void print_event(input string str);
+    function static void print_event(input string str);
         $fwrite(f, "|%8.3fns|%10s|%10s| %-53s |\n", get_ts(), "",  "", str);
     endfunction
 
-    function string reg_number(input [4:0] idx);
+    function static string reg_number(input logic[4:0] idx);
         string str;
         str.itoa(idx);
         return {"r", str};
     endfunction
 
-    function string data_masked(input[31:0] data);
+    function static string data_masked(input logic[31:0] data);
         string nb0, nb1, nb2, nb3;
         string hw0, hw1;
         string word;
@@ -87,16 +89,16 @@ module rv_trace
         endcase
     endfunction
 
-    function string rdata_masked();
+    function static string rdata_masked();
         return data_masked(r_rdata_wr);
     endfunction
 
-    function string wdata_masked();
+    function static string wdata_masked();
         return data_masked(r_wdata_wr);
     endfunction
 
 /* verilator lint_off UNUSEDSIGNAL */
-    function string decode_instr_load(input[31:0] instr);
+    function static string decode_instr_load(input logic[31:0] instr);
         string instr_str, offset;
         case (instr[14:12])
         0:  instr_str = "lb";
@@ -106,13 +108,14 @@ module rv_trace
         4:  instr_str = "lbu";
         5:  instr_str = "lhu";
         6:  instr_str = "ERROR";
-        7:  instr_str = "ERROR";
+        default:  instr_str = "ERROR";
         endcase
         offset.itoa(signed'(instr[31:20]));
-        return {instr_str, " ", reg_number(instr[11:7]), ", ", offset, "(", reg_number(instr[19:15]), ")"};
+        return {instr_str, " ", reg_number(instr[11:7]), ", ", offset,
+                "(", reg_number(instr[19:15]), ")"};
     endfunction
 
-    function string decode_instr_arif_imm(input[31:0] instr);
+    function static string decode_instr_arif_imm(input logic[31:0] instr);
         int imm;
         string imm_str, op;
         case (instr[14:12])
@@ -123,14 +126,14 @@ module rv_trace
         4:  op = "xori";
         5:  op = ((instr[31:25]==32) ? "srai" : "srli");
         6:  op = "ori";
-        7:  op = "andi";
+        default:  op = "andi";
         endcase
         imm = signed'({ {21{instr[31]}}, instr[30:20] });
         imm_str.itoa(imm);
         return { op, " ", reg_number(instr[11:7]), ", ", reg_number(instr[19:15]), ", ", imm_str};
     endfunction
 
-    function string decode_instr_auipc(input[31:0] instr);
+    function static string decode_instr_auipc(input logic[31:0] instr);
         int imm;
         string value;
         imm = { instr[31:12], {12{1'b0}} };
@@ -139,7 +142,7 @@ module rv_trace
         return { "auipc ", reg_number(instr[11:7]), ", 0x", value};
     endfunction
 
-    function string decode_instr_store(input[31:0] instr);
+    function static string decode_instr_store(input logic[31:0] instr);
         string instr_str, offset;
         case (instr[14:12])
         0:  instr_str = "sb";
@@ -148,10 +151,11 @@ module rv_trace
         default:instr_str = "ERROR";
         endcase
         offset.itoa(signed'({ {21{instr[31]}}, instr[30:25], instr[11:7] }));
-        return {instr_str, " ", reg_number(instr[24:20]), ", ", offset, "(", reg_number(instr[19:15]), ")"};
+        return {instr_str, " ", reg_number(instr[24:20]), ", ", offset,
+                "(", reg_number(instr[19:15]), ")"};
     endfunction
 
-    function string decode_instr_arif_reg(input[31:0] instr);
+    function static string decode_instr_arif_reg(input logic[31:0] instr);
         string op;
         case (instr[14:12])
         0:  op = ((instr[31:25]==32) ? "sub" : "add");
@@ -161,18 +165,19 @@ module rv_trace
         4:  op = ((instr[31:25]==32) ? "UNDEFINED" : "xor");
         5:  op = ((instr[31:25]==32) ? "sra" : "srl");
         6:  op = ((instr[31:25]==32) ? "UNDEFINED" : "or");
-        7:  op = ((instr[31:25]==32) ? "UNDEFINED" : "and");
+        default:  op = ((instr[31:25]==32) ? "UNDEFINED" : "and");
         endcase
-        return { op, " ", reg_number(instr[11:7]), ", ", reg_number(instr[19:15]), ", ", reg_number(instr[24:20])};
+        return { op, " ", reg_number(instr[11:7]), ", ", reg_number(instr[19:15]),
+                ", ", reg_number(instr[24:20])};
     endfunction
 
-    function string decode_instr_lui(input[31:0] instr);
+    function static string decode_instr_lui(input logic[31:0] instr);
         string imm;
         imm.hextoa({ instr[31:12], {12{1'b0}} });
         return { "lui ", reg_number(instr[11:7]), ", 0x", imm};
     endfunction
 
-    function string decode_instr_branch(input[31:0] instr);
+    function static string decode_instr_branch(input logic[31:0] instr);
         int imm;
         string imm_str, op;
         case (instr[14:12])
@@ -181,14 +186,15 @@ module rv_trace
         4:  op = "blt";
         5:  op = "bge";
         6:  op = "bltu";
-        7:  op = "bgeu";
+        default:  op = "bgeu";
         endcase
         imm = signed'( { {20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0 });
         imm_str.hextoa({ {(32-IADDR_SPACE_BITS){1'b0}}, r_pc_wr } + imm);
-        return { op, " ", reg_number(instr[19:15]), ", ", reg_number(instr[24:20]), ", 0x", imm_str};
+        return { op, " ", reg_number(instr[19:15]), ", ",
+                reg_number(instr[24:20]), ", 0x", imm_str};
     endfunction
 
-    function string decode_instr_jalr(input[31:0] instr);
+    function static string decode_instr_jalr(input logic[31:0] instr);
         int offset;
         string offset_str;
         offset = signed'({ {21{instr[31]}}, instr[30:20] });
@@ -196,7 +202,7 @@ module rv_trace
         return {"jalr ", reg_number(instr[11:7]), ", ", reg_number(instr[19:15]), ", ", offset_str};
     endfunction
 
-    function string decode_instr_jal(input[31:0] instr);
+    function static string decode_instr_jal(input logic[31:0] instr);
         int offset;
         string offset_str;
         offset = signed'({ {12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0 });
@@ -204,7 +210,7 @@ module rv_trace
         return {"jal ", reg_number(instr[11:7]), ", 0x", offset_str};
     endfunction
 
-    function string decode_instr_system(input[31:0] instr);
+    function static string decode_instr_system(input logic[31:0] instr);
         string op, idx, imm;
         idx.itoa(instr[31:20]);
         imm.itoa(instr[19:15]);
@@ -222,13 +228,13 @@ module rv_trace
         3:  op = { "csrrc ",  reg_number(instr[11:7]), ", ", idx, ", ", reg_number(instr[19:15]) };
         5:  op = { "csrrwi ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
         6:  op = { "csrrsi ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
-        7:  op = { "csrrci ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
+        default:  op = { "csrrci ", reg_number(instr[11:7]), ", ", idx, ", ", imm };
         endcase
         return op;
     endfunction
 /* verilator lint_on UNUSEDSIGNAL */
 
-    function string decode_instr_full(input[31:0] instr);
+    function static string decode_instr_full(input logic[31:0] instr);
         case (instr[6:2])
         0:  return decode_instr_load(instr);
         4:  return decode_instr_arif_imm(instr);
@@ -244,7 +250,7 @@ module rv_trace
         endcase
     endfunction
 
-    function string decode_instr(input[31:0] instr);
+    function static string decode_instr(input logic[31:0] instr);
         case (instr[1:0])
         /*2'b00: $finish;
         2'b01: $finish;
@@ -255,8 +261,9 @@ module rv_trace
         endcase
     endfunction
 
-    function void print_decode(input[31:0] addr, input[31:0] instr, input[IADDR_SPACE_BITS-1:0] pc,
-                               input mem_read, input mem_write);
+    function static void print_decode(input logic[31:0] addr, input logic[31:0] instr,
+                               input logic[IADDR_SPACE_BITS-1:0] pc,
+                               input logic mem_read, input logic mem_write);
         string reg_op, mem_op, addr_str, opcode;
         string instr_str = decode_instr(instr);
         addr_str.hextoa(addr);
@@ -268,7 +275,8 @@ module rv_trace
             data_str_old.hextoa(i_rd);
             reg_op = { reg_number(instr[11:7]), ": 0x", data_str_old, "<=0x", data_str };
         end
-        $fwrite(f, "|%8.3fns|0x%08x|0x%-8s| %-24s %-28s |\n", get_ts(), pc, opcode, instr_str, reg_op);
+        $fwrite(f, "|%8.3fns|0x%08x|0x%-8s| %-24s %-28s |\n", get_ts(),
+                pc, opcode, instr_str, reg_op);
         if (mem_read)
         begin
             mem_op = { "MemRd: 0x", addr_str, "=0x", rdata_masked() };
@@ -398,9 +406,11 @@ module rv_trace
             print_decode(r_addr_mem, r_instr_mem, r_pc_mem, r_mem_read_mem, r_mem_write_mem);
         rd = r_instr_exec2[11:7];
         if (|r_instr_exec2)
-            print_decode(i_mem_addr, r_instr_exec2, r_pc_exec2, r_mem_read_exec2, r_mem_write_exec2);
+            print_decode(i_mem_addr, r_instr_exec2, r_pc_exec2, r_mem_read_exec2,
+                r_mem_write_exec2);
         $fwrite(f, "|%8.3fns|%10s|%10s| %-53s |\n", get_ts(), "", "", "Trace finished.");
-        $fwrite(f, "+----------+----------+----------+-------------------------------------------------------+\n");
+        $fwrite(f, { "+----------+----------+----------+------------",
+                    "-------------------------------------------+\n" });
     end
 
     assign  o_rd = rd;

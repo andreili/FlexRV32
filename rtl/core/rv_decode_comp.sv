@@ -290,7 +290,8 @@ module rv_decode_comp
 `ifdef TO_SIM
 /* verilator lint_off UNUSEDSIGNAL */
     logic [127:0] dbg_ascii_cinstr;
-    always @* begin
+    always_comb
+    begin
         dbg_ascii_cinstr = '0;
 
         if (inst_c_addi4spn) dbg_ascii_cinstr = "c.addi4spn";

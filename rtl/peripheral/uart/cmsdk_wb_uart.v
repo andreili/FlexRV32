@@ -183,8 +183,10 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
   end
 
   // Status register overrun registers
-  assign nxt_rx_overrun = (reg_rx_overrun & (~((write_enable04|write_enable0c) & i_wb_dat[3]))) | rx_overrun;
-  assign nxt_tx_overrun = (reg_tx_overrun & (~((write_enable04|write_enable0c) & i_wb_dat[2]))) | tx_overrun;
+  assign nxt_rx_overrun = (reg_rx_overrun & (~((write_enable04|write_enable0c) & i_wb_dat[3])))
+            | rx_overrun;
+  assign nxt_tx_overrun = (reg_tx_overrun & (~((write_enable04|write_enable0c) & i_wb_dat[2])))
+            | tx_overrun;
 
   // RX OverRun status
   always @(posedge i_clk)
@@ -375,7 +377,8 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
   endcase
   end
 
-  assign tx_state_update = tx_state_inc | ((tx_state==4'h0) & tx_buf_full & reg_ctrl[0]) | (tx_state>4'd11);
+  assign tx_state_update = tx_state_inc | ((tx_state==4'h0) & tx_buf_full & reg_ctrl[0])
+            | (tx_state>4'd11);
 
   // Registering outputs
   always @(posedge i_clk)
@@ -639,7 +642,8 @@ assign  write_enable10 = write_enable & (i_wb_adr[11:2] == 10'h004);
    // Clear test mode indicator each time state is changed, set to 1 if high speed test mode is
    // enabled
    assign ovl_nxt_hs_test_mode_triggered =
-     (tx_state!=ovl_reg_last_tx_state) ? reg_ctrl[6]: (reg_ctrl[6] | ovl_reg_hs_test_mode_triggered);
+     (tx_state!=ovl_reg_last_tx_state) ? reg_ctrl[6] :
+     (reg_ctrl[6] | ovl_reg_hs_test_mode_triggered);
 
    // Counter clear at each state change, increasement at each reg_baud_tick
    assign ovl_nxt_tx_tick_count = (tx_state!=ovl_reg_last_tx_state) ? (8'h00) :

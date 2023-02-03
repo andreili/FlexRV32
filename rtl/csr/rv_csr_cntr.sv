@@ -50,7 +50,7 @@ module rv_csr_cntr
             cntr_inst_ret <= cntr_inst_ret + 1'b1;
     end
 
-    assign  o_data = 
+    assign  o_data =
                     sel_cycle ? cntr_cycle[31:0] :
                     sel_time ? cntr_time[31:0] :
                     sel_inst_ret ? cntr_inst_ret[31:0] :
