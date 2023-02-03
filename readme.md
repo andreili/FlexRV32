@@ -13,6 +13,7 @@ Piplined mode must be implemented on future, after finished all extensions and f
 
 # Performance
 All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
+
 Multi-cycle core, for comparasion only:
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
@@ -24,11 +25,12 @@ Multi-cycle core, for comparasion only:
 Pipelined core:
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|PB(2)+C+BP|981|123|251462|143.12|1.164|
+|RV32I+PB(2)|647|120|232053|132.07|1.101|
+|PB(2)+BTB|833|120|261880|149.05|1.242|
 
 Agenda:
 - PB - Prefetch buffer. Number - size of buffer addres bits, e.g. "2" - for 4 half-word buffer.
-- BP - Branch Prediction module.
+- BTB - Branch Target Buffer.
 
 # Features
 - Prefetch buffer - need to pipelined architecture for more performance.

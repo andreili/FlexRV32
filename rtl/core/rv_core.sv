@@ -7,7 +7,9 @@
 module rv_core
 #(
     parameter   RESET_ADDR = 32'h0000_0000,
+    parameter   IADDR_SPACE_BITS        = 16,
     parameter   BRANCH_PREDICTION       = 1,
+    parameter   BRANCH_TABLE_SIZE_BITS  = 2,
     parameter   INSTR_BUF_ADDR_SIZE     = 2, // buffer size is 2**N half-words (16 bit)
     parameter   EXTENSION_C             = 1,
     parameter   EXTENSION_Zicsr         = 1
@@ -27,16 +29,16 @@ module rv_core
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
-    output  wire[31:0]                  o_csr_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0] o_csr_pc_next,
     input   wire                        i_csr_to_trap,
-    input   wire[31:0]                  i_csr_trap_pc,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_csr_trap_pc,
     input   wire                        i_csr_read,
-    input   wire[31:0]                  i_csr_ret_addr,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_csr_ret_addr,
     input   wire[31:0]                  i_csr_data,
     output  wire[31:0]                  o_reg_rdata1,
     // instruction interface
     output  wire                        o_instr_req,
-    output  wire[31:0]                  o_instr_addr,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_instr_addr,
     input   wire                        i_instr_ack,
     input   wire[31:0]                  i_instr_data,
     // data interface
@@ -53,17 +55,19 @@ module rv_core
     logic[31:0] reg_rdata1, reg_rdata2;
 
     logic[31:0] fetch_instruction;
-    logic[31:0] fetch_pc;
+    logic[IADDR_SPACE_BITS-1:0] fetch_pc;
     logic       fetch_branch_pred;
+    logic       fetch_is_compressed;
     logic       fetch_ready;
-    logic       decode_stall;
-    logic       decode_flush;
-    logic       decode_ra_invalidate;
+    logic       fetch_stall;
+    logic       fetch_flush;
 
     rv_fetch
     #(
         .RESET_ADDR                     (RESET_ADDR),
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
+        .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
@@ -72,28 +76,28 @@ module rv_core
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
-        .i_stall                        (decode_stall),
-        .i_flush                        (decode_flush),
+        .i_stall                        (fetch_stall),
+        .i_flush                        (fetch_flush),
+        .i_pc_br                        (alu2_pc),
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
         .i_pc_trap                      (i_csr_trap_pc),
         .i_ebreak                       (alu2_to_trap),
         .i_instruction                  (i_instr_data),
         .i_ack                          (i_instr_ack),
-        .i_ra_invalidate                (decode_ra_invalidate),
-        .i_reg_write                    (write_op),
-        .i_rd                           (write_rd),
-        .i_reg_wdata                    (write_data),
         .o_addr                         (o_instr_addr),
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
         .o_pc                           (fetch_pc),
         .o_branch_pred                  (fetch_branch_pred),
+        .o_is_compressed                (fetch_is_compressed),
         .o_ready                        (fetch_ready)
     );
 
-    logic[31:0] decode_pc;
-    logic[31:0] decode_pc_next;
+    logic       decode_stall;
+    logic       decode_flush;
+    logic[IADDR_SPACE_BITS-1:0] decode_pc;
+    logic[IADDR_SPACE_BITS-1:0] decode_pc_next;
     logic[4:0]  decode_rs1;
     logic[4:0]  decode_rs2;
     logic[4:0]  decode_rd;
@@ -121,17 +125,18 @@ module rv_core
 
     rv_decode
     #(
-        .EXTENSION_C                    (EXTENSION_C),
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st2_decode
     (
-        .i_clk                          (i_clk),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
+        .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
         .i_branch_pred                  (fetch_branch_pred),
+        .i_is_compressed                (fetch_is_compressed),
 `ifdef TO_SIM
         .o_instr                        (decode_instr),
 `endif
@@ -165,11 +170,39 @@ module rv_core
         .o_inst_branch                  (decode_inst_branch),
         .o_inst_store                   (decode_inst_store),
         .o_inst_supported               (decode_inst_supported),
-        .o_inst_csr_req                 (decode_inst_csr_req),
-        .o_ra_invalidate                (decode_ra_invalidate)
+        .o_inst_csr_req                 (decode_inst_csr_req)
     );
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
+
+    logic[31:0] data_hz1;
+    logic[31:0] data_hz2;
+    ctrl_rs_bp_t rs1_bp;
+    ctrl_rs_bp_t rs2_bp;
+
+    rv_hazard
+    u_dhz1
+    (
+        .i_reg_data                     (reg_rdata1),
+        .i_alu2_data                    (alu2_result),
+        .i_mem_data                     (memory_result),
+        .i_wr_data                      (write_data),
+        .i_wr_back_data                 (wr_back_data),
+        .i_bp                           (rs1_bp),
+        .o_data                         (data_hz1)
+    );
+
+    rv_hazard
+    u_dhz2
+    (
+        .i_reg_data                     (reg_rdata2),
+        .i_alu2_data                    (alu2_result),
+        .i_mem_data                     (memory_result),
+        .i_wr_data                      (write_data),
+        .i_wr_back_data                 (wr_back_data),
+        .i_bp                           (rs2_bp),
+        .o_data                         (data_hz2)
+    );
 
     logic[31:0] alu1_op1;
     logic[31:0] alu1_op2;
@@ -182,31 +215,26 @@ module rv_core
     logic[4:0]  alu1_rd;
     logic       alu1_inst_jal_jalr;
     logic       alu1_inst_branch;
-    logic[31:0] alu1_pc_next;
-    logic[31:0] alu1_pc_target_base;
-    logic[31:0] alu1_pc_target_offset;
+    logic[IADDR_SPACE_BITS-1:0] alu1_pc;
+    logic[IADDR_SPACE_BITS-1:0] alu1_pc_next;
+    logic[IADDR_SPACE_BITS-1:0] alu1_pc_target;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
     logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
     logic       alu1_flush;
-    ctrl_rs_bp_t alu1_rs1_bp;
-    ctrl_rs_bp_t alu1_rs2_bp;
     logic       alu1_to_trap;
     logic       alu1_branch_pred;
 
     rv_alu1
+    #(
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS)
+    )
     u_st3_alu1
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_flush                        (alu1_flush),
-        .i_rs1_bp                       (alu1_rs1_bp),
-        .i_rs2_bp                       (alu1_rs2_bp),
-        .i_alu2_data                    (alu2_result),
-        .i_memory_data                  (memory_result),
-        .i_write_data                   (write_data),
-        .i_wr_back_data                 (wr_back_data),
         .i_pc                           (decode_pc),
         .i_pc_next                      (decode_pc_next),
         .i_branch_pred                  (decode_branch_pred),
@@ -228,8 +256,8 @@ module rv_core
         .i_inst_branch                  (decode_inst_branch),
         .i_inst_store                   (decode_inst_store),
         .i_ret_addr                     (i_csr_ret_addr),
-        .i_reg1_data                    (reg_rdata1),
-        .i_reg2_data                    (reg_rdata2),
+        .i_reg1_data                    (data_hz1),
+        .i_reg2_data                    (data_hz2),
         .i_to_trap                      (decode_to_trap),
         .o_op1                          (alu1_op1),
         .o_op2                          (alu1_op2),
@@ -242,10 +270,10 @@ module rv_core
         .o_rd                           (alu1_rd),
         .o_inst_jal_jalr                (alu1_inst_jal_jalr),
         .o_inst_branch                  (alu1_inst_branch),
+        .o_pc                           (alu1_pc),
         .o_pc_next                      (alu1_pc_next),
         .o_branch_pred                  (alu1_branch_pred),
-        .o_pc_target_base               (alu1_pc_target_base),
-        .o_pc_target_offset             (alu1_pc_target_offset),
+        .o_pc_target                    (alu1_pc_target),
         .o_res_src                      (alu1_res_src),
         .o_funct3                       (alu1_funct3),
         .o_reg_data1                    (alu1_reg_data1),
@@ -259,13 +287,18 @@ module rv_core
     logic       alu2_store;
     logic       alu2_reg_write;
     logic[4:0]  alu2_rd;
-    logic[31:0] alu2_pc_target;
+    logic[IADDR_SPACE_BITS-1:0] alu2_pc;
+    logic[IADDR_SPACE_BITS-1:0] alu2_pc_target;
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
     logic       alu2_to_trap;
 
     rv_alu2
+    #(
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
+        .BRANCH_PREDICTION              (BRANCH_PREDICTION)
+    )
     u_st4_alu2
     (   
         .i_clk                          (i_clk),
@@ -280,10 +313,10 @@ module rv_core
         .i_rd                           (alu1_rd),
         .i_inst_jal_jalr                (alu1_inst_jal_jalr),
         .i_inst_branch                  (alu1_inst_branch),
+        .i_pc                           (alu1_pc),
         .i_pc_next                      (alu1_pc_next),
         .i_branch_pred                  (alu1_branch_pred),
-        .i_pc_target_base               (alu1_pc_target_base),
-        .i_pc_target_offset             (alu1_pc_target_offset),
+        .i_pc_target                    (alu1_pc_target),
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
         .i_reg_data2                    (alu1_reg_data2),
@@ -296,6 +329,7 @@ module rv_core
         .o_store                        (alu2_store),
         .o_reg_write                    (alu2_reg_write),
         .o_rd                           (alu2_rd),
+        .o_pc                           (alu2_pc),
         .o_pc_target                    (alu2_pc_target),
         .o_res_src                      (alu2_res_src),
         .o_wdata                        (o_data_wdata),
@@ -345,6 +379,11 @@ module rv_core
         .o_write_op                     (write_op)
     );
 
+`ifdef TO_SIM
+    logic[4:0]  trace_rd;
+    logic[31:0] trace_rd_data;
+`endif
+
     logic[31:0] wr_back_data;
     logic[4:0]  wr_back_rd;
     logic       wr_back_op;
@@ -354,11 +393,6 @@ module rv_core
         wr_back_data <= write_data;
         wr_back_op <= write_op;
     end
-
-`ifdef TO_SIM
-    logic[4:0]  trace_rd;
-    logic[31:0] trace_rd_data;
-`endif
 
     rv_regs
     u_regs
@@ -387,12 +421,13 @@ module rv_core
     u_ctrl
     (
         .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_pc_change                    (ctrl_pc_change),
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
-        .i_alu1_rs1                     (alu1_rs1),
-        .i_alu1_rs2                     (alu1_rs2),
+        .i_alu_rs1                      (alu1_rs1),
+        .i_alu_rs2                      (alu1_rs2),
         .i_alu1_mem_rd                  (alu1_res_src.memory),
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_mem_rd                  (alu2_res_src.memory),
@@ -405,10 +440,12 @@ module rv_core
         .i_wr_back_rd                   (wr_back_rd),
         .i_wr_back_reg_write            (wr_back_op),
         .i_need_pause                   (ctrl_need_pause),
+        .o_fetch_flush                  (fetch_flush),
+        .o_fetch_stall                  (fetch_stall),
         .o_decode_flush                 (decode_flush),
         .o_decode_stall                 (decode_stall),
-        .o_rs1_bp                       (alu1_rs1_bp),
-        .o_rs2_bp                       (alu1_rs2_bp),
+        .o_rs1_bp                       (rs1_bp),
+        .o_rs2_bp                       (rs2_bp),
         .o_alu1_flush                   (alu1_flush),
         .o_alu2_flush                   (alu2_flush),
         .o_inv_inst                     (inv_inst)
@@ -416,6 +453,9 @@ module rv_core
 
 `ifdef TO_SIM
     rv_trace
+    #(
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS)
+    )
     u_trace
     (
         .i_clk                          (i_clk),
@@ -447,7 +487,7 @@ module rv_core
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_data_ack | fetch_ready;
+    assign  dummy = i_data_ack;
 /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule

@@ -6,18 +6,15 @@
 `endif
 
 module rv_alu1
+#(
+    parameter IADDR_SPACE_BITS          = 32
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire                        i_flush,
-    input   ctrl_rs_bp_t                i_rs1_bp,
-    input   ctrl_rs_bp_t                i_rs2_bp,
-    input   wire[31:0]                  i_alu2_data,
-    input   wire[31:0]                  i_memory_data,
-    input   wire[31:0]                  i_write_data,
-    input   wire[31:0]                  i_wr_back_data,
-    input   wire[31:0]                  i_pc,
-    input   wire[31:0]                  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
@@ -36,7 +33,7 @@ module rv_alu1
     input   wire                        i_inst_jal,
     input   wire                        i_inst_branch,
     input   wire                        i_inst_store,
-    input   wire[31:0]                  i_ret_addr,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_ret_addr,
     input   wire[31:0]                  i_reg1_data,
     input   wire[31:0]                  i_reg2_data,
     input   wire                        i_to_trap,
@@ -51,10 +48,10 @@ module rv_alu1
     output  wire[4:0]                   o_rd,
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
-    output  wire[31:0]                  o_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
     output  wire                        o_branch_pred,
-    output  wire[31:0]                  o_pc_target_base,
-    output  wire[31:0]                  o_pc_target_offset,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
     output  wire[31:0]                  o_reg_data1,
@@ -62,7 +59,8 @@ module rv_alu1
     output  wire                        o_to_trap
 );
 
-    logic[4:0]  rs1, rs2;
+    logic[4:0]  rs1;
+    logic[4:0]  rs2;
     logic[4:0]  rd;
     logic[31:0] imm_i;
     logic[31:0] imm_j;
@@ -76,8 +74,8 @@ module rv_alu1
     logic       store;
     res_src_t   res_src;
     logic       reg_write;
-    logic[31:0] pc;
-    logic[31:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
     logic       to_trap;
     logic       branch_pred;
 
@@ -85,8 +83,6 @@ module rv_alu1
     begin
         if ((!i_reset_n) | i_flush)
         begin
-            rs1 <= '0;
-            rs2 <= '0;
             rd <= '0;
             inst_jal <= '0;
             inst_jalr <= '0;
@@ -100,8 +96,8 @@ module rv_alu1
         end
         else
         begin
-            rs1 <= i_rs1;
-            rs2 <= i_rs2;
+            rs1  <= i_rs1;
+            rs2  <= i_rs2;
             rd   <= i_rd;
             imm_i  <= i_imm_i;
             imm_j  <= i_imm_j;
@@ -124,67 +120,24 @@ module rv_alu1
         end
     end
 
-    logic[31:0] bp1, bp2;
-
-    always_comb
-    begin
-        case (1'b1)
-        i_rs1_bp.alu2:    bp1 = i_alu2_data;
-        i_rs1_bp.memory:  bp1 = i_memory_data;
-        i_rs1_bp.write:   bp1 = i_write_data;
-        i_rs1_bp.wr_back: bp1 = i_wr_back_data;
-        default:          bp1 = i_reg1_data;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        i_rs2_bp.alu2:    bp2 = i_alu2_data;
-        i_rs2_bp.memory:  bp2 = i_memory_data;
-        i_rs2_bp.write:   bp2 = i_write_data;
-        i_rs2_bp.wr_back: bp2 = i_wr_back_data;
-        default:          bp2 = i_reg2_data;
-        endcase
-    end
-
     logic[31:0] op1, op2;
-    logic[31:0] pc_target_base, pc_target_offset;
 
-    always_comb
-    begin
-        case (1'b1)
-        op1_sel.pc: op1 = pc;
-        default:    op1 = bp1;
-        endcase
-    end
+    assign  op1 = op1_sel.pc ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } :
+                               op1_sel.zero ? '0 :
+                               i_reg1_data;
+    assign  op2 = op2_sel.i  ? imm_i :
+                  op2_sel.j  ? imm_j :
+                  i_reg2_data;
 
-    always_comb
-    begin
-        case (1'b1)
-        op2_sel.i: op2 = imm_i;
-        op2_sel.j: op2 = imm_j;
-        default:   op2 = bp2;
-        endcase
-    end
+    logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset, pc_target;
 
-    always_comb
-    begin
-        case (1'b1)
-        inst_mret: pc_target_base = i_ret_addr;
-        inst_jalr: pc_target_base = bp1;
-        default:   pc_target_base = pc;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        inst_mret: pc_target_offset = '0;
-        inst_jalr: pc_target_offset = imm_i;
-        default:   pc_target_offset = imm_j;
-        endcase
-    end
+    assign  pc_target_base   = inst_mret ? i_ret_addr :
+                               inst_jalr ? i_reg1_data[IADDR_SPACE_BITS-1:0] :
+                               pc;
+    assign  pc_target_offset = inst_mret ? '0 :
+                               inst_jalr ? imm_i[IADDR_SPACE_BITS-1:0] :
+                               imm_j[IADDR_SPACE_BITS-1:0];
+    assign  pc_target = pc_target_base + pc_target_offset;
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
@@ -202,13 +155,13 @@ module rv_alu1
     assign  o_rd = rd;
     assign  o_inst_jal_jalr = inst_jal | inst_jalr | inst_mret;
     assign  o_inst_branch = inst_branch;
+    assign  o_pc = pc;
     assign  o_pc_next = pc_next;
-    assign  o_pc_target_base = pc_target_base;
-    assign  o_pc_target_offset = pc_target_offset;
+    assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
-    assign  o_reg_data1 = bp1;
-    assign  o_reg_data2 = bp2;
+    assign  o_reg_data1 = i_reg1_data;
+    assign  o_reg_data2 = i_reg2_data;
     assign  o_to_trap = to_trap;
     assign  o_branch_pred = branch_pred;
 

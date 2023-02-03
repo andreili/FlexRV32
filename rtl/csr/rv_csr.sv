@@ -8,6 +8,7 @@
 /* verilator lint_off UNUSEDSIGNAL */
 module rv_csr
 #(
+    parameter IADDR_SPACE_BITS          = 32,
     parameter EXTENSION_C               = 1,
     parameter EXTENSION_Zicntr          = 1,
     parameter EXTENSION_Zihpm           = 0
@@ -25,11 +26,11 @@ module rv_csr
     input   wire                        i_read,
     input   wire                        i_ebreak,
     input   wire                        i_instr_issued,
-    input   wire[31:0]                  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     output  wire[31:0]                  o_data,
-    output  wire[31:0]                  o_ret_addr,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_ret_addr,
     output  wire                        o_csr_to_trap,
-    output  wire[31:0]                  o_trap_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_trap_pc,
     output  wire                        o_read
 );
 
@@ -41,7 +42,7 @@ module rv_csr
     logic       clear;
     logic       read;
     logic       ebreak;
-    logic[31:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc;
 
     always_ff @(posedge i_clk)
     begin
@@ -100,6 +101,7 @@ module rv_csr
             assign rdata_user = '0;
     endgenerate
 
+    logic[31:0] ret_addr, trap_pc;
     int_ctrl_csr_t o_int_ctr; // TODO
     rv_csr_machine
     #(
@@ -118,14 +120,16 @@ module rv_csr
         .i_set                          (set),
         .i_clear                        (clear),
         .i_int_ctr_state                ('0),
-        .i_pc                           (pc),
+        .i_pc                           ({ {(32-IADDR_SPACE_BITS){1'b0}}, pc }),
         .i_ebreak                       (ebreak),
         .o_int_ctr                      (o_int_ctr),
-        .o_ret_addr                     (o_ret_addr),
-        .o_trap_pc                      (o_trap_pc),
+        .o_ret_addr                     (ret_addr),
+        .o_trap_pc                      (trap_pc),
         .o_data                         (rdata_machine)
     );
 
+    assign  o_ret_addr = ret_addr[IADDR_SPACE_BITS-1:0];
+    assign  o_trap_pc = trap_pc[IADDR_SPACE_BITS-1:0];
     assign  o_csr_to_trap = i_ebreak;
     assign  o_data = user_level_category ? rdata_user :
                      supervisor_level_category ? rdata_supervisor :
@@ -136,7 +140,8 @@ module rv_csr
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
 
-    assign  dummy = user_level_category | supervisor_level_category | hypervisor_level_category | (|o_int_ctr);
+    assign  dummy = user_level_category | supervisor_level_category | hypervisor_level_category |
+                    (|o_int_ctr) | (|ret_addr) | (|trap_pc);
 /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule

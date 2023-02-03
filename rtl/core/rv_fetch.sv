@@ -5,7 +5,9 @@
 module rv_fetch
 #(
     parameter   RESET_ADDR              = 32'h0000_0000,
+    parameter   IADDR_SPACE_BITS        = 16,
     parameter   BRANCH_PREDICTION       = 1,
+    parameter   BRANCH_TABLE_SIZE_BITS  = 2,
     parameter   INSTR_BUF_ADDR_SIZE     = 2,
     parameter   EXTENSION_C             = 1,
     parameter   EXTENSION_Zicsr         = 1
@@ -15,41 +17,38 @@ module rv_fetch
     input   wire                        i_reset_n,
     input   wire                        i_stall,
     input   wire                        i_flush,
-    input   wire[31:0]                  i_pc_target,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_br,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   wire                        i_pc_select,
-    input   wire[31:0]                  i_pc_trap,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_trap,
     input   wire                        i_ebreak,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ack,
-    input   wire                        i_ra_invalidate,
-    input   wire                        i_reg_write,
-    input   wire[4:0]                   i_rd,
-    input   wire[31:0]                  i_reg_wdata,
-    output  wire[31:0]                  o_addr,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_addr,
     output  wire                        o_cyc,
     output  wire[31:0]                  o_instruction,
-    output  wire[31:0]                  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire                        o_is_compressed,
     output  wire                        o_branch_pred,
     output  wire                        o_ready
 );
 
-    logic[31:0] pc;
-    logic[31:0] pc_prev;
-    logic[31:0] addr;
-    logic[31:0] pc_next;
-    logic[31:0] pc_incr;
-    logic       move_pc;
-    logic       bp_need;
-    logic       bp_prev;
-    logic[31:0] bp_addr;
+    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc_incr;
+    logic                       move_pc;
+    logic[IADDR_SPACE_BITS-1:0] pc_prev;
+    logic[IADDR_SPACE_BITS-1:0] pc_bp;
+    logic                       branch_predicted;
+    logic                       branch_predicted_prev;
 
     logic       pc_next_trap_sel;
 
     assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
-    assign  pc_next = (!i_reset_n) ? RESET_ADDR :
+    assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:0] :
                 pc_next_trap_sel ? i_pc_trap :
                 i_pc_select ? i_pc_target :
-                bp_need ? bp_addr :
+                branch_predicted ? pc_bp :
                 (pc + pc_incr);
 
     always_ff @(posedge i_clk)
@@ -58,8 +57,6 @@ module rv_fetch
             pc <= pc_next;
         pc_prev <= pc;
     end
-
-    logic   free_dword_or_more;
     logic   ack;
 
     always_ff @(posedge i_clk)
@@ -70,71 +67,112 @@ module rv_fetch
     logic   pc_need_change;
     assign  pc_need_change = i_pc_select | (!i_reset_n) | (i_ebreak & EXTENSION_Zicsr);
 
-    rv_fetch_buf
+    logic       empty, full;
+    logic[31:0] instruction;
+
+    generate
+        if (EXTENSION_C)
+        begin
+            /* verilator lint_off UNUSEDSIGNAL */
+            logic[15:0] inst_prev_hi;
+            logic       buf_hi_valid;
+            logic[31:0] inst_mux;
+            logic       cillegal;
+
+            always_ff @(posedge i_clk)
+            begin
+                if (ack & pc_prev[1])
+                begin
+                    inst_prev_hi <= i_instruction[31:16];
+                    buf_hi_valid <= '1;
+                end
+                else
+                begin
+                    buf_hi_valid <= '0;
+                end
+            end
+            /* verilator lint_on UNUSEDSIGNAL */
+
+            assign inst_mux = buf_hi_valid ? { i_instruction[15:0], inst_prev_hi } : i_instruction;
+
+            rv_decode_comp
+            u_comp
+            (
+                .i_instruction                  (inst_mux),
+                .o_instruction                  (instruction),
+                .o_illegal_instruction          (cillegal)
+            );
+
+            assign pc_incr = (!full) ? 2 : 0;
+            assign move_pc = (i_ack & (!full)) | pc_need_change;
+            assign o_cyc = (!full) & i_reset_n;
+        end
+        else
+        begin
+            assign pc_incr = (!full) ? 4 : 0;
+            assign move_pc = (i_ack & (!full)) | pc_need_change;
+            assign o_cyc = (!full) & i_reset_n;
+            assign instruction = i_instruction;
+        end
+    endgenerate
+
+    fifo
     #(
-        .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE)
+        .WIDTH                  (IADDR_SPACE_BITS+32+2),
+        .DEPTH_BITS             (INSTR_BUF_ADDR_SIZE)
     )
-    u_buf
+    u_fifo
     (
-        .i_clk                          (i_clk),
-        .i_reset_n                      (i_reset_n),
-        .i_flush                        (i_flush),
-        .i_stall                        (i_stall),
-        .i_pc_select                    (pc_need_change),
-        .i_ack                          (ack),
-        .i_data                         (i_instruction),
-        .i_fetch_pc1                    (pc[1]),
-        .i_fetch_pc_prev                (pc_prev),
-        .i_branch_pred                  (bp_need),
-        .i_branch_pred_prev             (bp_prev),
-        .o_free_dword_or_more           (free_dword_or_more),
-        .o_pc_incr                      (pc_incr),
-        .o_pc                           (o_pc),
-        .o_branch_pred                  (o_branch_pred),
-        .o_instruction                  (o_instruction),
-        .o_ready                        (o_ready)
+        .i_clk                  (i_clk),
+        .i_reset_n              (i_reset_n & (!i_flush)),
+        .i_data                 ({ branch_predicted_prev, 1'b0, pc_prev, instruction }),
+        .i_push                 (ack),
+        .o_data                 ({ o_branch_pred, o_is_compressed, o_pc, o_instruction }),
+        .i_pop                  ((!i_stall) & (!i_flush) & (!empty)),
+        .o_empty                (empty),
+        .o_full                 (full)
     );
 
-    assign  move_pc =  (i_ack & free_dword_or_more) | pc_need_change | bp_need;
-    assign  o_cyc = i_reset_n & free_dword_or_more & (!pc_need_change);
-    assign  addr = pc;
+    assign o_ready = (!empty);
+
+/* verilator lint_off UNUSEDSIGNAL */
+    logic   dummy;
+    assign  dummy = i_flush | (|i_pc_br);
+/* verilator lint_on UNUSEDSIGNAL */
 
     generate
         if (BRANCH_PREDICTION)
         begin : pred
             rv_fetch_branch_pred
             #(
-                .EXTENSION_C            (EXTENSION_C)
+                .IADDR_SPACE_BITS       (IADDR_SPACE_BITS),
+                .TABLE_SIZE_BITS        (BRANCH_TABLE_SIZE_BITS)
             )
             u_pred
             (
                 .i_clk                  (i_clk),
                 .i_reset_n              (i_reset_n),
-                .i_instruction          (i_instruction),
-                .i_ack                  (ack),
-                .i_ra_invalidate        (i_ra_invalidate),
-                .i_reg_write            (i_reg_write),
-                .i_rd                   (i_rd),
-                .i_reg_wdata            (i_reg_wdata),
-                .i_pc_prev              (pc_prev),
-                .o_bp_need              (bp_need),
-                .o_bp_need_prev         (bp_prev),
-                .o_bp_addr              (bp_addr)
+                .i_pc_current           (pc),
+                .i_pc_select            (i_pc_select),
+                .i_pc_branch            (i_pc_br),
+                .i_pc_target            (i_pc_target),
+                .o_pc_new               (pc_bp),
+                .o_pc_predicted         (branch_predicted)
             );
         end
         else
         begin
-            assign  bp_need = '0;
-            assign  bp_prev = '0;
-            assign  bp_addr = '0;
-            /* verilator lint_off UNUSEDSIGNAL */
-            logic  dummy;
-            assign dummy = i_ra_invalidate | (|i_reg_wdata) | (|i_rd) | i_reg_write;
-            /* verilator lint_on UNUSEDSIGNAL */
+            assign branch_predicted = '0;
+            assign pc_bp = '0;
         end
     endgenerate
 
-    assign  o_addr = addr;
+    always_ff @(posedge i_clk)
+    begin
+        branch_predicted_prev <= branch_predicted;
+    end
+
+    assign  o_addr = pc;
 
 initial
 begin

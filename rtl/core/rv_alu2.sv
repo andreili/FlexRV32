@@ -6,6 +6,10 @@
 `endif
 
 module rv_alu2
+#(
+    parameter IADDR_SPACE_BITS          = 32,
+    parameter BRANCH_PREDICTION         = 1
+)
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
@@ -19,10 +23,10 @@ module rv_alu2
     input   wire[4:0]                   i_rd,
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
-    input   wire[31:0]                  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
-    input   wire[31:0]                  i_pc_target_base,
-    input   wire[31:0]                  i_pc_target_offset,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_reg_data2,
@@ -35,7 +39,8 @@ module rv_alu2
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
-    output  wire[31:0]                  o_pc_target,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
@@ -48,9 +53,6 @@ module rv_alu2
     logic[32:0] add;
     logic[31:0] xor_, or_, and_, shl;
     logic[32:0] shr;
-    logic[31:0] shift_result;
-    logic       cmp_result;
-    logic[31:0] bits_result;
     logic       carry;
     logic       op_b_sel;
     logic[31:0] op_b;
@@ -62,9 +64,9 @@ module rv_alu2
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
-    logic[31:0] pc_next;
-    logic[31:0] pc_target_base;
-    logic[31:0] pc_target_offset;
+    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     logic[31:0] reg_data2;
@@ -97,9 +99,9 @@ module rv_alu2
             rd <= i_rd;
             inst_jal_jalr <= i_inst_jal_jalr;
             inst_branch <= i_inst_branch;
+            pc <= i_pc;
             pc_next <= i_pc_next;
-            pc_target_base <= i_pc_target_base;
-            pc_target_offset <= i_pc_target_offset;
+            pc_target <= i_pc_target;
             res_src <= i_res_src;
             funct3 <= i_funct3;
             reg_data2 <= i_reg_data2;
@@ -128,50 +130,31 @@ module rv_alu2
     assign  shl = op1 << op2[4:0];
     assign  shr = $signed({ctrl.shift_arithmetical ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
-    always_comb
-    begin
-        case (1'b1)
-        ctrl.cmp_lts: cmp_result = lts;
-        ctrl.cmp_ltu: cmp_result = ltu;
-        default:      cmp_result = eq;
-        endcase
-    end
 
-    logic       pc_select;
-    logic[31:0] pc_target;
-    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ branch_pred;
-    assign      pc_target = branch_pred ? pc_next : (pc_target_base + pc_target_offset);
+    logic       pc_select, pred_ok;
+    logic[IADDR_SPACE_BITS-1:0] pc_out;
+    assign      pred_ok = (pc_target == i_pc);
+    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^ (branch_pred & pred_ok & BRANCH_PREDICTION);
+    assign      pc_out = (branch_pred & pred_ok) ? pc_next : pc_target;
 
-    always_comb
-    begin
-        case (1'b1)
-        ctrl.bits_xor: bits_result = xor_;
-        ctrl.bits_or:  bits_result = or_;
-        default:       bits_result = and_;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (1'b1)
-        ctrl.arith_shr: shift_result = shr[31:0];
-        default:        shift_result = shl;
-        endcase
-    end
-
+    logic       cmp_result;
+    logic[31:0] bits_result;
+    logic[31:0] shift_result;
     logic[31:0] result;
 
-    always_comb
-    begin
-        case (1'b1)
-        res_src.pc_next: result = pc_next;
-        csr_read:  result = csr_data;
-        res.cmp:   result = { {31{1'b0}}, cmp_result };
-        res.bits:  result = bits_result;
-        res.shift: result = shift_result;
-        default:   result = add[31:0];
-        endcase
-    end
+    assign  cmp_result = ctrl.cmp_lts ? lts :
+                         ctrl.cmp_ltu ? ltu :
+                         eq;
+    assign  bits_result = ctrl.bits_xor ? xor_ :
+                          ctrl.bits_or ? or_ :
+                          and_;
+    assign  shift_result = ctrl.arith_shr ? shr[31:0] : shl;
+    assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
+                     csr_read        ? csr_data :
+                     res.cmp         ? { {31{1'b0}}, cmp_result } :
+                     res.bits        ? bits_result :
+                     res.shift       ? shift_result :
+                     add[31:0];
 
     always_comb
     begin
@@ -214,7 +197,8 @@ module rv_alu2
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
-    assign  o_pc_target = pc_target;
+    assign  o_pc = pc;
+    assign  o_pc_target = pc_out;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_to_trap = to_trap;

@@ -4,16 +4,17 @@
 
 module rv_decode
 #(
-    parameter EXTENSION_C               = 1,
+    parameter IADDR_SPACE_BITS          = 32,
     parameter EXTENSION_Zicsr           = 1
 )
 (
-    input   wire                        i_clk,
     input   wire                        i_stall,
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
-    input   wire[31:0]                  i_pc,
+    input   wire                        i_ready,
+    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire                        i_branch_pred,
+    input   wire                        i_is_compressed,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
@@ -26,10 +27,10 @@ module rv_decode
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
-    output  wire[31:0]                  o_csr_pc_next,
-    output  wire[31:0]                  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_csr_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire                        o_branch_pred,
-    output  wire[31:0]                  o_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
     output  wire[4:0]                   o_rs1,
     output  wire[4:0]                   o_rs2,
     output  wire[4:0]                   o_rd,
@@ -48,61 +49,18 @@ module rv_decode
     output  wire                        o_inst_branch,
     output  wire                        o_inst_store,
     output  wire                        o_inst_supported,
-    output  wire                        o_inst_csr_req,
-    output  wire                        o_ra_invalidate
+    output  wire                        o_inst_csr_req
 );
 
     logic[6:0]  op;
     logic[2:0]  funct3;
     logic[6:0]  funct7;
     logic[11:0] funct12;
-
-    logic[31:0] instr_full;
-    logic       comp_illegal;
+    logic[31:0] instruction;
     logic       branch_pred;
 
-    generate
-        if (EXTENSION_C)
-        begin
-            logic       cillegal;
-            rv_decode_comp
-            u_comp
-            (
-                .i_instruction                  (i_instruction),
-                .o_instruction                  (instr_full),
-                .o_illegal_instruction          (cillegal)
-            );
-            always_ff @(posedge i_clk)
-            begin
-                if (i_flush)
-                    comp_illegal <= '0;
-                else if (!i_stall)
-                    comp_illegal <= cillegal;
-            end
-        end
-        else
-        begin
-            assign  instr_full = i_instruction;
-            assign  comp_illegal = '1;
-        end
-    endgenerate
-
-    logic[31:0] instruction;
-    logic[31:0] pc;
-    always_ff @(posedge i_clk)
-    begin
-        if (i_flush)
-        begin
-            instruction <= '0;
-            branch_pred <= '0;
-        end
-        else if (!i_stall)
-        begin
-            instruction <= instr_full;
-            pc <= i_pc;
-            branch_pred <= i_branch_pred;
-        end
-    end
+    assign  instruction = (i_ready & (!i_flush)) ? i_instruction : 0;
+    assign  branch_pred = (i_ready & (!i_flush)) ? i_branch_pred : 0;
 
     logic   inst_full, inst_none;
 
@@ -128,16 +86,14 @@ module rv_decode
     logic   inst_csr_req;
 
     logic[4:0]  rd, rs1, rs2;
-    logic       ra_invalidate;
 
     assign  op        = instruction[ 6: 0];
     assign  rd        = instruction[11: 7];
-    assign  rs1       = inst_lui ? '0 : instruction[19:15];
+    assign  rs1       = instruction[19:15];
     assign  rs2       = instruction[24:20];
     assign  funct3    = instruction[14:12];
     assign  funct7    = instruction[31:25];
     assign  funct12   = instruction[31:20];
-    assign  ra_invalidate = (rd == 5'h1) & o_reg_write;
 
     logic[31:0] imm_i, imm_j, imm_s, imm_b, imm_u;
     logic[31:0] imm_mux;
@@ -156,9 +112,9 @@ module rv_decode
     assign  o_csr_idx = instruction[31:20];
     assign  o_csr_imm = instruction[19:15];
     assign  o_csr_imm_sel = funct3[2];
-    assign  o_csr_write = (inst_csrrw | inst_csrrwi) & (!i_stall) & (!i_flush);
-    assign  o_csr_set   = (inst_csrrs | inst_csrrsi) & (!i_stall) & (!i_flush);
-    assign  o_csr_clear = (inst_csrrc | inst_csrrci) & (!i_stall) & (!i_flush);
+    assign  o_csr_write = (inst_csrrw | inst_csrrwi) & (!i_stall);
+    assign  o_csr_set   = (inst_csrrs | inst_csrrsi) & (!i_stall);
+    assign  o_csr_clear = (inst_csrrc | inst_csrrci) & (!i_stall);
     assign  o_csr_read  = (op[6:2] == RV32_OPC_SYS) & inst_full;
     assign  o_csr_ebreak = inst_ebreak;
     assign  o_csr_pc_next = pc_next;
@@ -286,7 +242,8 @@ module rv_decode
     assign  o_rs1 = inst_lui ? '0 : rs1;
     assign  o_rs2 = rs2;
     assign  o_op1_src.pc = |{inst_auipc,inst_jal};
-    assign  o_op1_src.r  = !(|{inst_auipc,inst_jal});
+    assign  o_op1_src.zero = inst_lui;
+    assign  o_op1_src.r  = !(|{inst_auipc,inst_jal,inst_lui});
 
     assign  o_op2_src.j = inst_jal;
     assign  o_op2_src.i = (|{inst_jalr, inst_load, inst_imm, inst_lui, inst_auipc, inst_store});
@@ -315,22 +272,21 @@ module rv_decode
     assign  o_alu_ctrl.arith_add = |{inst_add,inst_addi,inst_load,inst_store};
     assign  o_alu_ctrl.shift_arithmetical = |{inst_srai,inst_sra};
 
-    assign  o_pc = pc;
+    assign  o_pc = i_pc;
     assign  o_funct3 = (inst_full) ? funct3 : (3'b010);
     assign  o_inst_jalr = inst_jalr;
     assign  o_inst_jal = inst_jal;
     assign  o_inst_branch = inst_branch;
     assign  o_inst_store = inst_store;
 
-    logic[31:0] pc_next;
-    assign  pc_next = (pc + (((!comp_illegal) & EXTENSION_C) ? 2 : 4));
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}}, (!i_is_compressed), i_is_compressed, 1'b0 });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;
 `endif
     assign  o_branch_pred = branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
-    assign  o_ra_invalidate = ra_invalidate;
         
 `ifdef EXTENSION_Zifencei
     //inst_fence inst_fence_i
