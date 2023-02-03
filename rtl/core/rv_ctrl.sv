@@ -52,31 +52,27 @@ module rv_ctrl
     assign  need_mem_data2 = i_alu2_mem_rd   & (|i_alu2_rd  ) & ((i_decode_rs1 == i_alu2_rd  ) |
                              (i_decode_rs2 == i_alu2_rd  ));
 
-    logic   decode_stall, fetch_stall;
+    logic   decode_stall;
     assign  decode_stall = (!i_reset_n) | need_mem_data2 | need_mem_data1 | i_need_pause;
-    assign  fetch_stall = decode_stall;
 
-    logic   fetch_flush, decode_flush, alu1_flush, alu2_flush;
-    assign  fetch_flush  = (!i_reset_n) | i_pc_change;
-    assign  decode_flush = (!i_reset_n) | i_pc_change;
-    assign  alu1_flush   = (!i_reset_n) | i_pc_change | decode_stall;
-    assign  alu2_flush   = (!i_reset_n) | i_pc_change;
+    logic   global_flush;
+    assign  global_flush = (!i_reset_n) | i_pc_change;
 
     logic[1:0]  inst_sup;
     always_ff @(posedge i_clk)
     begin
-        if (decode_flush)
+        if (global_flush)
             inst_sup <= '1;
         else if (!decode_stall)
             inst_sup <= { inst_sup[0], i_decode_inst_sup };
     end
 
-    assign  o_fetch_flush  = fetch_flush;
-    assign  o_fetch_stall  = fetch_stall;
-    assign  o_decode_flush = decode_flush;
+    assign  o_fetch_flush  = global_flush;
+    assign  o_fetch_stall  = decode_stall;
+    assign  o_decode_flush = global_flush;
     assign  o_decode_stall = decode_stall;
-    assign  o_alu1_flush = alu1_flush;
-    assign  o_alu2_flush = alu2_flush;
+    assign  o_alu1_flush = global_flush | decode_stall;
+    assign  o_alu2_flush = global_flush;
 
     assign  o_rs1_bp.alu2    = rs1_on_alu2    ;
     assign  o_rs1_bp.memory  = rs1_on_memory  & (!rs1_on_alu2);
