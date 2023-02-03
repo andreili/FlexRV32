@@ -141,6 +141,7 @@ module rv_alu2
     logic       cmp_result;
     logic[31:0] bits_result;
     logic[31:0] shift_result;
+    logic[31:0] alu_result;
     logic[31:0] result;
 
     assign  cmp_result = ctrl.cmp_lts ? lts :
@@ -150,12 +151,13 @@ module rv_alu2
                           ctrl.bits_or ? or_ :
                           and_;
     assign  shift_result = ctrl.arith_shr ? shr[31:0] : shl;
+    assign  alu_result = res.cmp   ? { {31{1'b0}}, cmp_result } :
+                         res.bits  ? bits_result :
+                         res.shift ? shift_result :
+                         add[31:0];
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      csr_read        ? csr_data :
-                     res.cmp         ? { {31{1'b0}}, cmp_result } :
-                     res.bits        ? bits_result :
-                     res.shift       ? shift_result :
-                     add[31:0];
+                     alu_result;
 
     always_comb
     begin
