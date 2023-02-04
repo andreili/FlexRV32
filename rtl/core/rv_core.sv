@@ -295,7 +295,8 @@ module rv_core
     rv_alu2
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
-        .BRANCH_PREDICTION              (BRANCH_PREDICTION)
+        .BRANCH_PREDICTION              (BRANCH_PREDICTION),
+        .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st4_alu2
     (
@@ -336,19 +337,12 @@ module rv_core
         .o_to_trap                      (alu2_to_trap)
     );
 
-    assign  o_data_req = (alu2_res_src.memory | alu2_store);
-    assign  o_data_write = alu2_store;
-    assign  o_data_addr = alu2_add;
-
-    logic   instr_issued;
-    assign  instr_issued = (alu2_res_src.memory | alu2_store | alu2_reg_write);
-
     logic[31:0] write_data;
     logic[4:0]  write_rd;
     logic       write_op;
 
     rv_write
-    u_st6_write
+    u_st5_write
     (
         .i_clk                          (i_clk),
         .i_funct3                       (alu2_funct3),
@@ -458,8 +452,14 @@ module rv_core
     );
 `endif
 
+    logic   data_req;
+    assign  data_req = (alu2_res_src.memory | alu2_store);
+
+    assign  o_data_req = data_req;
+    assign  o_data_write = alu2_store;
+    assign  o_data_addr = alu2_add;
+    assign  o_instr_issued = (data_req | alu2_reg_write);
     assign  o_reg_rdata1 = alu1_reg_data1;
-    assign  o_instr_issued = instr_issued;
 
 `ifdef TO_SIM
     assign  o_debug[0] = inv_inst;

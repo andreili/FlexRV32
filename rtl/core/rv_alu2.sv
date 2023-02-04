@@ -8,7 +8,8 @@
 module rv_alu2
 #(
     parameter int IADDR_SPACE_BITS      = 32,
-    parameter logic BRANCH_PREDICTION   = 1
+    parameter logic BRANCH_PREDICTION   = 1,
+    parameter logic EXTENSION_Zicsr     = 1
 )
 (
     input   wire                        i_clk,
@@ -156,7 +157,7 @@ module rv_alu2
                          res.shift ? shift_result :
                          add[31:0];
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
-                     csr_read        ? csr_data :
+                     (csr_read & EXTENSION_Zicsr) ? csr_data :
                      alu_result;
 
     always_comb

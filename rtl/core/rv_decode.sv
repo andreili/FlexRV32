@@ -237,14 +237,13 @@ module rv_decode
     logic   inst_load;
     logic   inst_store;
     logic   inst_imm;
-    logic   inst_reg;
+    //logic   inst_reg;
     logic   inst_branch;
     logic   inst_slts;
     logic   inst_ltu;
     assign  inst_load   = ((op[6:2] == RV32_OPC_LD)  & inst_full);
     assign  inst_store  = ((op[6:2] == RV32_OPC_STR) & inst_full);
     assign  inst_imm    = (op[6:2] == RV32_OPC_ARI) & inst_full;
-    assign  inst_reg    = (op[6:2] == RV32_OPC_ARR) & inst_full;
     assign  inst_branch = ((op[6:2] == RV32_OPC_B)   & inst_full);
     assign  inst_slts   = ((op[6:2] == RV32_OPC_ARI) |
                                 ( (op[6:2] == RV32_OPC_ARR) & (funct7 == 7'b0000000)))
@@ -253,8 +252,8 @@ module rv_decode
                              (funct7 == 7'b0000000))) & (funct3 == 3'b011)) |
                            ((op[6:2] == RV32_OPC_B) & (funct3[2:1] == 2'b11))) & inst_full;
 
-    assign  o_reg_write = inst_load | inst_imm | inst_auipc | inst_reg | inst_lui |
-                                inst_jalr | inst_jal | ((op[6:2] == RV32_OPC_SYS) & inst_full);
+    assign  o_reg_write = inst_full & (!((op[6:2] == RV32_OPC_B) | (op[6:2] == RV32_OPC_STR) |
+                                         (op[6:2] == RV32_OPC_STF)));
 
     assign  o_rd  = rd;
     assign  o_rs1 = inst_lui ? '0 : rs1;

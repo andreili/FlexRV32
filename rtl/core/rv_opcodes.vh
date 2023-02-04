@@ -9,6 +9,7 @@ localparam  logic[4:0] RV32_OPC_MEM  = 5'b00011;
 localparam  logic[4:0] RV32_OPC_ARI  = 5'b00100;
 localparam  logic[4:0] RV32_OPC_AUI  = 5'b00101;
 localparam  logic[4:0] RV32_OPC_STR  = 5'b01000;
+localparam  logic[4:0] RV32_OPC_STF  = 5'b01001;
 localparam  logic[4:0] RV32_OPC_ARR  = 5'b01100;
 localparam  logic[4:0] RV32_OPC_LUI  = 5'b01101;
 localparam  logic[4:0] RV32_OPC_B    = 5'b11000;

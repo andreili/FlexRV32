@@ -61,6 +61,11 @@ module fifo
         end
     endgenerate
 
+/* verilator lint_off UNUSEDSIGNAL */
+    logic[DEPTH_BITS-1:0] elements_in_fifo;
+    assign elements_in_fifo = head[DEPTH_BITS-1:0] - tail[DEPTH_BITS-1:0];
+/* verilator lint_on UNUSEDSIGNAL */
+
     assign  o_data = data[tail[DEPTH_BITS-1:0]];
     assign  o_empty = empty;
     assign  o_full = full;
