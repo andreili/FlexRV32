@@ -26,7 +26,7 @@ module rv_alu1
     input   wire[2:0]                   i_funct3,
     input   res_src_t                   i_res_src,
     input   wire                        i_reg_write,
-    input   src_op1_t                   i_op1_src,
+    input   wire                        i_op1_src,
     input   src_op2_t                   i_op2_src,
     input   wire                        i_inst_mret,
     input   wire                        i_inst_jalr,
@@ -64,7 +64,7 @@ module rv_alu1
     logic[4:0]  rd;
     logic[31:0] imm_i;
     logic[31:0] imm_j;
-    src_op1_t   op1_sel;
+    logic       op1_sel;
     src_op2_t   op2_sel;
     alu_res_t   res;
     alu_ctrl_t  ctrl;
@@ -122,9 +122,7 @@ module rv_alu1
 
     logic[31:0] op1, op2;
 
-    assign  op1 = op1_sel.pc ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } :
-                               op1_sel.zero ? '0 :
-                               i_reg1_data;
+    assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } : i_reg1_data;
     assign  op2 = op2_sel.i  ? imm_i :
                   op2_sel.j  ? imm_j :
                   i_reg2_data;
@@ -141,7 +139,7 @@ module rv_alu1
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = op1_sel.r & op2_sel.r;
+    assign  dummy = op2_sel.r;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_op1 = op1;

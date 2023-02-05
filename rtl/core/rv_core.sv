@@ -108,7 +108,7 @@ module rv_core
     logic[2:0]  decode_funct3;
     res_src_t   decode_res_src;
     logic       decode_reg_write;
-    src_op1_t   decode_op1_src;
+    logic       decode_op1_src;
     src_op2_t   decode_op2_src;
     logic       decode_inst_mret;
     logic       decode_inst_jalr;
