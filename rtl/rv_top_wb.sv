@@ -6,10 +6,12 @@ module rv_top_wb
 #(
     parameter logic[31:0] RESET_ADDR    = 32'h0000_0000,
     parameter int IADDR_SPACE_BITS      = 16,
-    parameter logic BRANCH_PREDICTION   = 1,
-    parameter int BRANCH_TABLE_SIZE_BITS= 2,
+    parameter logic BRANCH_PREDICTION   = 0,
+    parameter int BRANCH_TABLE_SIZE_BITS= 3,
     parameter int INSTR_BUF_ADDR_SIZE   = 2,
     parameter logic EXTENSION_C         = 0,
+    parameter logic EXTENSION_F         = 0,
+    parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1,
     parameter logic EXTENSION_Zicntr    = 1,
     parameter logic EXTENSION_Zihpm     = 0
@@ -82,6 +84,8 @@ module rv_top_wb
         .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_C                    (EXTENSION_C),
+        .EXTENSION_F                    (EXTENSION_F),
+        .EXTENSION_M                    (EXTENSION_M),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_core

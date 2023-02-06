@@ -5,6 +5,8 @@
 module rv_decode
 #(
     parameter int IADDR_SPACE_BITS      = 32,
+    parameter logic EXTENSION_F         = 1,
+    parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1
 )
 (
@@ -38,7 +40,7 @@ module rv_decode
     output  wire[31:0]                  o_imm_j,
     output  alu_res_t                   o_alu_res,
     output  wire[2:0]                   o_funct3,
-    output  wire[4:0]                   o_alu_sub,
+    output  wire[5:0]                   o_alu_sub,
     output  res_src_t                   o_res_src,
     output  wire                        o_reg_write,
     output  wire                        o_op1_src,
@@ -91,6 +93,8 @@ module rv_decode
     // memory read operations
     logic   inst_grp_load;
     assign  inst_grp_load = (op[6:2] == RV32_OPC_LOAD) & inst_full;
+    logic   inst_grp_load_fp;
+    assign  inst_grp_load_fp = (op[6:2] == RV32_OPC_LOAD_FP) & inst_full;
 
     // arifmetical with immediate
     logic   inst_grp_ari;
@@ -102,8 +106,8 @@ module rv_decode
     assign  inst_slti     = inst_grp_ari & (funct3 == 3'b010);
     assign  inst_sltiu    = inst_grp_ari & (funct3 == 3'b011);
     assign  inst_xori     = inst_grp_ari & (funct3 == 3'b100);
-    assign  inst_srli     = inst_grp_ari & (funct3 == 3'b101) & (funct7 == 7'b0000000);
-    assign  inst_srai     = inst_grp_ari & (funct3 == 3'b101) & (funct7 == 7'b0100000);
+    assign  inst_srli     = inst_grp_ari & (funct3 == 3'b101) & (funct7[5] == 1'b0);
+    assign  inst_srai     = inst_grp_ari & (funct3 == 3'b101) & (funct7[5] == 1'b1);
     assign  inst_ori      = inst_grp_ari & (funct3 == 3'b110);
     assign  inst_andi     = inst_grp_ari & (funct3 == 3'b111);
 
@@ -112,26 +116,38 @@ module rv_decode
     assign  inst_auipc    = (op[6:2] == RV32_OPC_AUIPC) & inst_full;
 
     // memory write operations
-    logic   inst_grp_store;
-    assign  inst_grp_store = (op[6:2] == RV32_OPC_STORE) & inst_full;
+    logic   inst_grp_store, inst_grp_store_fp;
+    assign  inst_grp_store    = (op[6:2] == RV32_OPC_STORE   ) & inst_full;
+    assign  inst_grp_store_fp = (op[6:2] == RV32_OPC_STORE_FP) & inst_full & EXTENSION_F;
 
     // arifmetical with register
-    logic   inst_grp_arr;
-    logic   inst_grp_arr_ex;
+    logic   inst_grp_arr, inst_grp_mul;
     logic   inst_add, inst_sub, inst_sll, inst_slt, inst_sltu;
     logic   inst_xor, inst_srl, inst_sra, inst_or, inst_and;
-    assign  inst_grp_arr    = (op[6:2] == RV32_OPC_OP) & inst_full & (funct7 == 7'b0000000);
-    assign  inst_grp_arr_ex = (op[6:2] == RV32_OPC_OP) & inst_full & (funct7 == 7'b0100000);
-    assign  inst_add      = inst_grp_arr    & (funct3 == 3'b000);
-    assign  inst_sub      = inst_grp_arr_ex & (funct3 == 3'b000);
+    assign  inst_grp_arr  = (op[6:2] == RV32_OPC_OP) & inst_full & (funct7[0] == 1'b0);
+    assign  inst_grp_mul  = (op[6:2] == RV32_OPC_OP) & inst_full &
+                            (funct7[0] == 1'b1) & EXTENSION_M;
+    assign  inst_add      = inst_grp_arr    & (funct3 == 3'b000) & (funct7[5] == 1'b0);
+    assign  inst_sub      = inst_grp_arr    & (funct3 == 3'b000) & (funct7[5] == 1'b1);
     assign  inst_sll      = inst_grp_arr    & (funct3 == 3'b001);
     assign  inst_slt      = inst_grp_arr    & (funct3 == 3'b010);
     assign  inst_sltu     = inst_grp_arr    & (funct3 == 3'b011);
     assign  inst_xor      = inst_grp_arr    & (funct3 == 3'b100);
-    assign  inst_srl      = inst_grp_arr    & (funct3 == 3'b101);
-    assign  inst_sra      = inst_grp_arr_ex & (funct3 == 3'b101);
+    assign  inst_srl      = inst_grp_arr    & (funct3 == 3'b101) & (funct7[5] == 1'b0);
+    assign  inst_sra      = inst_grp_arr    & (funct3 == 3'b101) & (funct7[5] == 1'b1);
     assign  inst_or       = inst_grp_arr    & (funct3 == 3'b110);
     assign  inst_and      = inst_grp_arr    & (funct3 == 3'b111);
+
+    logic   inst_grp_arf;
+    assign  inst_grp_arf  = (op[6:2] == RV32_OPC_OP_FP) & inst_full &
+                            (funct7[0] == 1'b0) & EXTENSION_F;
+
+    logic   inst_grp_fmadd, inst_grp_fmsub;
+    logic   inst_grp_fnmsub, inst_grp_fnmadd;
+    assign  inst_grp_fmadd  = (op[6:2] == RV32_OPC_MADD ) & inst_full & EXTENSION_F;
+    assign  inst_grp_fmsub  = (op[6:2] == RV32_OPC_MSUB ) & inst_full & EXTENSION_F;
+    assign  inst_grp_fnmsub = (op[6:2] == RV32_OPC_NMSUB) & inst_full & EXTENSION_F;
+    assign  inst_grp_fnmadd = (op[6:2] == RV32_OPC_NMADD) & inst_full & EXTENSION_F;
 
     // load upper immediate
     logic   inst_lui;
@@ -169,14 +185,21 @@ module rv_decode
     assign  inst_mret     = inst_grp_sys & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
     assign  inst_csr_req  = (inst_grp_sys & (funct3 != 3'b000) & EXTENSION_Zicsr);
 
-    logic[4:0]  alu_sub;
-    assign      alu_sub[2:0] = (inst_lui | inst_auipc | inst_jal | inst_grp_load | inst_grp_store) ? 3'b000 : funct3;
-    assign      alu_sub[3] = inst_grp_branch & funct3[0];
+    logic[5:0]  alu_sub;
+    assign      alu_sub[2:0] = (inst_lui | inst_auipc | inst_jal | inst_grp_load |
+                                inst_grp_store) ? 3'b000 : funct3;
+    assign      alu_sub[3] = (inst_grp_branch & funct3[0]) |
+                             (inst_grp_mul & ((funct3[2] & (!funct3[0])) |
+                              ((!funct3[2]) & (!funct3[1]) & funct3[0])));
     assign      alu_sub[4] = ((op[6:2] == RV32_OPC_BRANCH) |
-                              (((op[6:2] == RV32_OPC_OP) | (op[6:2] == RV32_OPC_OP_IMM)) & (funct3[2:1] == 2'b01)) |
+                              (((op[6:2] == RV32_OPC_OP) | (op[6:2] == RV32_OPC_OP_IMM)) &
+                               (funct3[2:1] == 2'b01)) |
                                 inst_sra | inst_srai) ? '1 :
-                            (inst_lui | inst_auipc | inst_jal | inst_grp_load | inst_grp_store | inst_grp_ari) ? '0 :
+                            (inst_lui | inst_auipc | inst_jal | inst_grp_load |
+                             inst_grp_store | inst_grp_ari) ? '0 :
+                            inst_grp_mul ? ((funct3[2] & (!funct3[0])) | ((!funct3[2]) & (funct3[1] ^ funct3[0]))) :
                             funct7[5];
+    assign      alu_sub[5] = inst_grp_mul;
 
     assign  o_imm_j = inst_jal ? imm_j : imm_b;
     assign  o_imm_i = imm_mux;
@@ -192,7 +215,8 @@ module rv_decode
     assign  o_csr_pc_next = pc_next;
     assign  o_inst_mret   = inst_mret;
 
-    assign  o_reg_write = inst_full & (!((op[6:2] == RV32_OPC_BRANCH) | (op[6:2] == RV32_OPC_STORE) |
+    assign  o_reg_write = inst_full & (!((op[6:2] == RV32_OPC_BRANCH) |
+                                         (op[6:2] == RV32_OPC_STORE) |
                                          (op[6:2] == RV32_OPC_STORE_FP)));
 
     assign  o_rd  = rd;
@@ -240,7 +264,7 @@ module rv_decode
 
     assign  o_inst_supported =
             (!valid_input) |
-            inst_grp_load  | inst_grp_arr | inst_grp_arr_ex |
+            inst_grp_load  | inst_grp_arr | inst_grp_mul |
             inst_auipc | inst_grp_store | inst_grp_ari  |
             inst_lui   |
             inst_grp_branch |
@@ -264,6 +288,11 @@ module rv_decode
     //inst_ntl_p1 inst_ntl_pall inst_ntl_s1 inst_ntl_all
 `endif
 
+/* verilator lint_off UNUSEDSIGNAL */
+    logic   dummy;
+    assign  dummy = (|funct7);
+/* verilator lint_on UNUSEDSIGNAL */
+
 `ifdef TO_SIM
     logic   inst_lb, inst_lh, inst_lw, inst_lbu, inst_lhu;
     assign  inst_lb       = inst_grp_load  & (funct3 == 3'b000);
@@ -271,10 +300,14 @@ module rv_decode
     assign  inst_lw       = inst_grp_load  & (funct3 == 3'b010);
     assign  inst_lbu      = inst_grp_load  & (funct3 == 3'b100);
     assign  inst_lhu      = inst_grp_load  & (funct3 == 3'b101);
+    logic   inst_flw;
+    assign  inst_flw      = inst_grp_load_fp & (funct3 == 3'b010);
     logic   inst_sb, inst_sh, inst_sw;
     assign  inst_sb       = inst_grp_store & (funct3 == 3'b000);
     assign  inst_sh       = inst_grp_store & (funct3 == 3'b001);
     assign  inst_sw       = inst_grp_store & (funct3 == 3'b010);
+    logic   inst_fsw;
+    assign  inst_fsw      = inst_grp_store_fp & (funct3 == 3'b010);
     logic   inst_csrrw, inst_csrrs, inst_csrrc, inst_csrrwi, inst_csrrsi, inst_csrrci;
     assign  inst_csrrw    = inst_grp_sys & (funct3 == 3'b001);
     assign  inst_csrrs    = inst_grp_sys & (funct3 == 3'b010);
@@ -289,6 +322,52 @@ module rv_decode
     assign  inst_bge      = inst_grp_branch & (funct3 == 3'b101);
     assign  inst_bltu     = inst_grp_branch & (funct3 == 3'b110);
     assign  inst_bgeu     = inst_grp_branch & (funct3 == 3'b111);
+    logic   inst_mul, inst_mulh, inst_mulhsu, inst_mulhu;
+    logic   inst_div, inst_divu, inst_rem, inst_remu;
+    assign  inst_mul      = inst_grp_mul    & (funct3 == 3'b000);
+    assign  inst_mulh     = inst_grp_mul    & (funct3 == 3'b001);
+    assign  inst_mulhsu   = inst_grp_mul    & (funct3 == 3'b010);
+    assign  inst_mulhu    = inst_grp_mul    & (funct3 == 3'b011);
+    assign  inst_div      = inst_grp_mul    & (funct3 == 3'b100);
+    assign  inst_divu     = inst_grp_mul    & (funct3 == 3'b101);
+    assign  inst_rem      = inst_grp_mul    & (funct3 == 3'b110);
+    assign  inst_remu     = inst_grp_mul    & (funct3 == 3'b111);
+    logic   inst_fmadds, inst_fmsubs;
+    logic   inst_fnmsubs, inst_fnmadds;
+    assign  inst_fmadds   = inst_grp_fmadd  & (funct7[1:0] == 2'b00);
+    assign  inst_fmsubs   = inst_grp_fmsub  & (funct7[1:0] == 2'b00);
+    assign  inst_fnmsubs  = inst_grp_fnmsub & (funct7[1:0] == 2'b00);
+    assign  inst_fnmadds  = inst_grp_fnmadd & (funct7[1:0] == 2'b00);
+    logic   inst_fadds, inst_fsubs, inst_fmuls, inst_fdivs;
+    logic   inst_fsqrts, inst_fsgnjs, inst_fsgnjns, inst_fsgnjxs;
+    logic   inst_fmins, inst_fmaxs, inst_fcvtws, inst_fcvtwus;
+    logic   inst_fmvxw, inst_feqs, inst_flts, inst_fles;
+    logic   inst_fclasss, inst_fcvtsw, inst_fcvtswu, inst_fmvwx;
+    assign  inst_fadds    = inst_grp_arf & (funct7 == 7'b0000000);
+    assign  inst_fsubs    = inst_grp_arf & (funct7 == 7'b0000100);
+    assign  inst_fmuls    = inst_grp_arf & (funct7 == 7'b0001000);
+    assign  inst_fdivs    = inst_grp_arf & (funct7 == 7'b0001100);
+    assign  inst_fsqrts   = inst_grp_arf & (funct7 == 7'b0101100);
+    assign  inst_fsgnjs   = inst_grp_arf & (funct7 == 7'b0010000) & (funct3 == 3'b000);
+    assign  inst_fsgnjns  = inst_grp_arf & (funct7 == 7'b0010000) & (funct3 == 3'b001);
+    assign  inst_fsgnjxs  = inst_grp_arf & (funct7 == 7'b0010000) & (funct3 == 3'b010);
+    assign  inst_fmins    = inst_grp_arf & (funct7 == 7'b0010100) & (funct3 == 3'b000);
+    assign  inst_fmaxs    = inst_grp_arf & (funct7 == 7'b0010100) & (funct3 == 3'b001);
+    assign  inst_fcvtws   = inst_grp_arf & (funct7 == 7'b1100000) & (rs2 == 5'b00000);
+    assign  inst_fcvtwus  = inst_grp_arf & (funct7 == 7'b1100000) & (rs2 == 5'b00001);
+    assign  inst_fmvxw    = inst_grp_arf & (funct7 == 7'b1110000) &
+                            (rs2 == 5'b00000) & (funct3 == 3'b000);
+    assign  inst_feqs     = inst_grp_arf & (funct7 == 7'b1010000) & (funct3 == 3'b010);
+    assign  inst_flts     = inst_grp_arf & (funct7 == 7'b1010000) & (funct3 == 3'b001);
+    assign  inst_fles     = inst_grp_arf & (funct7 == 7'b1010000) & (funct3 == 3'b000);
+    assign  inst_fclasss  = inst_grp_arf & (funct7 == 7'b1110000) &
+                            (rs2 == 5'b00000) & (funct3 == 3'b001);
+    assign  inst_fcvtsw   = inst_grp_arf & (funct7 == 7'b1101000) &
+                            (rs2 == 5'b00000);
+    assign  inst_fcvtswu  = inst_grp_arf & (funct7 == 7'b1101000) &
+                            (rs2 == 5'b00001);
+    assign  inst_fmvwx    = inst_grp_arf & (funct7 == 7'b1111000) &
+                            (rs2 == 5'b00000) & (funct3 == 3'b000);
 /* verilator lint_off UNUSEDSIGNAL */
     logic [127:0] dbg_ascii_instr;
     /* verilator lint_on UNUSEDSIGNAL */
@@ -317,6 +396,33 @@ module rv_decode
         if (inst_sh)       dbg_ascii_instr = "sh";
         if (inst_sw)       dbg_ascii_instr = "sw";
 
+        if (inst_flw)      dbg_ascii_instr = "flw";
+        if (inst_fsw)      dbg_ascii_instr = "fsw";
+        if (inst_fmadds)   dbg_ascii_instr = "fmadd.s";
+        if (inst_fmsubs)   dbg_ascii_instr = "fmsub.s";
+        if (inst_fnmsubs)  dbg_ascii_instr = "fnmsub.s";
+        if (inst_fnmadds)  dbg_ascii_instr = "fnmadd.s";
+        if (inst_fadds)    dbg_ascii_instr = "fadd.s";
+        if (inst_fsubs)    dbg_ascii_instr = "fsub.s";
+        if (inst_fmuls)    dbg_ascii_instr = "fmul.s";
+        if (inst_fdivs)    dbg_ascii_instr = "fdiv.s";
+        if (inst_fsqrts)   dbg_ascii_instr = "fsqrt.s";
+        if (inst_fsgnjs)   dbg_ascii_instr = "fsgnj.s";
+        if (inst_fsgnjns)  dbg_ascii_instr = "fsgnjn.s";
+        if (inst_fsgnjxs)  dbg_ascii_instr = "fsgnjx.s";
+        if (inst_fmins)    dbg_ascii_instr = "fmin.s";
+        if (inst_fmaxs)    dbg_ascii_instr = "fmax.s";
+        if (inst_fcvtws)   dbg_ascii_instr = "fcvt.w.s";
+        if (inst_fcvtwus)  dbg_ascii_instr = "fcvt.wu.s";
+        if (inst_fmvxw)    dbg_ascii_instr = "fmv.x.s";
+        if (inst_feqs)     dbg_ascii_instr = "feq.s";
+        if (inst_flts)     dbg_ascii_instr = "flt.s";
+        if (inst_fles)     dbg_ascii_instr = "fle.s";
+        if (inst_fclasss)  dbg_ascii_instr = "fclass.s";
+        if (inst_fcvtsw)   dbg_ascii_instr = "fcvt.s.w";
+        if (inst_fcvtswu)  dbg_ascii_instr = "fcvt.s.wu";
+        if (inst_fmvwx)    dbg_ascii_instr = "fmv.w.x";
+
         if (inst_addi)     dbg_ascii_instr = "addi";
         if (inst_slti)     dbg_ascii_instr = "slti";
         if (inst_sltiu)    dbg_ascii_instr = "sltiu";
@@ -337,6 +443,15 @@ module rv_decode
         if (inst_sra)      dbg_ascii_instr = "sra";
         if (inst_or)       dbg_ascii_instr = "or";
         if (inst_and)      dbg_ascii_instr = "and";
+
+        if (inst_mul)      dbg_ascii_instr = "mul";
+        if (inst_mulh)     dbg_ascii_instr = "mulh";
+        if (inst_mulhsu)   dbg_ascii_instr = "mulhsu";
+        if (inst_mulhu)    dbg_ascii_instr = "mulhu";
+        if (inst_div)      dbg_ascii_instr = "div";
+        if (inst_divu)     dbg_ascii_instr = "divu";
+        if (inst_rem)      dbg_ascii_instr = "rem";
+        if (inst_remu)     dbg_ascii_instr = "remu";
 
         if (inst_ecall)    dbg_ascii_instr = "ecall";
         if (inst_ebreak)   dbg_ascii_instr = "ebreak";

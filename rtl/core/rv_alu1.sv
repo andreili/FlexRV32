@@ -23,7 +23,7 @@ module rv_alu1
     input   wire[31:0]                  i_imm_j,
     input   alu_res_t                   i_alu_res,
     input   wire[2:0]                   i_funct3,
-    input   wire[4:0]                   i_alu_sub,
+    input   wire[5:0]                   i_alu_sub,
     input   res_src_t                   i_res_src,
     input   wire                        i_reg_write,
     input   wire                        i_op1_src,
@@ -53,7 +53,7 @@ module rv_alu1
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
-    output  wire[4:0]                   o_alu_sub,
+    output  wire[5:0]                   o_alu_sub,
     output  wire[31:0]                  o_reg_data1,
     output  wire[31:0]                  o_reg_data2,
     output  wire                        o_to_trap
@@ -70,7 +70,7 @@ module rv_alu1
     logic       inst_jalr, inst_jal, inst_branch;
     logic       inst_mret;
     logic[2:0]  funct3;
-    logic[4:0]  alu_sub;
+    logic[5:0]  alu_sub;
     logic       store;
     res_src_t   res_src;
     logic       reg_write;

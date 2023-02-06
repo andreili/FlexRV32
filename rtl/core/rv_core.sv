@@ -12,6 +12,8 @@ module rv_core
     parameter int BRANCH_TABLE_SIZE_BITS= 2,
     parameter int INSTR_BUF_ADDR_SIZE   = 2, // buffer size is 2**N half-words (16 bit)
     parameter logic EXTENSION_C         = 1,
+    parameter logic EXTENSION_F         = 1,
+    parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1
 )
 (
@@ -105,7 +107,7 @@ module rv_core
     logic[31:0] decode_imm_j;
     alu_res_t   decode_alu_res;
     logic[2:0]  decode_funct3;
-    logic[4:0]  decode_alu_sub;
+    logic[5:0]  decode_alu_sub;
     res_src_t   decode_res_src;
     logic       decode_reg_write;
     logic       decode_op1_src;
@@ -126,6 +128,8 @@ module rv_core
     rv_decode
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
+        .EXTENSION_F                    (EXTENSION_F),
+        .EXTENSION_M                    (EXTENSION_M),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st2_decode
@@ -217,7 +221,7 @@ module rv_core
     logic[IADDR_SPACE_BITS-1:0] alu1_pc_target;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
-    logic[4:0]  alu1_alu_sub;
+    logic[5:0]  alu1_alu_sub;
     logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
     logic       alu1_flush;

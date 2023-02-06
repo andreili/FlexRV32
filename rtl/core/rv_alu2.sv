@@ -29,7 +29,7 @@ module rv_alu2
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
-    input   wire[4:0]                   i_alu_sub,
+    input   wire[5:0]                   i_alu_sub,
     input   wire[31:0]                  i_reg_data2,
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
@@ -68,7 +68,7 @@ module rv_alu2
     logic[IADDR_SPACE_BITS-1:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
-    logic[4:0]  alu_sub;
+    logic[5:0]  alu_sub;
     logic[31:0] reg_data2;
     logic       csr_read;
     logic[31:0] csr_data;
@@ -129,6 +129,23 @@ module rv_alu2
     assign  shl = op1 << op2[4:0];
     assign  shr = $signed({alu_sub[4] ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
+    logic[31:0] op_a, op_c;
+    logic[32:0] op1_m, op2_m;
+    logic[63:0] mul;
+    logic[31:0] div;
+    logic[31:0] rem;
+    logic       m_sign;
+    assign      op_a  = ((alu_sub[3] & op1[31]) ? (~op1) : op1) +
+                        { {31{1'b0}}, (alu_sub[3] & op1[31]) };
+    assign      op_c  = ((alu_sub[4] & op2[31]) ? (~op2) : op2) +
+                        { {31{1'b0}}, (alu_sub[4] & op2[31]) };
+    assign      op1_m = $signed({alu_sub[3] ? op1[31] : 1'b0, op_a});
+    assign      op2_m = $signed({alu_sub[4] ? op2[31] : 1'b0, op_c});
+    assign      mul = op1_m[31:0] * op2_m[31:0];
+    assign      div = op1_m[31:0] / op2_m[31:0];
+    assign      rem = op1_m[31:0] % op2_m[31:0];
+    assign      m_sign = (alu_sub[3] & op1_m[32]) ^ (alu_sub[4] & op2_m[32]);
+
     logic       cmp_result;
     logic       pc_select, pred_ok;
     logic[IADDR_SPACE_BITS-1:0] pc_out;
@@ -146,38 +163,42 @@ module rv_alu2
         endcase
     end
 
-    logic[31:0] alu_result;
+    logic[31:0] alu_res_i;
+    logic[31:0] alu_m;
+    logic[31:0] alu_res_m;
     logic[31:0] result;
     always_comb
     begin
         case (alu_sub[2:0])
-        3'b000 : alu_result = add[31:0];
-        3'b001 : alu_result = shl;
-        3'b010 : alu_result = { {31{1'b0}}, lts };
-        3'b011 : alu_result = { {31{1'b0}}, ltu };
-        3'b100 : alu_result = xor_;
-        3'b101 : alu_result = shr[31:0];
-        3'b110 : alu_result = or_;
-        default: alu_result = and_;
+        3'b000 : alu_res_i = add[31:0];
+        3'b001 : alu_res_i = shl;
+        3'b010 : alu_res_i = { {31{1'b0}}, lts };
+        3'b011 : alu_res_i = { {31{1'b0}}, ltu };
+        3'b100 : alu_res_i = xor_;
+        3'b101 : alu_res_i = shr[31:0];
+        3'b110 : alu_res_i = or_;
+        default: alu_res_i = and_;
         endcase
     end
-    /*always_comb
+    always_comb
     begin
-        case (1'b1)
-        ctrl.cmp_lts  : alu_result = { {31{1'b0}}, lts };
-        ctrl.cmp_ltu  : alu_result = { {31{1'b0}}, ltu };
-        ctrl.cmp_eq   : alu_result = { {31{1'b0}}, eq  };
-        ctrl.bits_xor : alu_result = xor_;
-        ctrl.bits_or  : alu_result = or_;
-        ctrl.bits_and : alu_result = and_;
-        ctrl.arith_shl: alu_result = shl;
-        ctrl.arith_shr: alu_result = shr[31:0];
-        default       : alu_result = add[31:0];
+        case (alu_sub[2:0])
+        3'b000 : alu_m = mul[31: 0];
+        3'b001 : alu_m = mul[63:32];
+        3'b010 : alu_m = mul[63:32];
+        3'b011 : alu_m = mul[63:32];
+        3'b100 : alu_m = div[31:0];
+        3'b101 : alu_m = div[31:0];
+        3'b110 : alu_m = rem[31:0];
+        3'b111 : alu_m = rem[31:0];
+        default: alu_m = '0;
         endcase
-    end*/
+    end
+    assign  alu_res_m = m_sign ? ((~alu_m) - '1) : alu_m;
+
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
-                     alu_result;
+                     alu_sub[5] ? alu_res_m : alu_res_i;
 
     always_comb
     begin
