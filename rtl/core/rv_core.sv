@@ -104,8 +104,8 @@ module rv_core
     logic[31:0] decode_imm_i;
     logic[31:0] decode_imm_j;
     alu_res_t   decode_alu_res;
-    alu_ctrl_t  decode_alu_ctrl;
     logic[2:0]  decode_funct3;
+    logic[4:0]  decode_alu_sub;
     res_src_t   decode_res_src;
     logic       decode_reg_write;
     logic       decode_op1_src;
@@ -158,8 +158,8 @@ module rv_core
         .o_imm_i                        (decode_imm_i),
         .o_imm_j                        (decode_imm_j),
         .o_alu_res                      (decode_alu_res),
-        .o_alu_ctrl                     (decode_alu_ctrl),
         .o_funct3                       (decode_funct3),
+        .o_alu_sub                      (decode_alu_sub),
         .o_res_src                      (decode_res_src),
         .o_reg_write                    (decode_reg_write),
         .o_op1_src                      (decode_op1_src),
@@ -205,7 +205,6 @@ module rv_core
     logic[31:0] alu1_op1;
     logic[31:0] alu1_op2;
     alu_res_t   alu1_res;
-    alu_ctrl_t  alu1_ctrl;
     logic       alu1_store;
     logic       alu1_reg_write;
     logic[4:0]  alu1_rs1;
@@ -218,6 +217,7 @@ module rv_core
     logic[IADDR_SPACE_BITS-1:0] alu1_pc_target;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
+    logic[4:0]  alu1_alu_sub;
     logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
     logic       alu1_flush;
@@ -242,8 +242,8 @@ module rv_core
         .i_imm_i                        (decode_imm_i),
         .i_imm_j                        (decode_imm_j),
         .i_alu_res                      (decode_alu_res),
-        .i_alu_ctrl                     (decode_alu_ctrl),
         .i_funct3                       (decode_funct3),
+        .i_alu_sub                      (decode_alu_sub),
         .i_res_src                      (decode_res_src),
         .i_reg_write                    (decode_reg_write),
         .i_op1_src                      (decode_op1_src),
@@ -260,7 +260,6 @@ module rv_core
         .o_op1                          (alu1_op1),
         .o_op2                          (alu1_op2),
         .o_res                          (alu1_res),
-        .o_ctrl                         (alu1_ctrl),
         .o_store                        (alu1_store),
         .o_reg_write                    (alu1_reg_write),
         .o_rs1                          (alu1_rs1),
@@ -274,6 +273,7 @@ module rv_core
         .o_pc_target                    (alu1_pc_target),
         .o_res_src                      (alu1_res_src),
         .o_funct3                       (alu1_funct3),
+        .o_alu_sub                      (alu1_alu_sub),
         .o_reg_data1                    (alu1_reg_data1),
         .o_reg_data2                    (alu1_reg_data2),
         .o_to_trap                      (alu1_to_trap)
@@ -306,7 +306,6 @@ module rv_core
         .i_op1                          (alu1_op1),
         .i_op2                          (alu1_op2),
         .i_res                          (alu1_res),
-        .i_ctrl                         (alu1_ctrl),
         .i_store                        (alu1_store),
         .i_reg_write                    (alu1_reg_write),
         .i_rd                           (alu1_rd),
@@ -318,6 +317,7 @@ module rv_core
         .i_pc_target                    (alu1_pc_target),
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
+        .i_alu_sub                      (alu1_alu_sub),
         .i_reg_data2                    (alu1_reg_data2),
         .i_csr_read                     (i_csr_read),
         .i_csr_data                     (i_csr_data),

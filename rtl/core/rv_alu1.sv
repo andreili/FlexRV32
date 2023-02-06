@@ -22,8 +22,8 @@ module rv_alu1
     input   wire[31:0]                  i_imm_i,
     input   wire[31:0]                  i_imm_j,
     input   alu_res_t                   i_alu_res,
-    input   alu_ctrl_t                  i_alu_ctrl,
     input   wire[2:0]                   i_funct3,
+    input   wire[4:0]                   i_alu_sub,
     input   res_src_t                   i_res_src,
     input   wire                        i_reg_write,
     input   wire                        i_op1_src,
@@ -40,7 +40,6 @@ module rv_alu1
     output  wire[31:0]                  o_op1,
     output  wire[31:0]                  o_op2,
     output  alu_res_t                   o_res,
-    output  alu_ctrl_t                  o_ctrl,
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rs1,
@@ -54,6 +53,7 @@ module rv_alu1
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
+    output  wire[4:0]                   o_alu_sub,
     output  wire[31:0]                  o_reg_data1,
     output  wire[31:0]                  o_reg_data2,
     output  wire                        o_to_trap
@@ -67,10 +67,10 @@ module rv_alu1
     logic       op1_sel;
     src_op2_t   op2_sel;
     alu_res_t   res;
-    alu_ctrl_t  ctrl;
     logic       inst_jalr, inst_jal, inst_branch;
     logic       inst_mret;
     logic[2:0]  funct3;
+    logic[4:0]  alu_sub;
     logic       store;
     res_src_t   res_src;
     logic       reg_write;
@@ -102,8 +102,8 @@ module rv_alu1
             imm_i  <= i_imm_i;
             imm_j  <= i_imm_j;
             res <= i_alu_res;
-            ctrl <= i_alu_ctrl;
             funct3  <= i_funct3;
+            alu_sub <= i_alu_sub;
             res_src <= i_res_src;
             op1_sel <= i_op1_src;
             op2_sel <= i_op2_src;
@@ -145,7 +145,6 @@ module rv_alu1
     assign  o_op1 = op1;
     assign  o_op2 = op2;
     assign  o_res = res;
-    assign  o_ctrl = ctrl;
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rs1 = rs1;
@@ -158,6 +157,7 @@ module rv_alu1
     assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
+    assign  o_alu_sub = alu_sub;
     assign  o_reg_data1 = i_reg1_data;
     assign  o_reg_data2 = i_reg2_data;
     assign  o_to_trap = to_trap;

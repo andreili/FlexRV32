@@ -60,7 +60,7 @@ module rv_decode_comp
                 inst_c_addi4spn = |i_instruction[12:5];
                 instruction = (|i_instruction[12:5]) ? { 2'b00, i_instruction[10:7], i_instruction[12:11],
                                 i_instruction[5], i_instruction[6], 2'b00, 5'h2, 3'b000, 2'b01,
-                                i_instruction[4:2], RV32_OPC_ARI, 2'b11 } : '0;
+                                i_instruction[4:2], RV32_OPC_OP_IMM, 2'b11 } : '0;
             end
             2'b01:
             begin
@@ -68,7 +68,7 @@ module rv_decode_comp
                 inst_c_lw = '1;
                 instruction = { 5'b0, i_instruction[5], i_instruction[12:10], i_instruction[6],
                                 2'b00, 2'b01, i_instruction[9:7], 3'b010, 2'b01, i_instruction[4:2],
-                                RV32_OPC_LD, 2'b11 };
+                                RV32_OPC_LOAD, 2'b11 };
             end
             2'b11:
             begin
@@ -76,7 +76,7 @@ module rv_decode_comp
                 inst_c_sw = '1;
                 instruction = { 5'b0, i_instruction[5], i_instruction[12], 2'b01, i_instruction[4:2], 2'b01,
                                 i_instruction[9:7], 3'b010, i_instruction[11:10], i_instruction[6], 2'b00,
-                                RV32_OPC_STR, 2'b11 };
+                                RV32_OPC_STORE, 2'b11 };
             end
             2'b10:
             begin
@@ -95,7 +95,7 @@ module rv_decode_comp
                 inst_c_addi = '1;
                 instruction = { {6{i_instruction[12]}}, i_instruction[12], i_instruction[6:2],
                                 i_instruction[11:7], 3'b0, i_instruction[11:7],
-                                RV32_OPC_ARI, 2'b11 };
+                                RV32_OPC_OP_IMM, 2'b11 };
             end
             3'b001, 3'b101:
             begin
@@ -114,7 +114,7 @@ module rv_decode_comp
                 inst_c_li = '1;
                 instruction = { {6{i_instruction[12]}}, i_instruction[12], i_instruction[6:2], 5'b0,
                                 3'b0, i_instruction[11:7],
-                                RV32_OPC_ARI, 2'b11 };
+                                RV32_OPC_OP_IMM, 2'b11 };
             end
             3'b011:
             begin
@@ -128,7 +128,7 @@ module rv_decode_comp
                     inst_c_addi16sp = '0;
                     instruction = { {3{i_instruction[12]}}, i_instruction[4:3], i_instruction[5], i_instruction[2],
                                     i_instruction[6], 4'b0, 5'h02, 3'b000, 5'h02,
-                                    RV32_OPC_ARI, 2'b11 };
+                                    RV32_OPC_OP_IMM, 2'b11 };
                 end
                 else
                     inst_c_lui = '1;
@@ -144,7 +144,7 @@ module rv_decode_comp
                     inst_c_srai =  i_instruction[10];
                     instruction = { 1'b0, i_instruction[10], 5'b0, i_instruction[6:2], 2'b01,
                                     i_instruction[9:7], 3'b101, 2'b01, i_instruction[9:7],
-                                    RV32_OPC_ARI, 2'b11 };
+                                    RV32_OPC_OP_IMM, 2'b11 };
                 end
                 2'b10:
                 begin
@@ -152,7 +152,7 @@ module rv_decode_comp
                     inst_c_andi = '1;
                     instruction = { {6{i_instruction[12]}}, i_instruction[12], i_instruction[6:2],
                                     2'b01, i_instruction[9:7], 3'b111, 2'b01, i_instruction[9:7],
-                                    RV32_OPC_ARI, 2'b11 };
+                                    RV32_OPC_OP_IMM, 2'b11 };
                 end
                 2'b11:
                 begin
@@ -162,8 +162,8 @@ module rv_decode_comp
                         // c.sub -> sub rd', rd', rs2'
                         inst_c_sub = '1;
                         instruction = { 2'b01, 5'b0, 2'b01, i_instruction[4:2], 2'b01,
-                        i_instruction[9:7], 3'b000, 2'b01, i_instruction[9:7],
-                                        RV32_OPC_ARR, 2'b11 };
+                                        i_instruction[9:7], 3'b000, 2'b01, i_instruction[9:7],
+                                        RV32_OPC_OP, 2'b11 };
                     end
                     2'b01:
                     begin
@@ -171,7 +171,7 @@ module rv_decode_comp
                         inst_c_xor = '1;
                         instruction = { 7'b0, 2'b01, i_instruction[4:2], 2'b01, i_instruction[9:7],
                                         3'b100, 2'b01, i_instruction[9:7],
-                                        RV32_OPC_ARR, 2'b11 };
+                                        RV32_OPC_OP, 2'b11 };
                     end
                     2'b10:
                     begin
@@ -179,7 +179,7 @@ module rv_decode_comp
                         inst_c_or = '1;
                         instruction = { 7'b0, 2'b01, i_instruction[4:2], 2'b01, i_instruction[9:7],
                                         3'b110, 2'b01, i_instruction[9:7],
-                                        RV32_OPC_ARR, 2'b11 };
+                                        RV32_OPC_OP, 2'b11 };
                     end
                     2'b11:
                     begin
@@ -187,7 +187,7 @@ module rv_decode_comp
                         inst_c_and = '1;
                         instruction = { 7'b0, 2'b01, i_instruction[4:2], 2'b01, i_instruction[9:7],
                                         3'b111, 2'b01, i_instruction[9:7],
-                                        RV32_OPC_ARR, 2'b11 };
+                                        RV32_OPC_OP, 2'b11 };
                     end
                     endcase
                 end
@@ -201,7 +201,7 @@ module rv_decode_comp
                 inst_c_bnez =  i_instruction[13];
                 instruction = { {4{i_instruction[12]}}, i_instruction[6:5], i_instruction[2], 5'b0, 2'b01,
                                 i_instruction[9:7], 2'b00, i_instruction[13], i_instruction[11:10],
-                                i_instruction[4:3], i_instruction[12], RV32_OPC_B, 2'b11};
+                                i_instruction[4:3], i_instruction[12], RV32_OPC_BRANCH, 2'b11};
             end
             endcase
         end
@@ -213,14 +213,14 @@ module rv_decode_comp
                 // c.slli -> slli rd, rd, shamt
                 inst_c_slli = '1;
                 instruction = { 7'b0, i_instruction[6:2], i_instruction[11:7], 3'b001, i_instruction[11:7],
-                                RV32_OPC_ARI, 2'b11 };
+                                RV32_OPC_OP_IMM, 2'b11 };
             end
             2'b01:
             begin
                 // c.lwsp -> lw rd, imm(x2 )
                 inst_c_lwsp = '1;
                 instruction = { 4'b0, i_instruction[3:2], i_instruction[12], i_instruction[6:4], 2'b00, 5'h02,
-                                3'b010, i_instruction[11:7], RV32_OPC_LD, 2'b11};
+                                3'b010, i_instruction[11:7], RV32_OPC_LOAD, 2'b11};
             end
             2'b10:
             begin
@@ -231,7 +231,7 @@ module rv_decode_comp
                         // c.mv -> add rd/rs1, x0, rs2
                         inst_c_mv = '1;
                         instruction = { 7'b0, i_instruction[6:2], 5'b0, 3'b0, i_instruction[11:7],
-                                        RV32_OPC_ARR, 2'b11 };
+                                        RV32_OPC_OP, 2'b11 };
                     end
                     else
                     begin
@@ -247,7 +247,7 @@ module rv_decode_comp
                         // c.add -> add rd, rd, rs2
                         inst_c_add = '1;
                         instruction = { 7'b0, i_instruction[6:2], i_instruction[11:7], 3'b0,
-                                        i_instruction[11:7], RV32_OPC_ARR, 2'b11 };
+                                        i_instruction[11:7], RV32_OPC_OP, 2'b11 };
                     end
                     else
                     begin
@@ -271,7 +271,7 @@ module rv_decode_comp
                 // c.swsp -> sw rs2, imm(x2)
                 inst_c_swsp = '1;
                 instruction = { 4'b0, i_instruction[8:7], i_instruction[12], i_instruction[6:2], 5'h02,
-                                3'b010, i_instruction[11:9], 2'b00, RV32_OPC_STR, 2'b11 };
+                                3'b010, i_instruction[11:9], 2'b00, RV32_OPC_STORE, 2'b11 };
             end
             endcase
         end

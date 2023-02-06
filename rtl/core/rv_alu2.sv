@@ -18,7 +18,6 @@ module rv_alu2
     input   wire[31:0]                  i_op1,
     input   wire[31:0]                  i_op2,
     input   alu_res_t                   i_res,
-    input   alu_ctrl_t                  i_ctrl,
     input   wire                        i_store,
     input   wire                        i_reg_write,
     input   wire[4:0]                   i_rd,
@@ -30,6 +29,7 @@ module rv_alu2
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
+    input   wire[4:0]                   i_alu_sub,
     input   wire[31:0]                  i_reg_data2,
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
@@ -55,12 +55,10 @@ module rv_alu2
     logic[31:0] xor_, or_, and_, shl;
     logic[32:0] shr;
     logic       carry;
-    logic       op_b_sel;
     logic[31:0] op_b;
     logic       negative;
     logic       overflow;
     alu_res_t   res;
-    alu_ctrl_t  ctrl;
     logic       store;
     logic       reg_write;
     logic[4:0]  rd;
@@ -70,6 +68,7 @@ module rv_alu2
     logic[IADDR_SPACE_BITS-1:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
+    logic[4:0]  alu_sub;
     logic[31:0] reg_data2;
     logic       csr_read;
     logic[31:0] csr_data;
@@ -94,7 +93,6 @@ module rv_alu2
             op1 <= i_op1;
             op2 <= i_op2;
             res <= i_res;
-            ctrl <= i_ctrl;
             store <= i_store;
             reg_write <= i_reg_write;
             rd <= i_rd;
@@ -105,6 +103,7 @@ module rv_alu2
             pc_target <= i_pc_target;
             res_src <= i_res_src;
             funct3 <= i_funct3;
+            alu_sub <= i_alu_sub;
             reg_data2 <= i_reg_data2;
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
@@ -114,24 +113,23 @@ module rv_alu2
     end
 
     // adder - for all (add/sub/cmp)
-    assign  op_b_sel = (ctrl.arith_sub | res.cmp);
-    assign  op_b     = op_b_sel ? (~op2) : op2;
-    assign  add      = op1 + op_b + { {32{1'b0}}, op_b_sel};
+    assign  op_b     = alu_sub[4] ? (~op2) : op2;
+    assign  add      = op1 + op_b + { {32{1'b0}}, alu_sub[4] };
     assign  negative = add[31];
     assign  overflow = (op1[31] ^ op2[31]) & (op1[31] ^ add[31]);
     assign  carry    = add[32];
 
-    assign  eq  = ctrl.cmp_inversed ^ (op1 == op2);
-    assign  lts = ctrl.cmp_inversed ^ (negative ^ overflow);
-    assign  ltu = ctrl.cmp_inversed ^ (!carry);
+    assign  eq  = alu_sub[3] ^ (op1 == op2);
+    assign  lts = alu_sub[3] ^ (negative ^ overflow);
+    assign  ltu = alu_sub[3] ^ (!carry);
 
     assign  xor_ = op1 ^ op2;
     assign  or_  = op1 | op2;
     assign  and_ = op1 & op2;
     assign  shl = op1 << op2[4:0];
-    assign  shr = $signed({ctrl.shift_arithmetical ? op1[31] : 1'b0, op1}) >>> op2[4:0];
+    assign  shr = $signed({alu_sub[4] ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
-
+    logic       cmp_result;
     logic       pc_select, pred_ok;
     logic[IADDR_SPACE_BITS-1:0] pc_out;
     assign      pred_ok = (pc_target == i_pc);
@@ -139,23 +137,44 @@ module rv_alu2
                             (branch_pred & pred_ok & BRANCH_PREDICTION);
     assign      pc_out = (branch_pred & pred_ok) ? pc_next : pc_target;
 
-    logic       cmp_result;
-    logic[31:0] bits_result;
-    logic[31:0] shift_result;
+    always_comb
+    begin
+        case (funct3[2:1])
+        2'b00  : cmp_result = eq;
+        2'b10  : cmp_result = lts;
+        default: cmp_result = ltu;
+        endcase
+    end
+
     logic[31:0] alu_result;
     logic[31:0] result;
-
-    assign  cmp_result = ctrl.cmp_lts ? lts :
-                         ctrl.cmp_ltu ? ltu :
-                         eq;
-    assign  bits_result = ctrl.bits_xor ? xor_ :
-                          ctrl.bits_or ? or_ :
-                          and_;
-    assign  shift_result = ctrl.arith_shr ? shr[31:0] : shl;
-    assign  alu_result = res.cmp   ? { {31{1'b0}}, cmp_result } :
-                         res.bits  ? bits_result :
-                         res.shift ? shift_result :
-                         add[31:0];
+    always_comb
+    begin
+        case (alu_sub[2:0])
+        3'b000 : alu_result = add[31:0];
+        3'b001 : alu_result = shl;
+        3'b010 : alu_result = { {31{1'b0}}, lts };
+        3'b011 : alu_result = { {31{1'b0}}, ltu };
+        3'b100 : alu_result = xor_;
+        3'b101 : alu_result = shr[31:0];
+        3'b110 : alu_result = or_;
+        default: alu_result = and_;
+        endcase
+    end
+    /*always_comb
+    begin
+        case (1'b1)
+        ctrl.cmp_lts  : alu_result = { {31{1'b0}}, lts };
+        ctrl.cmp_ltu  : alu_result = { {31{1'b0}}, ltu };
+        ctrl.cmp_eq   : alu_result = { {31{1'b0}}, eq  };
+        ctrl.bits_xor : alu_result = xor_;
+        ctrl.bits_or  : alu_result = or_;
+        ctrl.bits_and : alu_result = and_;
+        ctrl.arith_shl: alu_result = shl;
+        ctrl.arith_shr: alu_result = shr[31:0];
+        default       : alu_result = add[31:0];
+        endcase
+    end*/
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
                      alu_result;
@@ -192,8 +211,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = ctrl.cmp_eq & ctrl.bits_and & ctrl.arith_shl & ctrl.arith_add &
-                    shr[32] & res.arith;
+    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_pc_select = pc_select;

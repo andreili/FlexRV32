@@ -31,7 +31,7 @@ module rv_trace
     logic[31:0] r_instr_exec2;
     logic[IADDR_SPACE_BITS-1:0] r_pc_exec2;
     logic       r_reg_write_exec2, r_mem_write_exec2, r_mem_read_exec2;
-    logic[31:0] r_instr_wr, r_wdata_wr, r_addr_wr, r_rdata_wr;
+    logic[31:0] r_instr_wr, r_wdata_wr, r_addr_wr;
     logic[IADDR_SPACE_BITS-1:0] r_pc_wr;
     logic[3:0]  r_sel_wr;
     logic       r_reg_write_wr, r_mem_write_wr, r_mem_read_wr;
@@ -84,7 +84,7 @@ module rv_trace
     endfunction
 
     function static string rdata_masked();
-        return data_masked(r_rdata_wr);
+        return data_masked(i_bus_data);
     endfunction
 
     function static string wdata_masked();
@@ -348,7 +348,6 @@ module rv_trace
         r_mem_write_wr <= r_mem_write_exec2;
         r_mem_read_wr <= r_mem_read_exec2;
         r_wdata_wr <= i_mem_data;
-        r_rdata_wr <= i_bus_data;
         r_addr_wr <= i_mem_addr;
         r_sel_wr <= i_mem_sel;
     end
