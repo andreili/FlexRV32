@@ -27,24 +27,13 @@ typedef struct packed
 
 typedef struct packed
 {
-    logic                   cmp_lts;
-    logic                   cmp_ltu;
-    // always latest of compare - it's default
-    logic                   cmp_eq;
-    logic                   cmp_inversed;
-
-    logic                   bits_or;
-    logic                   bits_xor;
-    // always latest of bits - it's default
-    logic                   bits_and;
-
-    logic                   arith_shl;
-    logic                   arith_shr;
-    logic                   arith_sub;
-    // always latest of arithmetical - it's default
-    logic                   arith_add;
-    logic                   shift_arithmetical;
+    logic       add_override;
+    logic       op1_inv_or_ecmp_inv;
+    logic       op2_inverse;
+    logic       group_mux;
 } alu_ctrl_t;
+
+`define GRP_MUX_MULDIV 1'b1
 
 typedef struct packed
 {

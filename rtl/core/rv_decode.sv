@@ -40,7 +40,7 @@ module rv_decode
     output  wire[31:0]                  o_imm_j,
     output  alu_res_t                   o_alu_res,
     output  wire[2:0]                   o_funct3,
-    output  wire[5:0]                   o_alu_sub,
+    output  alu_ctrl_t                  o_alu_ctrl,
     output  res_src_t                   o_res_src,
     output  wire                        o_reg_write,
     output  wire                        o_op1_src,
@@ -185,13 +185,12 @@ module rv_decode
     assign  inst_mret     = inst_grp_sys & (funct3 == 3'b000) & (funct12 == 12'b001100000010);
     assign  inst_csr_req  = (inst_grp_sys & (funct3 != 3'b000) & EXTENSION_Zicsr);
 
-    logic[5:0]  alu_sub;
-    assign      alu_sub[2:0] = (inst_lui | inst_auipc | inst_jal | inst_grp_load |
-                                inst_grp_store) ? 3'b000 : funct3;
-    assign      alu_sub[3] = (inst_grp_branch & funct3[0]) |
-                             (inst_grp_mul & ((funct3[2] & (!funct3[0])) |
-                              ((!funct3[2]) & (!funct3[1]) & funct3[0])));
-    assign      alu_sub[4] = ((op[6:2] == RV32_OPC_BRANCH) |
+    assign  o_alu_ctrl.add_override =  (inst_lui | inst_auipc | inst_jal | inst_grp_load |
+                                        inst_grp_store);
+    assign  o_alu_ctrl.op1_inv_or_ecmp_inv = (inst_grp_branch & funct3[0]) |
+                                             (inst_grp_mul & ((funct3[2] & (!funct3[0])) |
+                                              ((!funct3[2]) & (!funct3[1]) & funct3[0])));
+    assign  o_alu_ctrl.op2_inverse = ((op[6:2] == RV32_OPC_BRANCH) |
                               (((op[6:2] == RV32_OPC_OP) | (op[6:2] == RV32_OPC_OP_IMM)) &
                                (funct3[2:1] == 2'b01)) |
                                 inst_sra | inst_srai) ? '1 :
@@ -199,7 +198,7 @@ module rv_decode
                              inst_grp_store | inst_grp_ari) ? '0 :
                             inst_grp_mul ? ((funct3[2] & (!funct3[0])) | ((!funct3[2]) & (funct3[1] ^ funct3[0]))) :
                             funct7[5];
-    assign      alu_sub[5] = inst_grp_mul;
+    assign  o_alu_ctrl.group_mux = inst_grp_mul;
 
     assign  o_imm_j = inst_jal ? imm_j : imm_b;
     assign  o_imm_i = imm_mux;
@@ -242,8 +241,7 @@ module rv_decode
     assign  o_alu_res.arith = |{inst_sub, inst_add, inst_grp_load, inst_grp_store};
 
     assign  o_pc = i_pc;
-    assign  o_funct3 = (inst_full) ? funct3 : (3'b010);
-    assign  o_alu_sub = alu_sub;
+    assign  o_funct3 = funct3;
     assign  o_inst_jalr = inst_jalr;
     assign  o_inst_jal = inst_jal;
     assign  o_inst_branch = inst_grp_branch;

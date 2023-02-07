@@ -29,7 +29,7 @@ module rv_alu2
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
-    input   wire[5:0]                   i_alu_sub,
+    input   alu_ctrl_t                  i_alu_ctrl,
     input   wire[31:0]                  i_reg_data2,
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
@@ -68,7 +68,7 @@ module rv_alu2
     logic[IADDR_SPACE_BITS-1:0] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
-    logic[5:0]  alu_sub;
+    alu_ctrl_t  alu_ctrl;
     logic[31:0] reg_data2;
     logic       csr_read;
     logic[31:0] csr_data;
@@ -79,6 +79,8 @@ module rv_alu2
     begin
         if ((!i_reset_n) | i_flush)
         begin
+            op1 <= '0;
+            op2 <= '0;
             rd <= '0;
             inst_jal_jalr <= '0;
             inst_branch <= '0;
@@ -103,7 +105,7 @@ module rv_alu2
             pc_target <= i_pc_target;
             res_src <= i_res_src;
             funct3 <= i_funct3;
-            alu_sub <= i_alu_sub;
+            alu_ctrl <= i_alu_ctrl;
             reg_data2 <= i_reg_data2;
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
@@ -113,21 +115,23 @@ module rv_alu2
     end
 
     // adder - for all (add/sub/cmp)
-    assign  op_b     = alu_sub[4] ? (~op2) : op2;
-    assign  add      = op1 + op_b + { {32{1'b0}}, alu_sub[4] };
+    logic   zero;
+    assign  op_b     = alu_ctrl.op2_inverse ? (~op2) : op2;
+    assign  add      = op1 + op_b + { {32{1'b0}}, alu_ctrl.op2_inverse };
     assign  negative = add[31];
     assign  overflow = (op1[31] ^ op2[31]) & (op1[31] ^ add[31]);
     assign  carry    = add[32];
+    assign  zero     = !(|add[31:0]);
 
-    assign  eq  = alu_sub[3] ^ (op1 == op2);
-    assign  lts = alu_sub[3] ^ (negative ^ overflow);
-    assign  ltu = alu_sub[3] ^ (!carry);
+    assign  eq  = alu_ctrl.op1_inv_or_ecmp_inv ^ zero;
+    assign  lts = alu_ctrl.op1_inv_or_ecmp_inv ^ (negative ^ overflow);
+    assign  ltu = alu_ctrl.op1_inv_or_ecmp_inv ^ (!carry);
 
     assign  xor_ = op1 ^ op2;
     assign  or_  = op1 | op2;
     assign  and_ = op1 & op2;
     assign  shl = op1 << op2[4:0];
-    assign  shr = $signed({alu_sub[4] ? op1[31] : 1'b0, op1}) >>> op2[4:0];
+    assign  shr = $signed({alu_ctrl.op2_inverse ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
     logic[31:0] op_a, op_c;
     logic[32:0] op1_m, op2_m;
@@ -135,16 +139,16 @@ module rv_alu2
     logic[31:0] div;
     logic[31:0] rem;
     logic       m_sign;
-    assign      op_a  = ((alu_sub[3] & op1[31]) ? (~op1) : op1) +
-                        { {31{1'b0}}, (alu_sub[3] & op1[31]) };
-    assign      op_c  = ((alu_sub[4] & op2[31]) ? (~op2) : op2) +
-                        { {31{1'b0}}, (alu_sub[4] & op2[31]) };
-    assign      op1_m = $signed({alu_sub[3] ? op1[31] : 1'b0, op_a});
-    assign      op2_m = $signed({alu_sub[4] ? op2[31] : 1'b0, op_c});
+    assign      op_a  = ((alu_ctrl.op1_inv_or_ecmp_inv & op1[31]) ? (~op1) : op1) +
+                        { {31{1'b0}}, (alu_ctrl.op1_inv_or_ecmp_inv & op1[31]) };
+    assign      op_c  = ((alu_ctrl.op2_inverse & op2[31]) ? (~op2) : op2) +
+                        { {31{1'b0}}, (alu_ctrl.op2_inverse & op2[31]) };
+    assign      op1_m = $signed({alu_ctrl.op1_inv_or_ecmp_inv ? op1[31] : 1'b0, op_a});
+    assign      op2_m = $signed({alu_ctrl.op2_inverse ? op2[31] : 1'b0, op_c});
     assign      mul = op1_m[31:0] * op2_m[31:0];
     assign      div = op1_m[31:0] / op2_m[31:0];
     assign      rem = op1_m[31:0] % op2_m[31:0];
-    assign      m_sign = (alu_sub[3] & op1_m[32]) ^ (alu_sub[4] & op2_m[32]);
+    assign      m_sign = (alu_ctrl.op1_inv_or_ecmp_inv & op1_m[32]) ^ (alu_ctrl.op2_inverse & op2_m[32]);
 
     logic       cmp_result;
     logic       pc_select, pred_ok;
@@ -163,26 +167,34 @@ module rv_alu2
         endcase
     end
 
+    logic[31:0] alu_i;
     logic[31:0] alu_res_i;
     logic[31:0] alu_m;
     logic[31:0] alu_res_m;
     logic[31:0] result;
     always_comb
     begin
-        case (alu_sub[2:0])
-        3'b000 : alu_res_i = add[31:0];
-        3'b001 : alu_res_i = shl;
-        3'b010 : alu_res_i = { {31{1'b0}}, lts };
-        3'b011 : alu_res_i = { {31{1'b0}}, ltu };
-        3'b100 : alu_res_i = xor_;
-        3'b101 : alu_res_i = shr[31:0];
-        3'b110 : alu_res_i = or_;
-        default: alu_res_i = and_;
+        case (funct3[2:0])
+        3'b000 : alu_i = add[31:0];
+        3'b001 : alu_i = shl;
+        3'b010 : alu_i = { {31{1'b0}}, lts };
+        3'b011 : alu_i = { {31{1'b0}}, ltu };
+        3'b100 : alu_i = xor_;
+        3'b101 : alu_i = shr[31:0];
+        3'b110 : alu_i = or_;
+        default: alu_i = and_;
         endcase
     end
     always_comb
     begin
-        case (alu_sub[2:0])
+        case (alu_ctrl.add_override)
+        1'b0   : alu_res_i = alu_i;
+        default: alu_res_i = add[31:0];
+        endcase
+    end
+    always_comb
+    begin
+        case (funct3[2:0])
         3'b000 : alu_m = mul[31: 0];
         3'b001 : alu_m = mul[63:32];
         3'b010 : alu_m = mul[63:32];
@@ -198,7 +210,7 @@ module rv_alu2
 
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
-                     alu_sub[5] ? alu_res_m : alu_res_i;
+                     (alu_ctrl.group_mux == `GRP_MUX_MULDIV) ? alu_res_m : alu_res_i;
 
     always_comb
     begin

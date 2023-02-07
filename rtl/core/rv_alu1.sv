@@ -23,7 +23,7 @@ module rv_alu1
     input   wire[31:0]                  i_imm_j,
     input   alu_res_t                   i_alu_res,
     input   wire[2:0]                   i_funct3,
-    input   wire[5:0]                   i_alu_sub,
+    input   alu_ctrl_t                  i_alu_ctrl,
     input   res_src_t                   i_res_src,
     input   wire                        i_reg_write,
     input   wire                        i_op1_src,
@@ -53,7 +53,7 @@ module rv_alu1
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
-    output  wire[5:0]                   o_alu_sub,
+    output  alu_ctrl_t                  o_alu_ctrl,
     output  wire[31:0]                  o_reg_data1,
     output  wire[31:0]                  o_reg_data2,
     output  wire                        o_to_trap
@@ -70,7 +70,7 @@ module rv_alu1
     logic       inst_jalr, inst_jal, inst_branch;
     logic       inst_mret;
     logic[2:0]  funct3;
-    logic[5:0]  alu_sub;
+    alu_ctrl_t  alu_ctrl;
     logic       store;
     res_src_t   res_src;
     logic       reg_write;
@@ -103,7 +103,7 @@ module rv_alu1
             imm_j  <= i_imm_j;
             res <= i_alu_res;
             funct3  <= i_funct3;
-            alu_sub <= i_alu_sub;
+            alu_ctrl <= i_alu_ctrl;
             res_src <= i_res_src;
             op1_sel <= i_op1_src;
             op2_sel <= i_op2_src;
@@ -157,7 +157,7 @@ module rv_alu1
     assign  o_pc_target = pc_target;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
-    assign  o_alu_sub = alu_sub;
+    assign  o_alu_ctrl = alu_ctrl;
     assign  o_reg_data1 = i_reg1_data;
     assign  o_reg_data2 = i_reg2_data;
     assign  o_to_trap = to_trap;
