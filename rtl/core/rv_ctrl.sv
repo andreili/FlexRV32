@@ -14,7 +14,6 @@ module rv_ctrl
     input   wire[4:0]                   i_alu_rs2,
     input   wire                        i_alu1_mem_rd,
     input   wire[4:0]                   i_alu1_rd,
-    input   wire                        i_alu2_mem_rd,
     input   wire[4:0]                   i_alu2_rd,
     input   wire                        i_alu2_reg_write,
     input   wire[4:0]                   i_write_rd,
@@ -42,14 +41,12 @@ module rv_ctrl
     assign  rs2_on_write   = i_write_reg_write   & (|i_write_rd  ) & (i_alu_rs2 == i_write_rd  );
     assign  rs2_on_wr_back = i_wr_back_reg_write & (|i_wr_back_rd) & (i_alu_rs2 == i_wr_back_rd);
 
-    logic   need_mem_data1, need_mem_data2;
+    logic   need_mem_data1;
     assign  need_mem_data1 = i_alu1_mem_rd   & (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
                              (i_decode_rs2 == i_alu1_rd  ));
-    assign  need_mem_data2 = i_alu2_mem_rd   & (|i_alu2_rd  ) & ((i_decode_rs1 == i_alu2_rd  ) |
-                             (i_decode_rs2 == i_alu2_rd  ));
 
     logic   decode_stall;
-    assign  decode_stall = (!i_reset_n) | need_mem_data2 | need_mem_data1 | i_need_pause;
+    assign  decode_stall = (!i_reset_n) | need_mem_data1 | i_need_pause;
 
     logic   global_flush;
     assign  global_flush = (!i_reset_n) | i_pc_change;

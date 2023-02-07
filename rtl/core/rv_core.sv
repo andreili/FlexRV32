@@ -411,7 +411,6 @@ module rv_core
         .i_alu_rs2                      (alu1_rs2),
         .i_alu1_mem_rd                  (alu1_res_src.memory),
         .i_alu1_rd                      (alu1_rd),
-        .i_alu2_mem_rd                  (alu2_res_src.memory),
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
         .i_write_rd                     (write_rd),

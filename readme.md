@@ -25,7 +25,7 @@ Multi-cycle core, for comparasion only:
 Pipelined core:
 |Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|RV32I+PB(2)|647|120|232053|132.07|1.101|
+|RV32I+PB(2)|647|117|228|129.78|1.109|
 |PB(2)+BTB|833|120|261880|149.05|1.242|
 
 Agenda:

@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Tue Feb 07 21:49:01 2023
+[*] Tue Feb 07 22:33:43 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Tue Feb 07 21:47:45 2023"
-[dumpfile_size] 18285298
+[dumpfile_mtime] "Tue Feb 07 22:33:32 2023"
+[dumpfile_size] 17443492
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
 [timestart] 7731
 [size] 1920 1017
@@ -149,7 +149,7 @@ TOP.top.u_rv.u_core.u_st1_fetch.o_ready
 TOP.top.u_rv.u_core.u_st1_fetch.o_branch_pred
 @1401200
 -ST1 FETCH
-@c00201
+@c00200
 -ST2 DECODE
 @28
 TOP.top.u_rv.u_core.u_st2_decode.i_stall
@@ -187,13 +187,12 @@ TOP.top.u_rv.u_core.u_st2_decode.funct7[6:0]
 TOP.top.u_rv.u_core.u_st2_decode.branch_pred
 TOP.top.u_rv.u_core.u_st2_decode.o_inst_supported
 TOP.top.u_rv.u_core.u_st2_decode.inst_grp_arr
-@1401201
+@1401200
 -ST2 DECODE
 @c00200
 -ST3 ALU1
 @28
 TOP.top.u_rv.u_core.u_st3_alu1.i_flush
-TOP.top.u_rv.u_core.u_st3_alu1.i_stall
 TOP.top.u_rv.u_core.u_st3_alu1.reg_write
 @22
 TOP.top.u_rv.u_core.u_st3_alu1.i_reg1_data[31:0]
@@ -226,7 +225,6 @@ TOP.top.u_rv.u_core.u_st4_alu2.reg_write
 TOP.top.u_rv.u_core.u_st4_alu2.rd[4:0]
 @28
 TOP.top.u_rv.u_core.u_st4_alu2.funct3[2:0]
-TOP.top.u_rv.u_core.u_st4_alu2.alu_sub[5:0]
 TOP.top.u_rv.u_core.u_st4_alu2.eq
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.op1_m[32:0]
@@ -368,7 +366,6 @@ TOP.top.u_rv.u_core.u_regs.r_reg_file[31][31:0]
 -TRACE
 @28
 TOP.top.u_rv.u_core.u_trace.i_exec_flush
-TOP.top.u_rv.u_core.u_trace.i_exec_stall
 TOP.top.u_rv.u_core.u_trace.i_exec2_flush
 @22
 TOP.top.u_rv.u_core.u_trace.r_instr_exec[31:0]
