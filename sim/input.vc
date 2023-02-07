@@ -2,5 +2,6 @@
 -y ../../rtl/
 -y ../../rtl/peripheral/uart
 -y ../../rtl/core/
+-y ../../rtl/core/math
 -y ../../rtl/csr/
 -y ../../vrf/
