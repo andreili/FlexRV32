@@ -5,7 +5,11 @@
 module rv_top_wb
 #(
     parameter logic[31:0] RESET_ADDR    = 32'h0000_0000,
+`ifdef TO_SIM
+    parameter int IADDR_SPACE_BITS      = 22,
+`else
     parameter int IADDR_SPACE_BITS      = 16,
+`endif
     parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 3,
     parameter int INSTR_BUF_ADDR_SIZE   = 2,
