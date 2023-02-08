@@ -2,6 +2,8 @@
 
 module math_int
 (
+    input   wire                        i_clk,
+    input   wire                        i_start,
     input   wire                        i_op1_signed,
     input   wire                        i_op2_signed,
     input   wire[31:0]                  i_op1,
@@ -14,6 +16,8 @@ module math_int
     mint
     u_int
     (
+        .i_clk                          (i_clk),
+        .i_start                        (i_start),
         .i_op1_signed                   (i_op1_signed),
         .i_op2_signed                   (i_op2_signed),
         .i_op1                          (i_op1),

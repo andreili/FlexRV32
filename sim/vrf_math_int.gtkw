@@ -1,29 +1,176 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Tue Feb 07 18:09:43 2023
+[*] Wed Feb 08 22:10:37 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\vrf_math_int.fst"
-[dumpfile_mtime] "Tue Feb 07 18:09:16 2023"
-[dumpfile_size] 1034053
+[dumpfile_mtime] "Wed Feb 08 22:10:33 2023"
+[dumpfile_size] 12453106
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\vrf_math_int.gtkw"
-[timestart] 26411
+[timestart] 1
 [size] 1920 1017
-[pos] -9 -9
-*-3.409131 21626 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.409131 20084 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.math_int.
+[treeopen] TOP.math_int.u_int.
 [sst_width] 174
-[signals_width] 270
+[signals_width] 417
 [sst_expanded] 1
 [sst_vpaned_height] 304
 @28
 TOP.math_int.i_op1_signed
-@29
 TOP.math_int.i_op2_signed
-@24
+@420
 TOP.math_int.i_op1[31:0]
+@c00024
 TOP.math_int.i_op2[31:0]
+@28
+(0)TOP.math_int.i_op2[31:0]
+(1)TOP.math_int.i_op2[31:0]
+(2)TOP.math_int.i_op2[31:0]
+(3)TOP.math_int.i_op2[31:0]
+(4)TOP.math_int.i_op2[31:0]
+(5)TOP.math_int.i_op2[31:0]
+(6)TOP.math_int.i_op2[31:0]
+(7)TOP.math_int.i_op2[31:0]
+(8)TOP.math_int.i_op2[31:0]
+(9)TOP.math_int.i_op2[31:0]
+(10)TOP.math_int.i_op2[31:0]
+(11)TOP.math_int.i_op2[31:0]
+(12)TOP.math_int.i_op2[31:0]
+(13)TOP.math_int.i_op2[31:0]
+(14)TOP.math_int.i_op2[31:0]
+(15)TOP.math_int.i_op2[31:0]
+(16)TOP.math_int.i_op2[31:0]
+(17)TOP.math_int.i_op2[31:0]
+(18)TOP.math_int.i_op2[31:0]
+(19)TOP.math_int.i_op2[31:0]
+(20)TOP.math_int.i_op2[31:0]
+(21)TOP.math_int.i_op2[31:0]
+(22)TOP.math_int.i_op2[31:0]
+(23)TOP.math_int.i_op2[31:0]
+(24)TOP.math_int.i_op2[31:0]
+(25)TOP.math_int.i_op2[31:0]
+(26)TOP.math_int.i_op2[31:0]
+(27)TOP.math_int.i_op2[31:0]
+(28)TOP.math_int.i_op2[31:0]
+(29)TOP.math_int.i_op2[31:0]
+(30)TOP.math_int.i_op2[31:0]
+(31)TOP.math_int.i_op2[31:0]
+@1401200
+-group_end
+@24
 TOP.math_int.o_div[31:0]
 TOP.math_int.u_int.o_rem[31:0]
+@22
+TOP.math_int.o_mul[63:0]
+@c00022
+TOP.math_int.u_int.work[0][31:0]
+@28
+(0)TOP.math_int.u_int.work[0][31:0]
+(1)TOP.math_int.u_int.work[0][31:0]
+(2)TOP.math_int.u_int.work[0][31:0]
+(3)TOP.math_int.u_int.work[0][31:0]
+(4)TOP.math_int.u_int.work[0][31:0]
+(5)TOP.math_int.u_int.work[0][31:0]
+(6)TOP.math_int.u_int.work[0][31:0]
+(7)TOP.math_int.u_int.work[0][31:0]
+(8)TOP.math_int.u_int.work[0][31:0]
+(9)TOP.math_int.u_int.work[0][31:0]
+(10)TOP.math_int.u_int.work[0][31:0]
+(11)TOP.math_int.u_int.work[0][31:0]
+(12)TOP.math_int.u_int.work[0][31:0]
+(13)TOP.math_int.u_int.work[0][31:0]
+(14)TOP.math_int.u_int.work[0][31:0]
+(15)TOP.math_int.u_int.work[0][31:0]
+(16)TOP.math_int.u_int.work[0][31:0]
+(17)TOP.math_int.u_int.work[0][31:0]
+(18)TOP.math_int.u_int.work[0][31:0]
+(19)TOP.math_int.u_int.work[0][31:0]
+(20)TOP.math_int.u_int.work[0][31:0]
+(21)TOP.math_int.u_int.work[0][31:0]
+(22)TOP.math_int.u_int.work[0][31:0]
+(23)TOP.math_int.u_int.work[0][31:0]
+(24)TOP.math_int.u_int.work[0][31:0]
+(25)TOP.math_int.u_int.work[0][31:0]
+(26)TOP.math_int.u_int.work[0][31:0]
+(27)TOP.math_int.u_int.work[0][31:0]
+(28)TOP.math_int.u_int.work[0][31:0]
+(29)TOP.math_int.u_int.work[0][31:0]
+(30)TOP.math_int.u_int.work[0][31:0]
+(31)TOP.math_int.u_int.work[0][31:0]
+@1401200
+-group_end
+@c00022
+TOP.math_int.u_int.work[1][31:0]
+@28
+(0)TOP.math_int.u_int.work[1][31:0]
+(1)TOP.math_int.u_int.work[1][31:0]
+(2)TOP.math_int.u_int.work[1][31:0]
+(3)TOP.math_int.u_int.work[1][31:0]
+(4)TOP.math_int.u_int.work[1][31:0]
+(5)TOP.math_int.u_int.work[1][31:0]
+(6)TOP.math_int.u_int.work[1][31:0]
+(7)TOP.math_int.u_int.work[1][31:0]
+(8)TOP.math_int.u_int.work[1][31:0]
+(9)TOP.math_int.u_int.work[1][31:0]
+(10)TOP.math_int.u_int.work[1][31:0]
+(11)TOP.math_int.u_int.work[1][31:0]
+(12)TOP.math_int.u_int.work[1][31:0]
+(13)TOP.math_int.u_int.work[1][31:0]
+(14)TOP.math_int.u_int.work[1][31:0]
+(15)TOP.math_int.u_int.work[1][31:0]
+(16)TOP.math_int.u_int.work[1][31:0]
+(17)TOP.math_int.u_int.work[1][31:0]
+(18)TOP.math_int.u_int.work[1][31:0]
+(19)TOP.math_int.u_int.work[1][31:0]
+(20)TOP.math_int.u_int.work[1][31:0]
+(21)TOP.math_int.u_int.work[1][31:0]
+(22)TOP.math_int.u_int.work[1][31:0]
+(23)TOP.math_int.u_int.work[1][31:0]
+(24)TOP.math_int.u_int.work[1][31:0]
+(25)TOP.math_int.u_int.work[1][31:0]
+(26)TOP.math_int.u_int.work[1][31:0]
+(27)TOP.math_int.u_int.work[1][31:0]
+(28)TOP.math_int.u_int.work[1][31:0]
+(29)TOP.math_int.u_int.work[1][31:0]
+(30)TOP.math_int.u_int.work[1][31:0]
+(31)TOP.math_int.u_int.work[1][31:0]
+@1401200
+-group_end
+@22
+TOP.math_int.u_int.work[2][31:0]
+TOP.math_int.u_int.work[3][31:0]
+TOP.math_int.u_int.work[4][31:0]
+TOP.math_int.u_int.work[5][31:0]
+TOP.math_int.u_int.work[6][31:0]
+TOP.math_int.u_int.work[7][31:0]
+TOP.math_int.u_int.work[8][31:0]
+TOP.math_int.u_int.work[9][31:0]
+TOP.math_int.u_int.work[10][31:0]
+@23
+TOP.math_int.u_int.work[11][31:0]
+@22
+TOP.math_int.u_int.work[12][31:0]
+TOP.math_int.u_int.work[13][31:0]
+TOP.math_int.u_int.work[14][31:0]
+TOP.math_int.u_int.work[15][31:0]
+TOP.math_int.u_int.work[16][31:0]
+TOP.math_int.u_int.work[17][31:0]
+TOP.math_int.u_int.work[18][31:0]
+TOP.math_int.u_int.work[19][31:0]
+TOP.math_int.u_int.work[20][31:0]
+TOP.math_int.u_int.work[21][31:0]
+TOP.math_int.u_int.work[22][31:0]
+TOP.math_int.u_int.work[23][31:0]
+TOP.math_int.u_int.work[24][31:0]
+TOP.math_int.u_int.work[25][31:0]
+TOP.math_int.u_int.work[26][31:0]
+TOP.math_int.u_int.work[27][31:0]
+TOP.math_int.u_int.work[28][31:0]
+TOP.math_int.u_int.work[29][31:0]
+TOP.math_int.u_int.work[30][31:0]
+TOP.math_int.u_int.mod2[31:0]
+TOP.math_int.u_int.sum2[32:0]
 [pattern_trace] 1
 [pattern_trace] 0
