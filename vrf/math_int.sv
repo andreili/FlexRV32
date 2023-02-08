@@ -3,6 +3,7 @@
 module math_int
 (
     input   wire                        i_clk,
+    input   wire                        i_reset_n,
     input   wire                        i_start,
     input   wire                        i_op1_signed,
     input   wire                        i_op2_signed,
@@ -17,6 +18,7 @@ module math_int
     u_int
     (
         .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_start                        (i_start),
         .i_op1_signed                   (i_op1_signed),
         .i_op2_signed                   (i_op2_signed),

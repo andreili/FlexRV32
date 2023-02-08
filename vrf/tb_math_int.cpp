@@ -107,7 +107,10 @@ bool check_mul(TB* tb)
         op2 = std::rand();
         top->i_op1 = op1;
         top->i_op2 = op2;
-        tb->run_steps(2);
+        top->i_start = 1;
+        tb->run_steps(TICK_TIME);
+        top->i_start = 0;
+        tb->run_steps(TICK_TIME * 32);
         if (op2 == 0)
         {
             mul_check = 0;
@@ -119,7 +122,7 @@ bool check_mul(TB* tb)
         mul = top->o_mul;
         if (mul != mul_check)
         {
-            printf("[%d] Check failed! %ld*%ld=%+ld, expected %+ld\n",
+            printf("[%d] Check failed! %ld*%ld=0x%016lx, expected 0x%016lx\n",
                 round, op1, op2, mul, mul_check);
             return false;
         }
@@ -133,7 +136,10 @@ bool check_mul(TB* tb)
         op2 = std::rand();
         top->i_op1 = op1s;
         top->i_op2 = op2;
-        tb->run_steps(2);
+        top->i_start = 1;
+        tb->run_steps(TICK_TIME);
+        top->i_start = 0;
+        tb->run_steps(TICK_TIME * 32);
         if (op2 == 0)
         {
             muls_check = 0;
@@ -145,7 +151,7 @@ bool check_mul(TB* tb)
         muls = top->o_mul;
         if (muls != muls_check)
         {
-            printf("[%d] Check failed! %ld*%ld=%ld, expected %ld\n",
+            printf("[%d] Check failed! %ld*%ld=0x%016x, expected 0x%016x\n",
                 round, op1s, op2, muls, muls_check);
             return false;
         }
@@ -159,7 +165,10 @@ bool check_mul(TB* tb)
         op2s = (1 - std::rand());
         top->i_op1 = op1s;
         top->i_op2 = op2s;
-        tb->run_steps(2);
+        top->i_start = 1;
+        tb->run_steps(TICK_TIME);
+        top->i_start = 0;
+        tb->run_steps(TICK_TIME * 32);
         if (op2s == 0)
         {
             muls_check = 0;
@@ -171,7 +180,7 @@ bool check_mul(TB* tb)
         muls = top->o_mul;
         if (muls != muls_check)
         {
-            printf("[%d] Check failed! %ld*%ld=%ld, expected %ld\n",
+            printf("[%d] Check failed! %ld*%ld=0x%016x, expected 0x%016x\n",
                 round, op1s, op2s, muls, muls_check);
             return false;
         }
@@ -184,6 +193,12 @@ int main(int argc, char** argv, char** env)
     TB* tb = new TB(TOP_NAME_STR, argc, argv);
     tb->init(on_step_cb);
     TOP_CLASS* top = tb->get_top();
+
+    top->i_clk = 1;
+    top->i_reset_n = 0;
+    top->i_start = 0;
+    tb->run_steps(TICK_TIME * 2);
+    top->i_reset_n = 1;
 
     const char* cycles_str = tb->get_context()->commandArgsPlusMatch("cycles");
     time_max = -1;

@@ -1,9 +1,9 @@
 `timescale 1ps/1ps
 
-/* verilator lint_off UNUSEDSIGNAL */
 module mint
 (
     input   wire                        i_clk,
+    input   wire                        i_reset_n,
     input   wire                        i_start,
     input   wire                        i_op1_signed,
     input   wire                        i_op2_signed,
@@ -13,7 +13,6 @@ module mint
     output  wire[63:0]                  o_mul,
     output  wire[31:0]                  o_rem
 );
-/* verilator lint_on UNUSEDSIGNAL */
 
     logic[31:0] op_a, op_b;
     logic[32:0] op1_m, op2_m;
@@ -33,45 +32,57 @@ module mint
     assign  o_div = m_sign ? ((~div) - '1) : div;
     assign  o_rem = m_sign ? ((~rem) - '1) : rem;
 
-/* verilator lint_off UNUSEDSIGNAL */
-/* verilator lint_off UNOPTFLAT */
-    logic[63:0] result;
-    logic[31:0] work[31];
-    logic[31:0] mod2;
+    logic       mul_last, start;
+    logic[5:0]  op_cnt;
+    logic[31:0] op1, op2;
+    logic[63:0] mul;
 
-    logic[31:0] mod00;
-    logic[32:0] sum00;
-    assign      mod00   = { ~(i_op1[31] & i_op2[0]),
-                            i_op1[30:0] & {31{i_op2[0]}} };
-    assign      sum00   = { 1'b0, mod00 } + { i_op1_signed, 32'b0 };
-    assign      work[0] = sum00[32:1];
-    assign      result[0] = sum00[0];
+    assign  mul_last = (op_cnt == 6'd31);
 
-    generate
-        genvar i;
-        for (i=1 ; i<31 ; ++i)
-        begin : g_mul
-            logic[31:0] mod;
-            logic[32:0] sum;
-            assign      mod  = { i_op1_signed ^ (i_op1[31] & i_op2[i]),
-                                 i_op1[30:0] & {31{i_op2[i]}} };
-            assign      sum = mod + work[i-1];
-            assign      work[i] = sum[32:1];
-            assign      result[i] = sum[0];
-            if (i == 30)
-            begin : g_m2
-                assign mod2 = ~mod;
-            end
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+        begin
+            op_cnt <= 6'd31;
+            start <= '0;
         end
-    endgenerate
+        else if (mul_last & i_start)
+        begin
+            op1 <= i_op1;
+            op2 <= i_op2;
+            start <= '1;
+            op_cnt <= '0;
+        end
+        else if (!mul_last)
+        begin
+            op2 <= { 1'b0, op2[31:1] };
+            start <= '0;
+            op_cnt <= op_cnt + 1'b1;
+        end
+    end
 
-    logic[32:0] sum2;
-    assign      sum2 = mod2 + work[30];
-    assign      result[63:31] = { ~sum2[32], sum2[31:0] };
+    logic[31:0] mmod;
+    logic[32:0] msum;
+    logic[32:0] sum_prev;
 
-    assign  o_mul = result;
+    assign  mmod = {32{mul_last}} ^
+                   { (start | i_op1_signed) ^ (op1[31] & op2[0]), op1[30:0] & {31{op2[0]}} };
+    assign  msum = mmod + sum_prev;
 
-/* verilator lint_on UNOPTFLAT */
-/* verilator lint_on UNUSEDSIGNAL */
+    always_ff @(posedge i_clk)
+    begin
+        if (!mul_last)
+        begin
+            mul <= { 33'b0, msum[0], mul[30:1] };
+            sum_prev <= { 1'b0, msum[32:1] };
+        end
+        else
+        begin
+            mul <= { ~msum[32], msum[31:0], mul[30:0] };
+            sum_prev <= { i_op1_signed, 32'b0 };
+        end
+    end
+
+    assign  o_mul = mul;
 
 endmodule
