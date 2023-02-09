@@ -120,12 +120,13 @@ module rv_alu1
         end
     end
 
-    logic[31:0] op1, op2;
+    logic[31:0] op1, op2_pre, op2;
 
     assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } : i_reg1_data;
-    assign  op2 = op2_sel.i  ? imm_i :
-                  op2_sel.j  ? imm_j :
-                  i_reg2_data;
+    assign  op2_pre = op2_sel.i  ? imm_i :
+                      op2_sel.j  ? imm_j :
+                      i_reg2_data;
+    assign  op2 = alu_ctrl.op2_inverse ? (~op2_pre) : op2_pre;
 
     logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset, pc_target;
 

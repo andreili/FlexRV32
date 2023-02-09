@@ -187,16 +187,13 @@ module rv_decode
 
     assign  o_alu_ctrl.add_override =  (inst_lui | inst_auipc | inst_jal | inst_grp_load |
                                         inst_grp_store);
-    assign  o_alu_ctrl.op1_inv_or_ecmp_inv = (inst_grp_branch & funct3[0]) |
-                                             (inst_grp_mul & ((funct3[2] & (!funct3[0])) |
-                                              ((!funct3[2]) & (!funct3[1]) & funct3[0])));
+    assign  o_alu_ctrl.op1_inv_or_ecmp_inv = (inst_grp_branch & funct3[0]);
     assign  o_alu_ctrl.op2_inverse = ((op[6:2] == RV32_OPC_BRANCH) |
                               (((op[6:2] == RV32_OPC_OP) | (op[6:2] == RV32_OPC_OP_IMM)) &
                                (funct3[2:1] == 2'b01)) |
                                 inst_sra | inst_srai) ? '1 :
                             (inst_lui | inst_auipc | inst_jal | inst_grp_load |
                              inst_grp_store | inst_grp_ari) ? '0 :
-                            inst_grp_mul ? ((funct3[2] & (!funct3[0])) | ((!funct3[2]) & (funct3[1] ^ funct3[0]))) :
                             funct7[5];
     assign  o_alu_ctrl.group_mux = inst_grp_mul;
 

@@ -9,7 +9,8 @@ module rv_alu2
 #(
     parameter int IADDR_SPACE_BITS      = 32,
     parameter logic BRANCH_PREDICTION   = 1,
-    parameter logic EXTENSION_Zicsr     = 1
+    parameter logic EXTENSION_Zicsr     = 1,
+    parameter logic EXTENSION_M         = 1
 )
 (
     input   wire                        i_clk,
@@ -55,7 +56,6 @@ module rv_alu2
     logic[31:0] xor_, or_, and_, shl;
     logic[32:0] shr;
     logic       carry;
-    logic[31:0] op_b;
     logic       negative;
     logic       overflow;
     alu_res_t   res;
@@ -116,10 +116,9 @@ module rv_alu2
 
     // adder - for all (add/sub/cmp)
     logic   zero;
-    assign  op_b     = alu_ctrl.op2_inverse ? (~op2) : op2;
-    assign  add      = op1 + op_b + { {32{1'b0}}, alu_ctrl.op2_inverse };
+    assign  add      = op1 + op2 + { {32{1'b0}}, alu_ctrl.op2_inverse };
     assign  negative = add[31];
-    assign  overflow = (op1[31] ^ op2[31]) & (op1[31] ^ add[31]);
+    assign  overflow = (op1[31] ^ op2[31] ^ alu_ctrl.op2_inverse) & (op1[31] ^ add[31]);
     assign  carry    = add[32];
     assign  zero     = !(|add[31:0]);
 
@@ -131,24 +130,8 @@ module rv_alu2
     assign  or_  = op1 | op2;
     assign  and_ = op1 & op2;
     assign  shl = op1 << op2[4:0];
-    assign  shr = $signed({alu_ctrl.op2_inverse ? op1[31] : 1'b0, op1}) >>> op2[4:0];
-
-    logic[31:0] op_a, op_c;
-    logic[32:0] op1_m, op2_m;
-    logic[63:0] mul;
-    logic[31:0] div;
-    logic[31:0] rem;
-    logic       m_sign;
-    assign      op_a  = ((alu_ctrl.op1_inv_or_ecmp_inv & op1[31]) ? (~op1) : op1) +
-                        { {31{1'b0}}, (alu_ctrl.op1_inv_or_ecmp_inv & op1[31]) };
-    assign      op_c  = ((alu_ctrl.op2_inverse & op2[31]) ? (~op2) : op2) +
-                        { {31{1'b0}}, (alu_ctrl.op2_inverse & op2[31]) };
-    assign      op1_m = $signed({alu_ctrl.op1_inv_or_ecmp_inv ? op1[31] : 1'b0, op_a});
-    assign      op2_m = $signed({alu_ctrl.op2_inverse ? op2[31] : 1'b0, op_c});
-    assign      mul = op1_m[31:0] * op2_m[31:0];
-    assign      div = op1_m[31:0] / op2_m[31:0];
-    assign      rem = op1_m[31:0] % op2_m[31:0];
-    assign      m_sign = (alu_ctrl.op1_inv_or_ecmp_inv & op1_m[32]) ^ (alu_ctrl.op2_inverse & op2_m[32]);
+    assign  shr = $signed({alu_ctrl.op2_inverse ? op1[31] : 1'b0, op1}) >>>
+                  (op2[4:0] ^ {5{alu_ctrl.op2_inverse}});
 
     logic       cmp_result;
     logic       pc_select, pred_ok;
@@ -169,8 +152,8 @@ module rv_alu2
 
     logic[31:0] alu_i;
     logic[31:0] alu_res_i;
-    logic[31:0] alu_m;
-    logic[31:0] alu_res_m;
+    //logic[31:0] alu_m;
+    //logic[31:0] alu_res_m;
     logic[31:0] result;
     always_comb
     begin
@@ -192,25 +175,22 @@ module rv_alu2
         default: alu_res_i = add[31:0];
         endcase
     end
-    always_comb
+    /*always_comb
     begin
         case (funct3[2:0])
         3'b000 : alu_m = mul[31: 0];
         3'b001 : alu_m = mul[63:32];
-        3'b010 : alu_m = mul[63:32];
-        3'b011 : alu_m = mul[63:32];
-        3'b100 : alu_m = div[31:0];
-        3'b101 : alu_m = div[31:0];
-        3'b110 : alu_m = rem[31:0];
-        3'b111 : alu_m = rem[31:0];
+        3'b01x : alu_m = mul[63:32];
+        3'b10x : alu_m = div[31:0];
+        3'b11x : alu_m = rem[31:0];
         default: alu_m = '0;
         endcase
-    end
-    assign  alu_res_m = m_sign ? ((~alu_m) - '1) : alu_m;
+    end*/
 
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
-                     (alu_ctrl.group_mux == `GRP_MUX_MULDIV) ? alu_res_m : alu_res_i;
+                     alu_res_i;
+                     //(alu_ctrl.group_mux == `GRP_MUX_MULDIV) ? alu_m : alu_res_i;
 
     always_comb
     begin
@@ -244,7 +224,8 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift;
+    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift &
+                    EXTENSION_M & alu_ctrl.group_mux;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_pc_select = pc_select;

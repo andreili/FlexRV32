@@ -300,7 +300,8 @@ module rv_core
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
-        .EXTENSION_Zicsr                (EXTENSION_Zicsr)
+        .EXTENSION_Zicsr                (EXTENSION_Zicsr),
+        .EXTENSION_M                    (EXTENSION_M)
     )
     u_st4_alu2
     (
