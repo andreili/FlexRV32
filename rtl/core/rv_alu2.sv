@@ -56,9 +56,6 @@ module rv_alu2
     logic[32:0] add;
     logic[31:0] xor_, or_, and_, shl;
     logic[32:0] shr;
-    logic       carry;
-    logic       negative;
-    logic       overflow;
     alu_res_t   res;
     logic       store;
     logic       reg_write;
@@ -178,15 +175,25 @@ module rv_alu2
 
     // adder - for all (add/sub/cmp)
     logic       op2_inverse;
+    logic       overflow;
+    logic       negative;
     logic       zero;
-    logic[31:0] opb;
+    logic       carry;
     assign  op2_inverse = alu_ctrl.op2_inverse | (op_end & mul_op2_signed);
-    assign  opb      = {32{op2_inverse}} ^ op2_mux;
-    assign  add      = op1_mux + opb + { {32{1'b0}}, op2_inverse };
-    assign  negative = add[31];
-    assign  overflow = (op1_mux[31] ^ op2_mux[31]) & (op1_mux[31] ^ add[31]);
-    assign  carry    = add[32];
-    assign  zero     = !(|add[31:0]);
+
+    // adder - for all (add/sub/cmp/mul)
+    adder
+    u_adder
+    (
+        .i_is_sub                       (op2_inverse),
+        .i_op1                          (op1_mux),
+        .i_op2                          (op2_mux),
+        .o_add                          (add),
+        .o_overflow                     (overflow),
+        .o_negative                     (negative),
+        .o_zero                         (zero),
+        .o_carry                        (carry)
+    );
 
     assign  eq  = alu_ctrl.op1_inv_or_ecmp_inv ^ zero;
     assign  lts = alu_ctrl.op1_inv_or_ecmp_inv ^ (negative ^ overflow);
