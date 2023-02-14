@@ -171,31 +171,23 @@ module rv_alu2
 
     // adder - for all (add/sub/cmp)
     logic       op2_inverse;
-    logic       overflow;
-    logic       negative;
-    logic       zero;
-    logic       carry;
     assign  op2_inverse = alu_ctrl.op2_inverse | (op_end & mul_op2_signed);
 
     // adder - for all (add/sub/cmp/mul)
     logic[32:0] add;
+    logic       eq, lts, ltu;
     adder
     u_adder
     (
         .i_is_sub                       (op2_inverse),
+        .i_cmp_inverse                  (alu_ctrl.op1_inv_or_ecmp_inv),
         .i_op1                          (op1_mux),
         .i_op2                          (op2_mux),
         .o_add                          (add),
-        .o_overflow                     (overflow),
-        .o_negative                     (negative),
-        .o_zero                         (zero),
-        .o_carry                        (carry)
+        .o_eq                           (eq),
+        .o_lts                          (lts),
+        .o_ltu                          (ltu)
     );
-
-    logic       eq, lts, ltu;
-    assign  eq  = alu_ctrl.op1_inv_or_ecmp_inv ^ zero;
-    assign  lts = alu_ctrl.op1_inv_or_ecmp_inv ^ (negative ^ overflow);
-    assign  ltu = alu_ctrl.op1_inv_or_ecmp_inv ^ (!carry);
 
     logic[31:0] xor_, or_, and_, shl;
     logic[32:0] shr;
@@ -213,13 +205,6 @@ module rv_alu2
     );
 
     logic       cmp_result;
-    logic       pc_select, pred_ok;
-    logic[IADDR_SPACE_BITS-1:0] pc_out;
-    assign      pred_ok = (pc_target == i_pc);
-    assign      pc_select = (inst_jal_jalr | (inst_branch & (cmp_result))) ^
-                            (branch_pred & pred_ok & BRANCH_PREDICTION);
-    assign      pc_out = (branch_pred & pred_ok) ? pc_next : pc_target;
-
     always_comb
     begin
         case (funct3[2:1])
@@ -228,6 +213,24 @@ module rv_alu2
         default: cmp_result = ltu;
         endcase
     end
+
+    pc_sel
+    #(
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
+        .BRANCH_PREDICTION              (BRANCH_PREDICTION)
+    )
+    u_pc_sel
+    (
+        .i_cmp                          (cmp_result),
+        .i_branch_pred                  (branch_pred),
+        .i_inst_jal_jalr                (inst_jal_jalr),
+        .i_inst_branch                  (inst_branch),
+        .i_pc                           (pc),
+        .i_pc_next                      (pc_next),
+        .i_pc_target                    (pc_target),
+        .o_pc_select                    (o_pc_select),
+        .o_pc_target                    (o_pc_target)
+    );
 
     logic[63:0] mul;
 
@@ -245,91 +248,54 @@ module rv_alu2
         end
     end
 
-    logic[31:0] alu_i;
-    logic[31:0] alu_res_i;
-    logic[31:0] alu_m;
+    logic[31:0] alu_result;
     logic[31:0] result;
-    always_comb
-    begin
-        case (funct3[2:0])
-        3'b000 : alu_i = add[31:0];
-        3'b001 : alu_i = shl;
-        3'b010 : alu_i = { {31{1'b0}}, lts };
-        3'b011 : alu_i = { {31{1'b0}}, ltu };
-        3'b100 : alu_i = xor_;
-        3'b101 : alu_i = shr[31:0];
-        3'b110 : alu_i = or_;
-        default: alu_i = and_;
-        endcase
-    end
-    always_comb
-    begin
-        case (alu_ctrl.add_override)
-        1'b0   : alu_res_i = alu_i;
-        default: alu_res_i = add[31:0];
-        endcase
-    end
-    always_comb
-    begin
-        case (funct3[2:0])
-        3'b000 : alu_m = mul[31: 0];
-        3'b001 : alu_m = mul[63:32];
-        3'b010 : alu_m = mul[63:32];
-        3'b011 : alu_m = mul[63:32];
-        //3'b10x : alu_m = div[31:0];
-        //3'b11x : alu_m = rem[31:0];
-        default: alu_m = '0;
-        endcase
-    end
+    alu_mux
+    #(
+        .EXTENSION_M                    (EXTENSION_M)
+    )
+    u_mux
+    (
+        .i_add                          (add[31:0]),
+        .i_xor                          (xor_),
+        .i_or                           (or_),
+        .i_and                          (and_),
+        .i_shl                          (shl),
+        .i_shr                          (shr[31:0]),
+        .i_lts                          (lts),
+        .i_ltu                          (ltu),
+        .i_mul                          (mul),
+        .i_funct3                       (funct3),
+        .i_add_override                 (alu_ctrl.add_override),
+        .i_group_mux                    (alu_ctrl.group_mux),
+        .o_out                          (alu_result)
+    );
+
+    wr_mux
+    u_wr_mux
+    (
+        .i_funct3                       (funct3[1:0]),
+        .i_add_lo                       (add[1:0]),
+        .i_reg_data2                    (reg_data2),
+        .o_wdata                        (o_wdata),
+        .o_wsel                         (o_wsel)
+    );
 
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
-                     (EXTENSION_M & (alu_ctrl.group_mux == `GRP_MUX_MULDIV)) ? alu_m :
-                     alu_res_i;
-
-    always_comb
-    begin
-        case (funct3[1:0])
-        2'b00:   o_wdata = {4{reg_data2[0+: 8]}};
-        2'b01:   o_wdata = {2{reg_data2[0+:16]}};
-        default: o_wdata = reg_data2;
-        endcase
-    end
-
-    always_comb
-    begin
-        case (funct3[1:0])
-        2'b00: begin
-            case (add[1:0])
-            2'b00: o_wsel = 4'b0001;
-            2'b01: o_wsel = 4'b0010;
-            2'b10: o_wsel = 4'b0100;
-            2'b11: o_wsel = 4'b1000;
-            endcase
-        end
-        2'b01: begin
-            case (add[1])
-            1'b0: o_wsel = 4'b0011;
-            1'b1: o_wsel = 4'b1100;
-            endcase
-        end
-        default:  o_wsel = 4'b1111;
-        endcase
-    end
+                     alu_result;
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
     assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift;
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  o_pc_select = pc_select;
     assign  o_result = result;
     assign  o_add = add[31:0];
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
     assign  o_pc = pc;
-    assign  o_pc_target = pc_out;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_to_trap = to_trap;
