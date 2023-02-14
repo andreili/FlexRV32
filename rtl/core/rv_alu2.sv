@@ -151,23 +151,12 @@ module rv_alu2
     logic[32:0] op1_mux;
     logic[31:0] op2_mux;
     logic[32:0] add_prev;
+    logic[31:0] mul_mod;
 
-    always_comb
-    begin
-        case (alu_ctrl.group_mux)
-        (EXTENSION_M & `GRP_MUX_MULDIV): op1_mux = add_prev;
-        default        : op1_mux = { 1'b0, op1 };
-        endcase
-    end
-
-    always_comb
-    begin
-        case (alu_ctrl.group_mux)
-        (EXTENSION_M & `GRP_MUX_MULDIV): op2_mux = { mul_op1_signed ^ (op1[31] & op2[0]),
-                                                     op1[30:0] & {31{op2[0]}} };
-        default        : op2_mux = op2;
-        endcase
-    end
+    assign  op1_mux = (EXTENSION_M & (alu_ctrl.group_mux == `GRP_MUX_MULDIV)) ? add_prev :
+                      { 1'b0, op1 };
+    assign  op2_mux = (EXTENSION_M & (alu_ctrl.group_mux == `GRP_MUX_MULDIV)) ? mul_mod :
+                      op2;
 
     // adder - for all (add/sub/cmp)
     logic       op2_inverse;
@@ -233,20 +222,21 @@ module rv_alu2
     );
 
     logic[63:0] mul;
-
-    always_ff @(posedge i_clk)
-    begin
-        if (state == `ALU_WAIT)
-        begin
-            mul <= { 33'b0, add[0], mul[30:1] };
-            add_prev <= { 1'b0, add[32:1] };
-        end
-        else
-        begin
-            mul <= { (mul_op1_signed | mul_op2_signed) ^ add[32], add[31:0], mul[30:0] };
-            add_prev <= { 1'b0, !(&i_funct3[1:0]), 31'b0 };
-        end
-    end
+    muldiv
+    u_muldiv
+    (
+        .i_clk                          (i_clk),
+        .i_on_wait                      (state == `ALU_WAIT),
+        .i_op1_signed                   (mul_op1_signed),
+        .i_op2_signed                   (mul_op2_signed),
+        .i_op1                          (op1),
+        .i_op2_lsb                      (op2[0]),
+        .i_add                          (add),
+        .i_funct3                       (i_funct3[1:0]),
+        .o_mod                          (mul_mod),
+        .o_add_prev                     (add_prev),
+        .o_mul                          (mul)
+    );
 
     logic[31:0] alu_result;
     logic[31:0] result;

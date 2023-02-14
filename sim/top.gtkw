@@ -1,19 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Mon Feb 13 22:36:24 2023
+[*] Tue Feb 14 21:25:53 2023
 [*]
-[dumpfile] "D:\Projects\RISC-V\core_tiny\sim\run\logs_top\wave.fst"
-[dumpfile_mtime] "Mon Feb 13 22:29:49 2023"
-[dumpfile_size] 123370
+[dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
+[dumpfile_mtime] "Tue Feb 14 21:25:50 2023"
+[dumpfile_size] 193385
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 773
+[timestart] 75
 [size] 1920 1017
-[pos] -9 -9
-*-2.756331 789 385 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.656642 92 385 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
 [treeopen] TOP.top.u_rv.u_core.
+[treeopen] TOP.top.u_rv.u_core.u_st4_alu2.
 [sst_width] 212
 [signals_width] 644
 [sst_expanded] 1
@@ -227,19 +228,49 @@ TOP.top.u_rv.u_core.u_st4_alu2.i_inst_branch
 TOP.top.u_rv.u_core.u_st4_alu2.i_op2[31:0]
 TOP.top.u_rv.u_core.u_st4_alu2.op1[31:0]
 TOP.top.u_rv.u_core.u_st4_alu2.op2[31:0]
-TOP.top.u_rv.u_core.u_st4_alu2.opb[31:0]
 @28
+TOP.top.u_rv.u_core.u_st4_alu2.op2_inverse
 TOP.top.u_rv.u_core.u_st4_alu2.reg_write
 TOP.top.u_rv.u_core.u_st4_alu2.alu_ctrl.op1_inv_or_ecmp_inv
-@29
 TOP.top.u_rv.u_core.u_st4_alu2.alu_ctrl.op2_inverse
-@22
+@c00023
 TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
-@28
-TOP.top.u_rv.u_core.u_st4_alu2.negative
-TOP.top.u_rv.u_core.u_st4_alu2.overflow
-TOP.top.u_rv.u_core.u_st4_alu2.zero
-TOP.top.u_rv.u_core.u_st4_alu2.carry
+@29
+(0)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(1)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(2)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(3)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(4)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(5)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(6)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(7)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(8)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(9)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(10)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(11)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(12)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(13)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(14)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(15)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(16)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(17)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(18)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(19)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(20)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(21)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(22)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(23)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(24)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(25)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(26)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(27)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(28)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(29)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(30)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(31)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+(32)TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
+@1401201
+-group_end
 @800200
 -STATE
 @28
@@ -250,6 +281,9 @@ TOP.top.u_rv.u_core.u_st4_alu2.state.end_op
 -STATE
 @800200
 -MULDIV
+@28
+TOP.top.u_rv.u_core.u_st4_alu2.mul_op1_signed
+TOP.top.u_rv.u_core.u_st4_alu2.mul_op2_signed
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.op1_mux[32:0]
 TOP.top.u_rv.u_core.u_st4_alu2.op2_mux[31:0]
@@ -260,6 +294,7 @@ TOP.top.u_rv.u_core.u_st4_alu2.add_prev[32:0]
 TOP.top.u_rv.u_core.u_st4_alu2.mul[63:0]
 TOP.top.u_rv.u_core.u_st4_alu2.op_cnt[4:0]
 @28
+TOP.top.u_rv.u_core.u_st4_alu2.op_end
 TOP.top.u_rv.u_core.u_st4_alu2.ready
 @1000200
 -MULDIV
@@ -310,7 +345,6 @@ TOP.top.u_rv.u_core.u_st4_alu2.result[31:0]
 @28
 TOP.top.u_rv.u_core.u_st4_alu2.cmp_result
 TOP.top.u_rv.u_core.u_st4_alu2.branch_pred
-TOP.top.u_rv.u_core.u_st4_alu2.pc_select
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.result[31:0]
 @1000200
