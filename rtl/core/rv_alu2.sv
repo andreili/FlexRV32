@@ -52,10 +52,6 @@ module rv_alu2
 );
 
     logic[31:0] op1, op2;
-    logic       eq, lts, ltu;
-    logic[32:0] add;
-    logic[31:0] xor_, or_, and_, shl;
-    logic[32:0] shr;
     alu_res_t   res;
     logic       store;
     logic       reg_write;
@@ -182,6 +178,7 @@ module rv_alu2
     assign  op2_inverse = alu_ctrl.op2_inverse | (op_end & mul_op2_signed);
 
     // adder - for all (add/sub/cmp/mul)
+    logic[32:0] add;
     adder
     u_adder
     (
@@ -195,15 +192,25 @@ module rv_alu2
         .o_carry                        (carry)
     );
 
+    logic       eq, lts, ltu;
     assign  eq  = alu_ctrl.op1_inv_or_ecmp_inv ^ zero;
     assign  lts = alu_ctrl.op1_inv_or_ecmp_inv ^ (negative ^ overflow);
     assign  ltu = alu_ctrl.op1_inv_or_ecmp_inv ^ (!carry);
 
-    assign  xor_ = op1 ^ op2;
-    assign  or_  = op1 | op2;
-    assign  and_ = op1 & op2;
-    assign  shl = op1 << op2[4:0];
-    assign  shr = $signed({alu_ctrl.op2_inverse ? op1[31] : 1'b0, op1}) >>> op2[4:0];
+    logic[31:0] xor_, or_, and_, shl;
+    logic[32:0] shr;
+    bitwise
+    u_bits
+    (
+        .i_sra                          (alu_ctrl.op2_inverse),
+        .i_op1                          (op1),
+        .i_op2                          (op2),
+        .o_xor                          (xor_),
+        .o_or                           (or_),
+        .o_and                          (and_),
+        .o_shl                          (shl),
+        .o_shr                          (shr)
+    );
 
     logic       cmp_result;
     logic       pc_select, pred_ok;
