@@ -20,7 +20,9 @@ module rv_trace
     input   wire                        i_mem_write,
     input   wire                        i_mem_read,
     input   wire                        i_exec2_flush,
+    input   wire                        i_exec2_ready,
     input   wire                        i_exec_flush,
+    input   wire                        i_exec_stall,
     output  wire[4:0]                   o_rd,
     input   wire[31:0]                  i_rd
 );
@@ -310,7 +312,7 @@ module rv_trace
             r_mem_write_exec <= '0;
             r_mem_read_exec <= '0;
         end
-        else
+        else if (!i_exec_stall)
         begin
             r_pc_exec <= i_pc;
             r_instr_exec <= i_instr;
@@ -330,7 +332,7 @@ module rv_trace
             r_mem_write_exec2 <= '0;
             r_mem_read_exec2 <= '0;
         end
-        else
+        else if (i_exec2_ready)
         begin
             r_pc_exec2 <= r_pc_exec;
             r_instr_exec2 <= r_instr_exec;

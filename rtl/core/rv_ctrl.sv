@@ -16,6 +16,7 @@ module rv_ctrl
     input   wire[4:0]                   i_alu1_rd,
     input   wire[4:0]                   i_alu2_rd,
     input   wire                        i_alu2_reg_write,
+    input   wire                        i_alu2_ready,
     input   wire[4:0]                   i_write_rd,
     input   wire                        i_write_reg_write,
     input   wire[4:0]                   i_wr_back_rd,
@@ -28,6 +29,7 @@ module rv_ctrl
     output  ctrl_rs_bp_t                o_rs1_bp,
     output  ctrl_rs_bp_t                o_rs2_bp,
     output  wire                        o_alu1_flush,
+    output  wire                        o_alu1_stall,
     output  wire                        o_alu2_flush,
     output  wire                        o_inv_inst
 );
@@ -45,11 +47,13 @@ module rv_ctrl
     assign  need_mem_data1 = i_alu1_mem_rd   & (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
                              (i_decode_rs2 == i_alu1_rd  ));
 
-    logic   decode_stall;
-    assign  decode_stall = (!i_reset_n) | need_mem_data1 | i_need_pause;
+    logic   decode_stall, alu1_stall;
+    assign  decode_stall = (!i_reset_n) | need_mem_data1 | i_need_pause | (!i_alu2_ready);
+    assign  alu1_stall   = !i_alu2_ready;
 
-    logic   global_flush;
+    logic   global_flush, alu1_flush;
     assign  global_flush = (!i_reset_n) | i_pc_change;
+    assign  alu1_flush   = global_flush | (decode_stall & i_alu2_ready);
 
     logic[1:0]  inst_sup;
     always_ff @(posedge i_clk)
@@ -64,7 +68,8 @@ module rv_ctrl
     assign  o_fetch_stall  = decode_stall;
     assign  o_decode_flush = global_flush;
     assign  o_decode_stall = decode_stall;
-    assign  o_alu1_flush = global_flush | decode_stall;
+    assign  o_alu1_flush = alu1_flush;
+    assign  o_alu1_stall = alu1_stall;
     assign  o_alu2_flush = global_flush;
 
     assign  o_rs1_bp.alu2    = rs1_on_alu2    ;

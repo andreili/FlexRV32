@@ -65,8 +65,8 @@ module mint
     logic[32:0] msum;
     logic[32:0] sum_prev;
 
-    assign  mmod = {32{mul_last}} ^
-                   { (start | i_op1_signed) ^ (op1[31] & op2[0]), op1[30:0] & {31{op2[0]}} };
+    assign  mmod = {32{mul_last}} ^ { (start | i_op1_signed) ^ (op1[31] & op2[0]),
+                   op1[30:0] & {31{op2[0]}} };
     assign  msum = mmod + sum_prev;
 
     always_ff @(posedge i_clk)

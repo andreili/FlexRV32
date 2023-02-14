@@ -8,6 +8,7 @@
 module rv_write
 (
     input   wire                        i_clk,
+    input   wire                        i_flush,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_alu_result,
     input   wire                        i_reg_write,
@@ -27,11 +28,19 @@ module rv_write
 
     always_ff @(posedge i_clk)
     begin
-        alu_result <= i_alu_result;
-        res_src <= i_res_src;
-        reg_write <= i_reg_write;
-        rd <= i_rd;
-        funct3 <= i_funct3;
+        if (i_flush)
+        begin
+            res_src <= '0;
+            reg_write <= '0;
+        end
+        else
+        begin
+            alu_result <= i_alu_result;
+            res_src <= i_res_src;
+            reg_write <= i_reg_write;
+            rd <= i_rd;
+            funct3 <= i_funct3;
+        end
     end
 
     logic[7:0]  write_byte;

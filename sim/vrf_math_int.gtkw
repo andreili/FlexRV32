@@ -1,21 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Wed Feb 08 23:53:48 2023
+[*] Fri Feb 10 13:22:05 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\vrf_math_int.fst"
-[dumpfile_mtime] "Wed Feb 08 23:53:38 2023"
-[dumpfile_size] 20004016
+[dumpfile_mtime] "Fri Feb 10 13:20:02 2023"
+[dumpfile_size] 20004789
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\vrf_math_int.gtkw"
-[timestart] 660102
-[size] 1920 1017
-[pos] -1 -1
-*-2.751225 660138 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[timestart] 1
+[size] 3440 1417
+[pos] -3449 -368
+*-2.751225 71 660073 -1 660137 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.math_int.
 [sst_width] 174
 [signals_width] 460
 [sst_expanded] 1
-[sst_vpaned_height] 304
+[sst_vpaned_height] 445
 @28
 TOP.math_int.u_int.i_clk
 TOP.math_int.i_op1_signed
@@ -23,9 +23,9 @@ TOP.math_int.i_op2_signed
 @22
 TOP.math_int.u_int.i_op1[31:0]
 TOP.math_int.u_int.i_op2[31:0]
-@c00023
+@c00022
 TOP.math_int.o_mul[63:0]
-@29
+@28
 (0)TOP.math_int.o_mul[63:0]
 (1)TOP.math_int.o_mul[63:0]
 (2)TOP.math_int.o_mul[63:0]
@@ -90,7 +90,7 @@ TOP.math_int.o_mul[63:0]
 (61)TOP.math_int.o_mul[63:0]
 (62)TOP.math_int.o_mul[63:0]
 (63)TOP.math_int.o_mul[63:0]
-@1401201
+@1401200
 -group_end
 @22
 TOP.math_int.u_int.op1[31:0]
@@ -131,10 +131,11 @@ TOP.math_int.u_int.op2[31:0]
 (31)TOP.math_int.u_int.op2[31:0]
 @1401200
 -group_end
-@22
+@23
 TOP.math_int.u_int.sum_prev[32:0]
 TOP.math_int.u_int.mmod[31:0]
 TOP.math_int.u_int.msum[32:0]
+@24
 TOP.math_int.u_int.op_cnt[5:0]
 @28
 TOP.math_int.u_int.mul_last

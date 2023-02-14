@@ -47,7 +47,8 @@ module rv_alu2
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
     output  wire[2:0]                   o_funct3,
-    output  wire                        o_to_trap
+    output  wire                        o_to_trap,
+    output  wire                        o_ready
 );
 
     logic[31:0] op1, op2;
@@ -74,6 +75,42 @@ module rv_alu2
     logic[31:0] csr_data;
     logic       to_trap;
     logic       branch_pred;
+    logic[4:0]  op_cnt;
+
+    alu_state_t state;
+    alu_state_t state_next;
+    logic       op_end;
+
+    always_comb
+    begin
+        case (state)
+        `ALU_START: state_next = (|i_alu_ctrl.group_mux) ? `ALU_WAIT : `ALU_START;
+        `ALU_WAIT : state_next = (op_cnt == 5'd30) ? `ALU_END : `ALU_WAIT;
+        `ALU_END  : state_next = `ALU_START;
+        default   : state_next = `ALU_START;
+        endcase
+    end
+
+    logic       ready;
+    logic       mul_op1_signed;
+    logic       mul_op2_signed;
+    assign      ready = (state == `ALU_START);
+    assign      mul_op1_signed = !(&funct3[1:0]);
+    assign      mul_op2_signed = !funct3[1];
+
+    always_ff @(posedge i_clk)
+    begin
+        state <= state_next;
+        op_end <= (state_next == `ALU_END);
+    end
+
+    always_ff @(posedge i_clk)
+    begin
+        if (state == `ALU_START)
+            op_cnt <= '0;
+        else
+            op_cnt <= op_cnt + 1'b1;
+    end
 
     always_ff @(posedge i_clk)
     begin
@@ -90,7 +127,7 @@ module rv_alu2
             to_trap <= '0;
             branch_pred <= '0;
         end
-        else
+        else if (ready)
         begin
             op1 <= i_op1;
             op2 <= i_op2;
@@ -112,13 +149,42 @@ module rv_alu2
             to_trap <= i_to_trap;
             branch_pred <= i_branch_pred;
         end
+        else
+        begin
+            op2 <= { 1'b0, op2[31:1] };
+        end
+    end
+
+    logic[32:0] op1_mux;
+    logic[31:0] op2_mux;
+    logic[32:0] add_prev;
+
+    always_comb
+    begin
+        case (alu_ctrl.group_mux)
+        (EXTENSION_M & `GRP_MUX_MULDIV): op1_mux = add_prev;
+        default        : op1_mux = { 1'b0, op1 };
+        endcase
+    end
+
+    always_comb
+    begin
+        case (alu_ctrl.group_mux)
+        (EXTENSION_M & `GRP_MUX_MULDIV): op2_mux = { mul_op1_signed ^ (op1[31] & op2[0]),
+                                                     op1[30:0] & {31{op2[0]}} };
+        default        : op2_mux = op2;
+        endcase
     end
 
     // adder - for all (add/sub/cmp)
-    logic   zero;
-    assign  add      = op1 + op2 + { {32{1'b0}}, alu_ctrl.op2_inverse };
+    logic       op2_inverse;
+    logic       zero;
+    logic[31:0] opb;
+    assign  op2_inverse = alu_ctrl.op2_inverse | (op_end & mul_op2_signed);
+    assign  opb      = {32{op2_inverse}} ^ op2_mux;
+    assign  add      = op1_mux + opb + { {32{1'b0}}, op2_inverse };
     assign  negative = add[31];
-    assign  overflow = (op1[31] ^ op2[31] ^ alu_ctrl.op2_inverse) & (op1[31] ^ add[31]);
+    assign  overflow = (op1_mux[31] ^ op2_mux[31]) & (op1_mux[31] ^ add[31]);
     assign  carry    = add[32];
     assign  zero     = !(|add[31:0]);
 
@@ -130,8 +196,7 @@ module rv_alu2
     assign  or_  = op1 | op2;
     assign  and_ = op1 & op2;
     assign  shl = op1 << op2[4:0];
-    assign  shr = $signed({alu_ctrl.op2_inverse ? op1[31] : 1'b0, op1}) >>>
-                  (op2[4:0] ^ {5{alu_ctrl.op2_inverse}});
+    assign  shr = $signed({alu_ctrl.op2_inverse ? op1[31] : 1'b0, op1}) >>> op2[4:0];
 
     logic       cmp_result;
     logic       pc_select, pred_ok;
@@ -150,10 +215,25 @@ module rv_alu2
         endcase
     end
 
+    logic[63:0] mul;
+
+    always_ff @(posedge i_clk)
+    begin
+        if (state == `ALU_WAIT)
+        begin
+            mul <= { 33'b0, add[0], mul[30:1] };
+            add_prev <= { 1'b0, add[32:1] };
+        end
+        else
+        begin
+            mul <= { (mul_op1_signed | mul_op2_signed) ^ add[32], add[31:0], mul[30:0] };
+            add_prev <= { 1'b0, !(&i_funct3[1:0]), 31'b0 };
+        end
+    end
+
     logic[31:0] alu_i;
     logic[31:0] alu_res_i;
-    //logic[31:0] alu_m;
-    //logic[31:0] alu_res_m;
+    logic[31:0] alu_m;
     logic[31:0] result;
     always_comb
     begin
@@ -175,22 +255,23 @@ module rv_alu2
         default: alu_res_i = add[31:0];
         endcase
     end
-    /*always_comb
+    always_comb
     begin
         case (funct3[2:0])
         3'b000 : alu_m = mul[31: 0];
         3'b001 : alu_m = mul[63:32];
-        3'b01x : alu_m = mul[63:32];
-        3'b10x : alu_m = div[31:0];
-        3'b11x : alu_m = rem[31:0];
+        3'b010 : alu_m = mul[63:32];
+        3'b011 : alu_m = mul[63:32];
+        //3'b10x : alu_m = div[31:0];
+        //3'b11x : alu_m = rem[31:0];
         default: alu_m = '0;
         endcase
-    end*/
+    end
 
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
+                     (EXTENSION_M & (alu_ctrl.group_mux == `GRP_MUX_MULDIV)) ? alu_m :
                      alu_res_i;
-                     //(alu_ctrl.group_mux == `GRP_MUX_MULDIV) ? alu_m : alu_res_i;
 
     always_comb
     begin
@@ -224,8 +305,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift &
-                    EXTENSION_M & alu_ctrl.group_mux;
+    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_pc_select = pc_select;
@@ -239,5 +319,6 @@ module rv_alu2
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_to_trap = to_trap;
+    assign  o_ready = ready;
 
 endmodule

@@ -225,6 +225,7 @@ module rv_core
     logic[31:0] alu1_reg_data1;
     logic[31:0] alu1_reg_data2;
     logic       alu1_flush;
+    logic       alu1_stall;
     logic       alu1_to_trap;
     logic       alu1_branch_pred;
 
@@ -237,6 +238,7 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_flush                        (alu1_flush),
+        .i_stall                        (alu1_stall),
         .i_pc                           (decode_pc),
         .i_pc_next                      (decode_pc_next),
         .i_branch_pred                  (decode_branch_pred),
@@ -295,6 +297,7 @@ module rv_core
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
     logic       alu2_to_trap;
+    logic       alu2_ready;
 
     rv_alu2
     #(
@@ -339,7 +342,8 @@ module rv_core
         .o_wdata                        (o_data_wdata),
         .o_wsel                         (o_data_sel),
         .o_funct3                       (alu2_funct3),
-        .o_to_trap                      (alu2_to_trap)
+        .o_to_trap                      (alu2_to_trap),
+        .o_ready                        (alu2_ready)
     );
 
     logic[31:0] write_data;
@@ -350,6 +354,7 @@ module rv_core
     u_st5_write
     (
         .i_clk                          (i_clk),
+        .i_flush                        (!alu2_ready),
         .i_funct3                       (alu2_funct3),
         .i_alu_result                   (alu2_result),
         .i_reg_write                    (alu2_reg_write),
@@ -414,6 +419,7 @@ module rv_core
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
+        .i_alu2_ready                   (alu2_ready),
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
         .i_wr_back_rd                   (wr_back_rd),
@@ -426,6 +432,7 @@ module rv_core
         .o_rs1_bp                       (rs1_bp),
         .o_rs2_bp                       (rs2_bp),
         .o_alu1_flush                   (alu1_flush),
+        .o_alu1_stall                   (alu1_stall),
         .o_alu2_flush                   (alu2_flush),
         .o_inv_inst                     (inv_inst)
     );
@@ -450,7 +457,9 @@ module rv_core
         .i_mem_read                     (decode_res_src.memory),
         .i_reg_data                     (write_data),
         .i_exec2_flush                  (alu2_flush),
+        .i_exec2_ready                  (alu2_ready),
         .i_exec_flush                   (alu1_flush),
+        .i_exec_stall                   (alu1_stall),
         .o_rd                           (trace_rd),
         .i_rd                           (trace_rd_data)
     );

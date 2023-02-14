@@ -37,6 +37,17 @@ typedef struct packed
 
 typedef struct packed
 {
+    logic       start;
+    logic       wait_op;
+    logic       end_op;
+} alu_state_t;
+
+`define ALU_START 3'b100
+`define ALU_WAIT  3'b010
+`define ALU_END   3'b001
+
+typedef struct packed
+{
     logic   alu2;
     logic   write;
     logic   wr_back;

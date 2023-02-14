@@ -13,6 +13,7 @@ module rv_alu1
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire                        i_flush,
+    input   wire                        i_stall,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
     input   wire                        i_branch_pred,
@@ -94,7 +95,7 @@ module rv_alu1
             to_trap <= '0;
             branch_pred <= '0;
         end
-        else
+        else if (!i_stall)
         begin
             rs1  <= i_rs1;
             rs2  <= i_rs2;
@@ -120,13 +121,12 @@ module rv_alu1
         end
     end
 
-    logic[31:0] op1, op2_pre, op2;
+    logic[31:0] op1, op2;
 
     assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } : i_reg1_data;
-    assign  op2_pre = op2_sel.i  ? imm_i :
-                      op2_sel.j  ? imm_j :
-                      i_reg2_data;
-    assign  op2 = alu_ctrl.op2_inverse ? (~op2_pre) : op2_pre;
+    assign  op2 = op2_sel.i  ? imm_i :
+                  op2_sel.j  ? imm_j :
+                  i_reg2_data;
 
     logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset, pc_target;
 
