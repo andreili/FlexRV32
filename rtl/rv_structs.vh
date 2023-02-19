@@ -31,6 +31,7 @@ typedef struct packed
     logic       op1_inv_or_ecmp_inv;
     logic       op2_inverse;
     logic       group_mux;
+    logic       div_mux;
 } alu_ctrl_t;
 
 `define GRP_MUX_MULDIV 1'b1

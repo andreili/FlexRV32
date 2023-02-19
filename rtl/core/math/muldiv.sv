@@ -6,6 +6,7 @@ module muldiv
     input   wire                        i_on_wait,
     input   wire                        i_op1_signed,
     input   wire                        i_op2_signed,
+    input   wire                        i_is_div,
     input   wire[31:0]                  i_op1,
     input   wire                        i_op2_lsb,
     input   wire[32:0]                  i_add,

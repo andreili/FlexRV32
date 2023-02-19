@@ -197,6 +197,7 @@ module rv_decode
                              inst_grp_store | inst_grp_ari) ? '0 :
                             funct7[5];
     assign  o_alu_ctrl.group_mux = inst_grp_mul;
+    assign  o_alu_ctrl.div_mux = inst_grp_mul & (funct3[2] == 1'b1);
 
     assign  o_imm_j = inst_jal ? imm_j : imm_b;
     assign  o_imm_i = imm_mux;

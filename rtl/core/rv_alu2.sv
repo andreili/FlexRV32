@@ -144,7 +144,7 @@ module rv_alu2
         end
         else
         begin
-            op2 <= { 1'b0, op2[31:1] };
+            op2 <= alu_ctrl.div_mux ? { op2[30:0], 1'b0 } : { 1'b0, op2[31:1] };
         end
     end
 
@@ -222,6 +222,8 @@ module rv_alu2
     );
 
     logic[63:0] mul;
+    logic       md_op2;
+    assign      md_op2 = alu_ctrl.div_mux ? op2[31] : op2[0];
     muldiv
     u_muldiv
     (
@@ -229,8 +231,9 @@ module rv_alu2
         .i_on_wait                      (state == `ALU_WAIT),
         .i_op1_signed                   (mul_op1_signed),
         .i_op2_signed                   (mul_op2_signed),
+        .i_is_div                       (alu_ctrl.div_mux),
         .i_op1                          (op1),
-        .i_op2_lsb                      (op2[0]),
+        .i_op2_lsb                      (md_op2),
         .i_add                          (add),
         .i_funct3                       (i_funct3[1:0]),
         .o_mod                          (mul_mod),
@@ -277,7 +280,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift;
+    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift & alu_ctrl.div_mux;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_result = result;

@@ -153,16 +153,32 @@ module rv_trace
 
     function static string decode_instr_arif_reg(input logic[31:0] instr);
         string op;
-        case (instr[14:12])
-        0:  op = ((instr[31:25]==32) ? "sub" : "add");
-        1:  op = ((instr[31:25]==32) ? "UNDEFINED" : "sll");
-        2:  op = ((instr[31:25]==32) ? "UNDEFINED" : "slt");
-        3:  op = ((instr[31:25]==32) ? "UNDEFINED" : "sltu");
-        4:  op = ((instr[31:25]==32) ? "UNDEFINED" : "xor");
-        5:  op = ((instr[31:25]==32) ? "sra" : "srl");
-        6:  op = ((instr[31:25]==32) ? "UNDEFINED" : "or");
-        default:  op = ((instr[31:25]==32) ? "UNDEFINED" : "and");
-        endcase
+        if (instr[25] == 1'b0)
+        begin
+            case (instr[14:12])
+            0:  op = ((instr[31:25]==32) ? "sub" : "add");
+            1:  op = ((instr[31:25]==32) ? "UNDEFINED" : "sll");
+            2:  op = ((instr[31:25]==32) ? "UNDEFINED" : "slt");
+            3:  op = ((instr[31:25]==32) ? "UNDEFINED" : "sltu");
+            4:  op = ((instr[31:25]==32) ? "UNDEFINED" : "xor");
+            5:  op = ((instr[31:25]==32) ? "sra" : "srl");
+            6:  op = ((instr[31:25]==32) ? "UNDEFINED" : "or");
+            default:  op = ((instr[31:25]==32) ? "UNDEFINED" : "and");
+            endcase
+        end
+        else
+        begin
+            case (instr[14:12])
+            0:  op = "mul";
+            1:  op = "mulh";
+            2:  op = "mulhsu";
+            3:  op = "mulhu";
+            4:  op = "div";
+            5:  op = "divu";
+            6:  op = "rem";
+            default:  op = "remu";
+            endcase
+        end
         return { op, " ", reg_number(instr[11:7]), ", ", reg_number(instr[19:15]),
                 ", ", reg_number(instr[24:20])};
     endfunction
@@ -344,14 +360,25 @@ module rv_trace
 
     always_ff @(posedge i_clk)
     begin
-        r_pc_wr <= r_pc_exec2;
-        r_instr_wr <= r_instr_exec2;
-        r_reg_write_wr <= r_reg_write_exec2;
-        r_mem_write_wr <= r_mem_write_exec2;
-        r_mem_read_wr <= r_mem_read_exec2;
-        r_wdata_wr <= i_mem_data;
-        r_addr_wr <= i_mem_addr;
-        r_sel_wr <= i_mem_sel;
+        if (!i_exec2_ready)
+        begin
+            r_pc_wr <= '0;
+            r_instr_wr <= '0;
+            r_reg_write_wr <= '0;
+            r_mem_write_wr <= '0;
+            r_mem_read_wr <= '0;
+        end
+        else
+        begin
+            r_pc_wr <= r_pc_exec2;
+            r_instr_wr <= r_instr_exec2;
+            r_reg_write_wr <= r_reg_write_exec2;
+            r_mem_write_wr <= r_mem_write_exec2;
+            r_mem_read_wr <= r_mem_read_exec2;
+            r_wdata_wr <= i_mem_data;
+            r_addr_wr <= i_mem_addr;
+            r_sel_wr <= i_mem_sel;
+        end
     end
 
     initial

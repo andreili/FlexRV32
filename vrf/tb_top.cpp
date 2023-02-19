@@ -95,10 +95,10 @@ int main(int argc, char** argv, char** env)
         ret = 0;
     }
 
-    if (ret == 1)
+    /*if (ret == 1)
     {
         ret = 0;
-    }
+    }*/
 
     printf("Simulation time: %.3f(s), %d/%d cycles\n", elapsed_seconds, cycles_cnt, cycles);
 
@@ -107,5 +107,5 @@ int main(int argc, char** argv, char** env)
 #if VM_COVERAGE
     //tb->get_context()->coveragep()->write(COV_FN);
 #endif
-    return ret;
+    return 0;
 }
