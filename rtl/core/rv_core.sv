@@ -59,7 +59,6 @@ module rv_core
     logic[31:0] fetch_instruction;
     logic[IADDR_SPACE_BITS-1:0] fetch_pc;
     logic       fetch_branch_pred;
-    logic       fetch_is_compressed;
     logic       fetch_ready;
     logic       fetch_stall;
     logic       fetch_flush;
@@ -92,7 +91,6 @@ module rv_core
         .o_instruction                  (fetch_instruction),
         .o_pc                           (fetch_pc),
         .o_branch_pred                  (fetch_branch_pred),
-        .o_is_compressed                (fetch_is_compressed),
         .o_ready                        (fetch_ready)
     );
 
@@ -140,7 +138,6 @@ module rv_core
         .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
         .i_branch_pred                  (fetch_branch_pred),
-        .i_is_compressed                (fetch_is_compressed),
 `ifdef TO_SIM
         .o_instr                        (decode_instr),
 `endif

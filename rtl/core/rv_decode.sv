@@ -16,7 +16,6 @@ module rv_decode
     input   wire                        i_ready,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
     input   wire                        i_branch_pred,
-    input   wire                        i_is_compressed,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
@@ -55,13 +54,23 @@ module rv_decode
 );
 
     logic       valid_input;
+    logic[31:0] instruction_c;
     logic[31:0] instruction;
     logic       branch_pred;
+    logic       inst_not_comp;
 
     // flush logic
-    assign  valid_input = (i_ready & (!i_flush));
-    assign  instruction = valid_input ? i_instruction : '0;
-    assign  branch_pred = valid_input ? i_branch_pred : '0;
+    assign  valid_input   = (i_ready & (!i_flush));
+    assign  instruction_c = valid_input ? i_instruction : '0;
+    assign  branch_pred   = valid_input ? i_branch_pred : '0;
+
+    rv_decode_comp
+    u_comp
+    (
+        .i_instruction                  (instruction_c),
+        .o_instruction                  (instruction),
+        .o_illegal_instruction          (inst_not_comp)
+    );
 
     // get a parts of opcode
     logic[4:0]  rd, rs1, rs2;
@@ -248,7 +257,7 @@ module rv_decode
 
     logic[IADDR_SPACE_BITS-1:0] pc_next;
     assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}},
-                       (!i_is_compressed), i_is_compressed, 1'b0 });
+                                inst_not_comp, !inst_not_comp, 1'b0 });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;

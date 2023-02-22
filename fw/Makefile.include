@@ -3,8 +3,8 @@ TOOLCHAIN_NAME = riscv64-unknown-elf
 
 WORK_DIR = out
 LD_SCRIPT = ../riscv_soc.ld
-DEV_ARCH = rv32i_zicsr
-#DEV_ARCH = rv32i_c_zicsr
+#DEV_ARCH = rv32i_zicsr
+DEV_ARCH = rv32i_c_zicsr
 
 AS = $(TOOLCHAIN_NAME)-as
 GCC = $(TOOLCHAIN_NAME)-gcc
@@ -37,7 +37,8 @@ ifneq ($(sim),)
 	C_FLAGS += -DSIM
 endif
 CPP_FLAGS := $(C_FLAGS) -std=gnu++1z -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit
-LD_FLAGS = $(ARCH_FLAGS) -march=rv32i -T"$(LD_SCRIPT)" -Wl,-Map="$(MAP_FILE)" -Wl,--gc-sections -nodefaultlibs -nostartfiles -static
+LD_FLAGS  = $(ARCH_FLAGS) -march=rv32i -T"$(LD_SCRIPT)" -Wl,-Map="$(MAP_FILE)"
+LD_FLAGS += -Wl,--no-warn-rwx-segment -Wl,--gc-sections -nodefaultlibs -nostartfiles -static
 LIBS = -Wl,--start-group -lc -lnosys -lm -lgcc -lstdc++ -lsupc++ -Wl,--end-group
 
 PROJ_DIR := $(shell pwd)

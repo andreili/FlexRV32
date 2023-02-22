@@ -93,7 +93,10 @@ module rv_alu2
 
     always_ff @(posedge i_clk)
     begin
-        state <= state_next;
+        if (i_flush)
+            state <= `ALU_START;
+        else
+            state <= state_next;
         op_end <= (state_next == `ALU_END);
     end
 

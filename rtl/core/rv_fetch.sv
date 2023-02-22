@@ -28,7 +28,6 @@ module rv_fetch
     output  wire                        o_cyc,
     output  wire[31:0]                  o_instruction,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
-    output  wire                        o_is_compressed,
     output  wire                        o_branch_pred,
     output  wire                        o_ready
 );
@@ -69,75 +68,82 @@ module rv_fetch
 
     logic       empty, full;
     logic[31:0] instruction;
+    logic[IADDR_SPACE_BITS-1:0] pc_delta;
+
+    assign  pc_delta = { {(IADDR_SPACE_BITS-3){1'b0}}, (!pc[1]) | (!EXTENSION_C),
+                         pc[1] & EXTENSION_C, 1'b0 };
+
+    assign pc_incr = (!full) ? pc_delta : '0;
+    assign move_pc = (i_ack & (!full)) | pc_need_change;
+    assign o_cyc = (!full) & i_reset_n;
+    assign instruction = i_instruction;
+
+    localparam int InsWidth = (EXTENSION_C ? 16 : 32);
+    localparam int BufWidth = IADDR_SPACE_BITS + 1 + InsWidth;
 
     generate
+        logic[BufWidth-1:0]         data_lo;
+        logic[BufWidth-1:0]         data_hi;
+        logic                       buf_pop_single;
+        logic                       buf_pop_double;
+        logic[IADDR_SPACE_BITS-1:0] addr_lo;
+        logic[IADDR_SPACE_BITS-1:0] addr_hi;
+        logic[InsWidth-1:0]         instr_lo;
+        logic[InsWidth-1:0]         instr_hi;
+        logic                       is_comp;
+        logic                       is_bp_lo;
+        logic                       is_bp_hi;
+
         if (EXTENSION_C)
         begin : g_comp
-            /* verilator lint_off UNUSEDSIGNAL */
-            logic[15:0] inst_prev_hi;
-            logic       buf_hi_valid;
-            logic[31:0] inst_mux;
-            logic       cillegal;
-
-            always_ff @(posedge i_clk)
-            begin
-                if (ack & pc_prev[1])
-                begin
-                    inst_prev_hi <= i_instruction[31:16];
-                    buf_hi_valid <= '1;
-                end
-                else
-                begin
-                    buf_hi_valid <= '0;
-                end
-            end
-            /* verilator lint_on UNUSEDSIGNAL */
-
-            assign inst_mux = buf_hi_valid ? { i_instruction[15:0], inst_prev_hi } : i_instruction;
-
-            rv_decode_comp
-            u_comp
-            (
-                .i_instruction                  (inst_mux),
-                .o_instruction                  (instruction),
-                .o_illegal_instruction          (cillegal)
-            );
-
-            assign pc_incr = (!full) ? 2 : 0;
-            assign move_pc = (i_ack & (!full)) | pc_need_change;
-            assign o_cyc = (!full) & i_reset_n;
+            assign  data_lo = { branch_predicted_prev, pc_prev[IADDR_SPACE_BITS-1:2],
+                                2'b00, instruction[15: 0] };
+            assign  data_hi = { branch_predicted_prev, pc_prev[IADDR_SPACE_BITS-1:2],
+                                2'b10, instruction[31:16] };
+            assign  is_comp = (instr_lo[1:0] != 2'b11);
+            assign  buf_pop_single = (!i_stall) & (!i_flush) & (!empty) & is_comp;
+            assign  o_instruction = { instr_hi, instr_lo };
         end
-        else
-        begin : g_noncomp
-            assign pc_incr = (!full) ? 4 : 0;
-            assign move_pc = (i_ack & (!full)) | pc_need_change;
-            assign o_cyc = (!full) & i_reset_n;
-            assign instruction = i_instruction;
+            else
+        begin : g_nocomp
+            assign  data_lo = { branch_predicted_prev, pc_prev[IADDR_SPACE_BITS-1:2],
+                                2'b00, instruction };
+            assign  data_hi = '0;
+            assign  is_comp = '0;
+            assign  buf_pop_single = '0;
+            assign  o_instruction = instr_lo;
         end
+        assign  buf_pop_double = (!i_stall) & (!i_flush) & (!empty) & (!is_comp);
+
+        rv_fetch_buf
+        #(
+            .WIDTH                  (BufWidth),
+            .DEPTH_BITS             (INSTR_BUF_ADDR_SIZE)
+        )
+        u_buf
+        (
+            .i_clk                  (i_clk),
+            .i_reset_n              (i_reset_n & (!i_flush)),
+            .i_data_lo              (data_lo),
+            .i_data_hi              (data_hi),
+            .i_push_single          (ack &   pc_prev[1] & EXTENSION_C),
+            .i_push_double          (ack & ((!pc_prev[1]) | (!EXTENSION_C))),
+            .o_data_lo              ({ is_bp_lo, addr_lo, instr_lo }),
+            .o_data_hi              ({ is_bp_hi, addr_hi, instr_hi }),
+            .i_pop_single           (buf_pop_single),
+            .i_pop_double           (buf_pop_double),
+            .o_empty                (empty),
+            .o_full                 (full)
+        );
     endgenerate
 
-    fifo
-    #(
-        .WIDTH                  (IADDR_SPACE_BITS+32+2),
-        .DEPTH_BITS             (INSTR_BUF_ADDR_SIZE)
-    )
-    u_fifo
-    (
-        .i_clk                  (i_clk),
-        .i_reset_n              (i_reset_n & (!i_flush)),
-        .i_data                 ({ branch_predicted_prev, 1'b0, pc_prev, instruction }),
-        .i_push                 (ack),
-        .o_data                 ({ o_branch_pred, o_is_compressed, o_pc, o_instruction }),
-        .i_pop                  ((!i_stall) & (!i_flush) & (!empty)),
-        .o_empty                (empty),
-        .o_full                 (full)
-    );
-
-    assign o_ready = (!empty);
+    assign  o_branch_pred = is_bp_lo;
+    assign  o_pc = addr_lo;
+    assign  o_ready = (!empty);
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = i_flush | (|i_pc_br);
+    assign  dummy = i_flush | (|i_pc_br) | (|addr_hi) | is_bp_hi | pc_prev[0] | (|instr_hi);
 /* verilator lint_on UNUSEDSIGNAL */
 
     generate
