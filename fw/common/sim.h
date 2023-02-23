@@ -12,4 +12,5 @@
 #define WRITE_REG32(addr, data) (*((volatile uint32_t*)addr) = data)
 
 void sim_exit(uint32_t code);
+void sim_send_ch(char ch);
 void sim_send_str(const char* const str);

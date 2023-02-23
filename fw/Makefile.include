@@ -13,6 +13,9 @@ SIZE = $(TOOLCHAIN_NAME)-size
 OBJDUMP = $(TOOLCHAIN_NAME)-objdump
 OBJCOPY = $(TOOLCHAIN_NAME)-objcopy
 
+CC = echo
+LD = echo
+
 EXECUTABLE = $(WORK_DIR)/$(PROJ_NAME).elf
 LIST_FILE = $(WORK_DIR)/$(PROJ_NAME).list
 BIN_FILE = $(WORK_DIR)/$(PROJ_NAME).bin
@@ -40,6 +43,9 @@ CPP_FLAGS := $(C_FLAGS) -std=gnu++1z -fno-rtti -fno-threadsafe-statics -fno-use-
 LD_FLAGS  = $(ARCH_FLAGS) -march=rv32i -T"$(LD_SCRIPT)" -Wl,-Map="$(MAP_FILE)"
 LD_FLAGS += -Wl,--no-warn-rwx-segment -Wl,--gc-sections -nodefaultlibs -nostartfiles -static
 LIBS = -Wl,--start-group -lc -lnosys -lm -lgcc -lstdc++ -lsupc++ -Wl,--end-group
+
+CFLAGS = $(C_FLAGS)
+LFLAGS = $(LD_FLAGS)
 
 PROJ_DIR := $(shell pwd)
 
@@ -99,13 +105,6 @@ $(VH_FILE): $(BIN_FILE)
 $(MIF_FILE): $(BIN_FILE)
 	$(info MIF $@)
 	./mem_init_gen.py -i -of MIF --width 4 $(BIN_FILE) > $(MIF_FILE)
-
-$(WORK_DIR):
-	mkdir -p  $(WORK_DIR)
-
-# Other Targets
-clean:
-	$(RM) $(WORK_DIR)
 
 secondary-outputs: size.stdout $(LIST_FILE) $(VH_FILE)
 
