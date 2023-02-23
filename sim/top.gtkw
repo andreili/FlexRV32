@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Wed Feb 22 22:49:04 2023
+[*] Thu Feb 23 18:57:06 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Wed Feb 22 22:48:45 2023"
-[dumpfile_size] 17643958
+[dumpfile_mtime] "Thu Feb 23 18:56:47 2023"
+[dumpfile_size] 18029953
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 80
+[timestart] 48
 [size] 1920 1017
-[pos] -9 -9
-*-1.861961 90 385 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.861961 78 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
@@ -117,21 +117,45 @@ TOP.top.u_rv.data_ack
 TOP.top.u_rv.data_rdata[31:0]
 @1401200
 -TOP WB
-@800200
+@c00200
 -ST1 FETCH
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.i_reset_n
 TOP.top.u_rv.u_core.u_st1_fetch.i_flush
 TOP.top.u_rv.u_core.u_st1_fetch.i_stall
 TOP.top.u_rv.u_core.u_st1_fetch.i_pc_select
+@22
+TOP.top.u_rv.u_core.u_st1_fetch.i_pc_target[21:0]
+@28
 TOP.top.u_rv.u_core.u_st1_fetch.i_ack
 @22
 TOP.top.u_rv.u_core.u_st1_fetch.i_instruction[31:0]
 TOP.top.u_rv.u_core.u_st1_fetch.pc[21:0]
+TOP.top.u_rv.u_core.u_st1_fetch.pc_prev[21:0]
+TOP.top.u_rv.u_core.u_st1_fetch.pc_delta[21:0]
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.move_pc
 @800200
 -BUF
+@28
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_push_single
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_push_double
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_pop_single
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_pop_double
+@22
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[0][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[1][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[2][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[3][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[4][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[5][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[6][38:0]
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[7][38:0]
+@28
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.empty
+TOP.top.u_rv.u_core.u_st1_fetch.u_buf.full
 @1000200
 -BUF
 @28
@@ -143,9 +167,9 @@ TOP.top.u_rv.u_core.u_st1_fetch.o_instruction[31:0]
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.o_ready
 TOP.top.u_rv.u_core.u_st1_fetch.o_branch_pred
-@1000200
+@1401200
 -ST1 FETCH
-@c00200
+@800200
 -ST2 DECODE
 @28
 TOP.top.u_rv.u_core.u_st2_decode.i_stall
@@ -156,7 +180,12 @@ TOP.top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
 TOP.top.u_rv.u_core.u_st2_decode.i_ready
 @22
 TOP.top.u_rv.u_core.u_st2_decode.i_pc[21:0]
+TOP.top.u_rv.u_core.u_st2_decode.i_instruction[31:0]
+@29
+TOP.top.u_rv.u_core.u_st2_decode.valid_input
+@22
 TOP.top.u_rv.u_core.u_st2_decode.instruction[31:0]
+TOP.top.u_rv.u_core.u_st2_decode.pc[21:0]
 @28
 TOP.top.u_rv.u_core.u_st2_decode.o_reg_write
 TOP.top.u_rv.u_core.u_st2_decode.o_res_src.memory
@@ -184,7 +213,7 @@ TOP.top.u_rv.u_core.u_st2_decode.branch_pred
 TOP.top.u_rv.u_core.u_st2_decode.o_inst_supported
 TOP.top.u_rv.u_core.u_st2_decode.inst_grp_arr
 TOP.top.u_rv.u_core.u_st2_decode.o_alu_ctrl.group_mux
-@1401200
+@1000200
 -ST2 DECODE
 @c00200
 -ST3 ALU1

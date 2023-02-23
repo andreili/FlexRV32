@@ -10,6 +10,7 @@ module rv_decode
     parameter logic EXTENSION_Zicsr     = 1
 )
 (
+    input   wire                        i_clk,
     input   wire                        i_stall,
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
@@ -55,22 +56,40 @@ module rv_decode
 
     logic       valid_input;
     logic[31:0] instruction_c;
+    logic[31:0] instruction_unc;
     logic[31:0] instruction;
     logic       branch_pred;
+    logic       not_comp;
     logic       inst_not_comp;
+    logic[IADDR_SPACE_BITS-1:0] pc;
 
-    // flush logic
-    assign  valid_input   = (i_ready & (!i_flush));
-    assign  instruction_c = valid_input ? i_instruction : '0;
-    assign  branch_pred   = valid_input ? i_branch_pred : '0;
-
+    assign  instruction_c = i_ready ? i_instruction : '0;
     rv_decode_comp
     u_comp
     (
         .i_instruction                  (instruction_c),
-        .o_instruction                  (instruction),
-        .o_illegal_instruction          (inst_not_comp)
+        .o_instruction                  (instruction_unc),
+        .o_illegal_instruction          (not_comp)
     );
+
+    always_ff @(posedge i_clk)
+    begin
+        if (i_flush)
+        begin
+            instruction   <= '0;
+            inst_not_comp <= '0;
+            branch_pred   <= '0;
+            valid_input   <= '0;
+        end
+        else if (!i_stall)
+        begin
+            instruction   <= instruction_unc;
+            inst_not_comp <= not_comp;
+            branch_pred   <= i_branch_pred;
+            valid_input   <= i_ready;
+            pc <= i_pc;
+        end
+    end
 
     // get a parts of opcode
     logic[4:0]  rd, rs1, rs2;
@@ -248,7 +267,7 @@ module rv_decode
     assign  o_alu_res.shift = |{inst_slli,inst_sll,inst_srli,inst_srl,inst_srai,inst_sra};
     assign  o_alu_res.arith = |{inst_sub, inst_add, inst_grp_load, inst_grp_store};
 
-    assign  o_pc = i_pc;
+    assign  o_pc = pc;
     assign  o_funct3 = funct3;
     assign  o_inst_jalr = inst_jalr;
     assign  o_inst_jal = inst_jal;
@@ -256,7 +275,7 @@ module rv_decode
     assign  o_inst_store = inst_grp_store;
 
     logic[IADDR_SPACE_BITS-1:0] pc_next;
-    assign  pc_next = (i_pc + { {(IADDR_SPACE_BITS-3){1'b0}},
+    assign  pc_next = (pc + { {(IADDR_SPACE_BITS-3){1'b0}},
                                 inst_not_comp, !inst_not_comp, 1'b0 });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM

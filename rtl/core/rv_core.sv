@@ -132,6 +132,7 @@ module rv_core
     )
     u_st2_decode
     (
+        .i_clk                          (i_clk),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
