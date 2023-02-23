@@ -10,11 +10,17 @@ double sc_time_stamp() { return 0; }
 #define SIM_TIME_MAX (1000*10)
 #define SIM_TIME_MAX_TICK (TICK_TIME * SIM_TIME_MAX)
 
+#define SIM_PULSE_DELTA 1000000
+
 uint32_t prev_marker;
 bool initialized;
 
 int on_step_cb(uint64_t time, TOP_CLASS* p_top)
 {
+    if ((time % SIM_PULSE_DELTA) == 0)
+    {
+        printf("SIM: running, time %d ticks, WB_ADDR=0x%08x\n", time, p_top->o_wb_addr);
+    }
     if ((time % TICK_PERIOD) == 0)
     {
         if (((p_top->o_debug & 0x1) == 1) && initialized)
