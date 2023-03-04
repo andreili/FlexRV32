@@ -52,7 +52,7 @@ module rv_top_wb
 `endif
 
     logic       instr_req;
-    logic[IADDR_SPACE_BITS-1:0] instr_addr;
+    logic[IADDR_SPACE_BITS-1:1] instr_addr;
     logic       instr_ack;
     logic[31:0] instr_data;
     logic       data_req;
@@ -71,11 +71,11 @@ module rv_top_wb
     logic       csr_clear;
     logic       csr_read;
     logic       csr_ebreak;
-    logic[IADDR_SPACE_BITS-1:0] csr_pc_next;
+    logic[IADDR_SPACE_BITS-1:1] csr_pc_next;
     logic[31:0] csr_rdata;
-    logic[IADDR_SPACE_BITS-1:0] ret_addr;
+    logic[IADDR_SPACE_BITS-1:1] ret_addr;
     logic       csr_to_trap;
-    logic[IADDR_SPACE_BITS-1:0] csr_trap_pc;
+    logic[IADDR_SPACE_BITS-1:1] csr_trap_pc;
     logic       csr_oread;
     logic[31:0] reg_rdata1;
     logic       instr_issued;
@@ -181,7 +181,7 @@ module rv_top_wb
     assign  data_ack = i_wb_ack & (!instr_ack);
     assign  instr_ack = i_wb_ack & (!data_req) & instr_req;
 
-    assign o_wb_adr = data_req ? data_addr : { RESET_ADDR[31:IADDR_SPACE_BITS], instr_addr };
+    assign o_wb_adr = data_req ? data_addr : { RESET_ADDR[31:IADDR_SPACE_BITS], instr_addr, 1'b0 };
     assign o_wb_dat = data_wdata;
     assign o_wb_we = data_req ? data_write : '0;
     assign o_wb_sel = data_req ? data_sel : '1;

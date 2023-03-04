@@ -14,8 +14,8 @@ module rv_alu1
     input   wire                        i_reset_n,
     input   wire                        i_flush,
     input   wire                        i_stall,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
     input   wire                        i_branch_pred,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
@@ -34,7 +34,7 @@ module rv_alu1
     input   wire                        i_inst_jal,
     input   wire                        i_inst_branch,
     input   wire                        i_inst_store,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_ret_addr,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_ret_addr,
     input   wire[31:0]                  i_reg1_data,
     input   wire[31:0]                  i_reg2_data,
     input   wire                        i_to_trap,
@@ -48,10 +48,10 @@ module rv_alu1
     output  wire[4:0]                   o_rd,
     output  wire                        o_inst_jal_jalr,
     output  wire                        o_inst_branch,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
     output  wire                        o_branch_pred,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
     output  alu_ctrl_t                  o_alu_ctrl,
@@ -75,8 +75,8 @@ module rv_alu1
     logic       store;
     res_src_t   res_src;
     logic       reg_write;
-    logic[IADDR_SPACE_BITS-1:0] pc;
-    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc_next;
     logic       to_trap;
     logic       branch_pred;
 
@@ -124,7 +124,7 @@ module rv_alu1
 
     logic[31:0] op1, op2;
 
-    assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc } :
+    assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc, 1'b0 } :
                   alu_ctrl.div_mux ? i_reg2_data :
                   i_reg1_data;
     assign  op2 = op2_sel.i  ? imm_i :
@@ -132,14 +132,14 @@ module rv_alu1
                   alu_ctrl.div_mux ? i_reg1_data :
                   i_reg2_data;
 
-    logic[IADDR_SPACE_BITS-1:0] pc_target_base, pc_target_offset, pc_target;
+    logic[IADDR_SPACE_BITS-1:1] pc_target_base, pc_target_offset, pc_target;
 
     assign  pc_target_base   = inst_mret ? i_ret_addr :
-                               inst_jalr ? i_reg1_data[IADDR_SPACE_BITS-1:0] :
+                               inst_jalr ? i_reg1_data[IADDR_SPACE_BITS-1:1] :
                                pc;
     assign  pc_target_offset = inst_mret ? '0 :
-                               inst_jalr ? imm_i[IADDR_SPACE_BITS-1:0] :
-                               imm_j[IADDR_SPACE_BITS-1:0];
+                               inst_jalr ? imm_i[IADDR_SPACE_BITS-1:1] :
+                               imm_j[IADDR_SPACE_BITS-1:1];
     assign  pc_target = pc_target_base + pc_target_offset;
 
 /* verilator lint_off UNUSEDSIGNAL */

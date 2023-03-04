@@ -26,11 +26,11 @@ module rv_csr
     input   wire                        i_read,
     input   wire                        i_ebreak,
     input   wire                        i_instr_issued,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
     output  wire[31:0]                  o_data,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_ret_addr,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_ret_addr,
     output  wire                        o_csr_to_trap,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_trap_pc,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_trap_pc,
     output  wire                        o_read
 );
 
@@ -42,7 +42,7 @@ module rv_csr
     logic       clear;
     logic       read;
     logic       ebreak;
-    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc;
 
     always_ff @(posedge i_clk)
     begin
@@ -101,7 +101,7 @@ module rv_csr
             assign rdata_user = '0;
     endgenerate
 
-    logic[31:0] ret_addr, trap_pc;
+    logic[31:1] ret_addr, trap_pc;
     int_ctrl_csr_t o_int_ctr; // TODO
     rv_csr_machine
     #(
@@ -128,8 +128,8 @@ module rv_csr
         .o_data                         (rdata_machine)
     );
 
-    assign  o_ret_addr = ret_addr[IADDR_SPACE_BITS-1:0];
-    assign  o_trap_pc = trap_pc[IADDR_SPACE_BITS-1:0];
+    assign  o_ret_addr = ret_addr[IADDR_SPACE_BITS-1:1];
+    assign  o_trap_pc = trap_pc[IADDR_SPACE_BITS-1:1];
     assign  o_csr_to_trap = i_ebreak;
     assign  o_data = user_level_category ? rdata_user :
                      supervisor_level_category ? rdata_supervisor :

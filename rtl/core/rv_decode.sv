@@ -17,7 +17,7 @@ module rv_decode
     input   wire                        i_flush,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ready,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
@@ -30,10 +30,10 @@ module rv_decode
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_csr_pc_next,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_csr_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     output  wire                        o_branch_pred,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
     output  wire[4:0]                   o_rs1,
     output  wire[4:0]                   o_rs2,
     output  wire[4:0]                   o_rd,
@@ -62,8 +62,8 @@ module rv_decode
     logic       not_comp;
     logic       inst_not_comp;
     logic       branch_pred;
-    logic[IADDR_SPACE_BITS-1:0] pc;
-    logic[IADDR_SPACE_BITS-1:0] pc_next;
+    logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc_next;
 
     assign  instruction_c = i_ready ? i_instruction : '0;
     rv_decode_comp
@@ -276,7 +276,7 @@ module rv_decode
     assign  o_inst_store = inst_grp_store;
 
     assign  pc_next = (pc + { {(IADDR_SPACE_BITS-3){1'b0}},
-                                inst_not_comp, !inst_not_comp, 1'b0 });
+                                inst_not_comp, !inst_not_comp });
     assign  o_pc_next = pc_next;
 `ifdef TO_SIM
     assign  o_instr = instruction;

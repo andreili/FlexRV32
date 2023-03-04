@@ -21,11 +21,11 @@ module rv_csr_machine
     input   wire                        i_set,
     input   wire                        i_clear,
     input   int_ctrl_state_csr_t        i_int_ctr_state,
-    input   wire[31:0]                  i_pc,
+    input   wire[31:1]                  i_pc,
     input   wire                        i_ebreak,
     output  int_ctrl_csr_t              o_int_ctr,
-    output  wire[31:0]                  o_ret_addr,
-    output  wire[31:0]                  o_trap_pc,
+    output  wire[31:1]                  o_ret_addr,
+    output  wire[31:1]                  o_trap_pc,
     output  wire[31:0]                  o_data
 );
 
@@ -159,7 +159,7 @@ module rv_csr_machine
     assign  xIE = MIE;
 `endif*/
 
-    logic[31:0] mepc_data;
+    logic[31:1] mepc_data;
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
@@ -167,7 +167,7 @@ module rv_csr_machine
         else if (i_ebreak)
             mepc_data <= i_pc;
         else if (sel_mepc & i_write)
-            mepc_data <= i_data;
+            mepc_data <= i_data[31:1];
     end
 
     logic[31:0] mcause_data;
@@ -284,10 +284,10 @@ module rv_csr_machine
     assign  o_int_ctr.enable_soft     = mie_data[ 3]; //  3 MSIE
     //  1 SSIE
 
-    logic[31:0] cause_pc;
+    logic[31:1] cause_pc;
 
-    assign  cause_pc = { trap_bar_base, 2'b00 } + { mcause_data[29:0], 2'b00 };
-    assign  o_trap_pc = (trap_bar_mode == 2'b00) ? { trap_bar_base, 2'b00 } : // Direct
+    assign  cause_pc = { trap_bar_base, 1'b0 } + { mcause_data[29:0], 1'b0 };
+    assign  o_trap_pc = (trap_bar_mode == 2'b00) ? { trap_bar_base, 1'b0 } : // Direct
                         (trap_bar_mode == 2'b01) ? cause_pc :  // Vectored
                         '0;
     assign  o_ret_addr = mepc_data;
@@ -299,7 +299,7 @@ module rv_csr_machine
                      sel_mcounteren ? (mcounteren_hi | mcounteren_lo) :
                      sel_mstatush ? mstatush_data :
                      sel_mscratch ? mscratch_data :
-                     sel_mepc ? mepc_data :
+                     sel_mepc ? { mepc_data, 1'b0 } :
                      sel_mcause ? mcause_data :
                      sel_mtval ? mtval_data :
                      sel_mip ? { {20{1'b0}}, mip_data } :

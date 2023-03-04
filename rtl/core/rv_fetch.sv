@@ -15,23 +15,23 @@ module rv_fetch
     input   wire                        i_reset_n,
     input   wire                        i_stall,
     input   wire                        i_flush,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_target,
     input   wire                        i_pc_select,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_trap,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_trap,
     input   wire                        i_ebreak,
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ack,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_addr,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_addr,
     output  wire                        o_cyc,
     output  wire[31:0]                  o_instruction,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     output  wire                        o_ready
 );
 
-    logic[IADDR_SPACE_BITS-1:0] pc;
-    logic[IADDR_SPACE_BITS-1:0] pc_sum;
-    logic[IADDR_SPACE_BITS-1:0] pc_next;
-    logic[IADDR_SPACE_BITS-1:0] pc_incr;
+    logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc_sum;
+    logic[IADDR_SPACE_BITS-1:1] pc_next;
+    logic[IADDR_SPACE_BITS-1:1] pc_incr;
     logic                       move_pc;
     logic                       update_pc;
     logic                       pc_prev1;
@@ -44,10 +44,10 @@ module rv_fetch
     assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
     assign  move_pc = (i_ack & (!full));
     assign  update_pc = (!i_reset_n) | pc_next_trap_sel | i_pc_select | move_pc;
-    assign  pc_incr = { {(IADDR_SPACE_BITS-3){1'b0}}, !pc[1], pc[1], 1'b0 };
+    assign  pc_incr = { {(IADDR_SPACE_BITS-3){1'b0}}, !pc[1], pc[1] };
     assign  pc_sum = pc + pc_incr;
 
-    assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:0] :
+    assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:1] :
                 pc_next_trap_sel ? i_pc_trap :
                 i_pc_select ? i_pc_target :
                 pc_sum;

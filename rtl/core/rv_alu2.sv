@@ -24,10 +24,10 @@ module rv_alu2
     input   wire[4:0]                   i_rd,
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
     input   wire                        i_branch_pred,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   alu_ctrl_t                  i_alu_ctrl,
@@ -41,7 +41,7 @@ module rv_alu2
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
     output  wire[3:0]                   o_wsel,
@@ -56,9 +56,9 @@ module rv_alu2
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
-    logic[IADDR_SPACE_BITS-1:0] pc;
-    logic[IADDR_SPACE_BITS-1:0] pc_next;
-    logic[IADDR_SPACE_BITS-1:0] pc_target;
+    logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc_next;
+    logic[IADDR_SPACE_BITS-1:1] pc_target;
     res_src_t   res_src;
     logic[2:0]  funct3;
     alu_ctrl_t  alu_ctrl;
@@ -276,7 +276,7 @@ module rv_alu2
         .o_wsel                         (o_wsel)
     );
 
-    assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next } :
+    assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next, 1'b0 } :
                      (csr_read & EXTENSION_Zicsr) ? csr_data :
                      alu_result;
 

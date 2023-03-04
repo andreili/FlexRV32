@@ -9,14 +9,14 @@ module rv_fetch_buf
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
     input   wire[WIDTH-1:0]             i_data_lo,
     input   wire[WIDTH-1:0]             i_data_hi,
     input   wire                        i_push_single,
     input   wire                        i_push_double,
     output  wire[WIDTH-1:0]             o_data_lo,
     output  wire[WIDTH-1:0]             o_data_hi,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     input   wire                        i_pop,
     output  wire                        o_empty,
     output  wire                        o_full
@@ -78,15 +78,15 @@ module rv_fetch_buf
         end
     endgenerate
 
-    logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc;
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
             pc <= i_pc;
         else if (pop_single)
-            pc <= pc + 2;
+            pc <= pc + 1;
         else if (pop_double)
-            pc <= pc + 4;
+            pc <= pc + 2;
     end
 
     assign  data_lo   = data[0];

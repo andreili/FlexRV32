@@ -9,7 +9,7 @@ module rv_trace
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
     input   wire[31:0]                  i_instr,
     input   wire[31:0]                  i_bus_data,
     input   wire[31:0]                  i_mem_addr,
@@ -330,7 +330,7 @@ module rv_trace
         end
         else if (!i_exec_stall)
         begin
-            r_pc_exec <= i_pc;
+            r_pc_exec <= { i_pc,1'b0 };
             r_instr_exec <= i_instr;
             r_reg_write_exec <= i_reg_write;
             r_mem_write_exec <= i_mem_write;

@@ -31,16 +31,16 @@ module rv_core
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
-    output  wire[IADDR_SPACE_BITS-1:0] o_csr_pc_next,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_csr_pc_next,
     input   wire                        i_csr_to_trap,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_csr_trap_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_csr_trap_pc,
     input   wire                        i_csr_read,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_csr_ret_addr,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_csr_ret_addr,
     input   wire[31:0]                  i_csr_data,
     output  wire[31:0]                  o_reg_rdata1,
     // instruction interface
     output  wire                        o_instr_req,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_instr_addr,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_instr_addr,
     input   wire                        i_instr_ack,
     input   wire[31:0]                  i_instr_data,
     // data interface
@@ -57,13 +57,13 @@ module rv_core
     logic[31:0] reg_rdata1, reg_rdata2;
 
     logic[31:0] fetch_instruction;
-    logic[IADDR_SPACE_BITS-1:0] fetch_pc;
+    logic[IADDR_SPACE_BITS-1:1] fetch_pc;
     logic       fetch_ready;
     logic       fetch_stall;
     logic       fetch_flush;
     logic       alu2_to_trap;
     logic       alu2_pc_select;
-    logic[IADDR_SPACE_BITS-1:0] alu2_pc_target;
+    logic[IADDR_SPACE_BITS-1:1] alu2_pc_target;
 
     rv_fetch
     #(
@@ -94,8 +94,8 @@ module rv_core
 
     logic       decode_stall;
     logic       decode_flush;
-    logic[IADDR_SPACE_BITS-1:0] decode_pc;
-    logic[IADDR_SPACE_BITS-1:0] decode_pc_next;
+    logic[IADDR_SPACE_BITS-1:1] decode_pc;
+    logic[IADDR_SPACE_BITS-1:1] decode_pc_next;
     logic[4:0]  decode_rs1;
     logic[4:0]  decode_rs2;
     logic[4:0]  decode_rd;
@@ -216,9 +216,9 @@ module rv_core
     logic[4:0]  alu1_rd;
     logic       alu1_inst_jal_jalr;
     logic       alu1_inst_branch;
-    logic[IADDR_SPACE_BITS-1:0] alu1_pc;
-    logic[IADDR_SPACE_BITS-1:0] alu1_pc_next;
-    logic[IADDR_SPACE_BITS-1:0] alu1_pc_target;
+    logic[IADDR_SPACE_BITS-1:1] alu1_pc;
+    logic[IADDR_SPACE_BITS-1:1] alu1_pc_next;
+    logic[IADDR_SPACE_BITS-1:1] alu1_pc_target;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
     alu_ctrl_t  alu1_alu_ctrl;

@@ -10,15 +10,15 @@ module pc_sel
     input   wire                        i_branch_pred,
     input   wire                        i_inst_jal_jalr,
     input   wire                        i_inst_branch,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_next,
-    input   wire[IADDR_SPACE_BITS-1:0]  i_pc_target,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
+    input   wire[IADDR_SPACE_BITS-1:1]  i_pc_target,
     output  wire                        o_pc_select,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_target
 );
 
     logic       pc_select, pred_ok;
-    logic[IADDR_SPACE_BITS-1:0] pc_out;
+    logic[IADDR_SPACE_BITS-1:1] pc_out;
     assign      pred_ok = (i_pc_target == i_pc);
     assign      pc_select = (i_inst_jal_jalr | (i_inst_branch & (i_cmp))) ^
                             (i_branch_pred & pred_ok & BRANCH_PREDICTION);
