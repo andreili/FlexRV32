@@ -665,7 +665,11 @@ ee_vsprintf(char *buf, const char *fmt, va_list args)
 void
 uart_send_char(char c)
 {
+#ifdef TO_SIM
     sim_send_ch(c);
+#else
+    uart_send_ch(c);
+#endif
 }
 
 int

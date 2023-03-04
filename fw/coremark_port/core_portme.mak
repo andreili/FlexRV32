@@ -3,7 +3,8 @@ OUTFLAG= -o
 PROJ_NAME = coremark
 
 OBJS = init.o uart.o sim.o core_portme.o ee_printf.o core_list_join.o core_main.o core_matrix.o core_state.o core_util.o
-C_FLAGS = -I$(PORT_DIR) -I../coremark/ -I../common/ -DHZ=117000000 -DITERATIONS=300
+C_FLAGS = -I$(PORT_DIR) -I../coremark/ -I../common/ -DHZ=75000000 -DITERATIONS=1200
+C_FLAGS += -DPERFORMANCE_RUN=1
 
 include ../Makefile.include
 

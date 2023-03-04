@@ -62,6 +62,10 @@ module rv_core
     logic       fetch_ready;
     logic       fetch_stall;
     logic       fetch_flush;
+    logic       alu2_to_trap;
+    logic       alu2_pc_select;
+    logic[IADDR_SPACE_BITS-1:0] alu2_pc;
+    logic[IADDR_SPACE_BITS-1:0] alu2_pc_target;
 
     rv_fetch
     #(
@@ -177,6 +181,9 @@ module rv_core
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
 
+    logic[31:0] alu2_result;
+    logic[31:0] write_data;
+    logic[31:0] wr_back_data;
     logic[31:0] data_hz1;
     logic[31:0] data_hz2;
     ctrl_rs_bp_t rs1_bp;
@@ -283,18 +290,13 @@ module rv_core
         .o_to_trap                      (alu1_to_trap)
     );
 
-    logic       alu2_pc_select;
-    logic[31:0] alu2_result;
     logic[31:0] alu2_add;
     logic       alu2_store;
     logic       alu2_reg_write;
     logic[4:0]  alu2_rd;
-    logic[IADDR_SPACE_BITS-1:0] alu2_pc;
-    logic[IADDR_SPACE_BITS-1:0] alu2_pc_target;
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
-    logic       alu2_to_trap;
     logic       alu2_ready;
 
     rv_alu2
@@ -344,7 +346,6 @@ module rv_core
         .o_ready                        (alu2_ready)
     );
 
-    logic[31:0] write_data;
     logic[4:0]  write_rd;
     logic       write_op;
 
@@ -369,7 +370,6 @@ module rv_core
     logic[31:0] trace_rd_data;
 `endif
 
-    logic[31:0] wr_back_data;
     logic[4:0]  wr_back_rd;
     logic       wr_back_op;
     always_ff @(posedge i_clk)

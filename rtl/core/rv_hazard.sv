@@ -12,14 +12,17 @@ module rv_hazard
     output  wire[31:0]                  o_data
 );
 
+    logic[31:0] data;
     always_comb
     begin
         case (1'b1)
-        i_bp.alu2   : o_data = i_alu2_data;
-        i_bp.write  : o_data = i_wr_data;
-        i_bp.wr_back: o_data = i_wr_back_data;
-        default     : o_data = i_reg_data;
+        i_bp.alu2   : data = i_alu2_data;
+        i_bp.write  : data = i_wr_data;
+        i_bp.wr_back: data = i_wr_back_data;
+        default     : data = i_reg_data;
         endcase
     end
+
+    assign  o_data = data;
 
 endmodule

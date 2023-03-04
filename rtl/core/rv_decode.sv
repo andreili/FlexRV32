@@ -62,6 +62,7 @@ module rv_decode
     logic       not_comp;
     logic       inst_not_comp;
     logic[IADDR_SPACE_BITS-1:0] pc;
+    logic[IADDR_SPACE_BITS-1:0] pc_next;
 
     assign  instruction_c = i_ready ? i_instruction : '0;
     rv_decode_comp
@@ -274,7 +275,6 @@ module rv_decode
     assign  o_inst_branch = inst_grp_branch;
     assign  o_inst_store = inst_grp_store;
 
-    logic[IADDR_SPACE_BITS-1:0] pc_next;
     assign  pc_next = (pc + { {(IADDR_SPACE_BITS-3){1'b0}},
                                 inst_not_comp, !inst_not_comp, 1'b0 });
     assign  o_pc_next = pc_next;
@@ -503,10 +503,12 @@ module rv_decode
     end
 `endif
 
+`ifdef TO_SIM
 initial
 begin
     o_inst_store = '0;
     o_reg_write = '0;
 end
+`endif
 
 endmodule

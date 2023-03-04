@@ -19,7 +19,7 @@ int on_step_cb(uint64_t time, TOP_CLASS* p_top)
 {
     if ((time % SIM_PULSE_DELTA) == 0)
     {
-        printf("SIM: running, time %d ticks, WB_ADDR=0x%08x\n", time, p_top->o_wb_addr);
+        printf("SIM: running, time %ld ticks, WB_ADDR=0x%08x\n", time, p_top->o_wb_addr);
     }
     if ((time % TICK_PERIOD) == 0)
     {
@@ -101,10 +101,10 @@ int main(int argc, char** argv, char** env)
         ret = 0;
     }
 
-    /*if (ret == 1)
+    if (ret == 1)
     {
         ret = 0;
-    }*/
+    }
 
     printf("Simulation time: %.3f(s), %d/%d cycles\n", elapsed_seconds, cycles_cnt, cycles);
 
@@ -113,5 +113,5 @@ int main(int argc, char** argv, char** env)
 #if VM_COVERAGE
     //tb->get_context()->coveragep()->write(COV_FN);
 #endif
-    return 0;
+    return ret;
 }

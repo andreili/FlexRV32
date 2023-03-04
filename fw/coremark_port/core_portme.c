@@ -64,7 +64,8 @@ volatile ee_s32 seed5_volatile = 0;
 CORETIMETYPE
 barebones_clock()
 {
-    return read_csr(cycle);
+    uint64_t time = (uint64_t)read_csr(cycleh) << 32;
+    return 1.0d * (time | read_csr(cycle));
 }
 
 #define GETMYTIME(_t)              (*_t = barebones_clock())
@@ -144,6 +145,7 @@ portable_init(core_portable *p, int *argc, char *argv[])
     (void)(argc);
     (void)(argv);
     uart_init();
+    ee_printf("Coremark started.\n");
     if (sizeof(ee_ptr_int) != sizeof(ee_u8 *))
     {
         ee_printf(

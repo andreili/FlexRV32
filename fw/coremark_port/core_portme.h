@@ -89,12 +89,13 @@ Original Author: Shay Gal-on
         ee_ptr_int needs to be the data type used to hold pointers, otherwise
    coremark may fail!!!
 */
-typedef signed short   ee_s16;
-typedef unsigned short ee_u16;
-typedef signed int     ee_s32;
+typedef int16_t        ee_s16;
+typedef uint16_t       ee_u16;
+typedef int32_t        ee_s32;
 typedef double         ee_f32;
-typedef unsigned char  ee_u8;
-typedef unsigned int   ee_u32;
+typedef uint8_t        ee_u8;
+typedef uint32_t       ee_u32;
+typedef uint64_t       ee_u64;
 typedef ee_u32         ee_ptr_int;
 typedef size_t         ee_size_t;
 #define NULL ((void *)0)
@@ -107,8 +108,8 @@ typedef size_t         ee_size_t;
 /* Configuration : CORE_TICKS
         Define type of return from the timing functions.
  */
-#define CORETIMETYPE ee_u32
-typedef ee_u32 CORE_TICKS;
+#define CORETIMETYPE ee_f32
+typedef ee_u64 CORE_TICKS;
 
 /* Configuration : SEED_METHOD
         Defines method to get seed values that cannot be computed at compile

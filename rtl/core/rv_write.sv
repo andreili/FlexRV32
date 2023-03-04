@@ -77,11 +77,12 @@ module rv_write
         endcase
     end
 
+    logic[31:0] data;
     always_comb
     begin
         case (1'b1)
-        res_src.memory: o_data = write_rdata;
-        default       : o_data = alu_result;
+        res_src.memory: data = write_rdata;
+        default       : data = alu_result;
         endcase
     end
 
@@ -90,6 +91,7 @@ module rv_write
     assign  dummy = res_src.alu | res_src.pc_next;
 /* verilator lint_on UNUSEDSIGNAL */
 
+    assign  o_data = data;
     assign  o_rd = rd;
     assign  o_write_op = reg_write;
 
