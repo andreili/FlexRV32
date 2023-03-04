@@ -33,6 +33,7 @@ module rv_fetch
     logic[IADDR_SPACE_BITS-1:0] pc_next;
     logic[IADDR_SPACE_BITS-1:0] pc_incr;
     logic                       move_pc;
+    logic                       update_pc;
     logic                       pc_prev1;
 
     logic       pc_next_trap_sel;
@@ -42,6 +43,7 @@ module rv_fetch
 
     assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
     assign  move_pc = (i_ack & (!full));
+    assign  update_pc = (!i_reset_n) | pc_next_trap_sel | i_pc_select | move_pc;
     assign  pc_incr = { {(IADDR_SPACE_BITS-3){1'b0}}, !pc[1], pc[1], 1'b0 };
     assign  pc_sum = pc + pc_incr;
 
@@ -52,9 +54,9 @@ module rv_fetch
 
     always_ff @(posedge i_clk)
     begin
-        if ((!i_reset_n) | pc_next_trap_sel | i_pc_select | move_pc)
+        if (update_pc)
             pc <= pc_next;
-        pc_prev <= pc[1];
+        pc_prev1 <= pc[1];
     end
 
     always_ff @(posedge i_clk)
