@@ -63,7 +63,6 @@ module rv_core
     logic       fetch_flush;
     logic       alu2_to_trap;
     logic       alu2_pc_select;
-    logic[IADDR_SPACE_BITS-1:0] alu2_pc;
     logic[IADDR_SPACE_BITS-1:0] alu2_pc_target;
 
     rv_fetch
@@ -80,7 +79,6 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_stall                        (fetch_stall),
         .i_flush                        (fetch_flush),
-        .i_pc_br                        (alu2_pc),
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
         .i_pc_trap                      (i_csr_trap_pc),
@@ -333,7 +331,6 @@ module rv_core
         .o_store                        (alu2_store),
         .o_reg_write                    (alu2_reg_write),
         .o_rd                           (alu2_rd),
-        .o_pc                           (alu2_pc),
         .o_pc_target                    (alu2_pc_target),
         .o_res_src                      (alu2_res_src),
         .o_wdata                        (o_data_wdata),

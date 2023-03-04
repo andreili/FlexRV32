@@ -41,7 +41,6 @@ module rv_alu2
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
-    output  wire[IADDR_SPACE_BITS-1:0]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:0]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[31:0]                  o_wdata,
@@ -291,7 +290,6 @@ module rv_alu2
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
-    assign  o_pc = pc;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_to_trap = to_trap;

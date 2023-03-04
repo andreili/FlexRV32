@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sat Mar 04 17:37:51 2023
+[*] Sat Mar 04 18:27:33 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Sat Mar 04 17:37:01 2023"
-[dumpfile_size] 681695
+[dumpfile_mtime] "Sat Mar 04 18:27:29 2023"
+[dumpfile_size] 683758
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
 [timestart] 258
 [size] 1920 1017
@@ -140,19 +140,9 @@ TOP.top.u_rv.u_core.u_st1_fetch.move_pc
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_push_single
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_push_double
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_pop_single
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_pop_double
 @22
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[0][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[1][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[2][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[3][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[4][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[5][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[6][38:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[7][38:0]
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.empty
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.full
@@ -166,7 +156,6 @@ TOP.top.u_rv.u_core.u_st1_fetch.o_pc[21:0]
 TOP.top.u_rv.u_core.u_st1_fetch.o_instruction[31:0]
 @28
 TOP.top.u_rv.u_core.u_st1_fetch.o_ready
-TOP.top.u_rv.u_core.u_st1_fetch.o_branch_pred
 @1401200
 -ST1 FETCH
 @800200

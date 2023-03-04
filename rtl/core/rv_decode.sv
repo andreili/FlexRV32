@@ -128,10 +128,9 @@ module rv_decode
 
     // arifmetical with immediate
     logic   inst_grp_ari;
-    logic   inst_addi, inst_slli, inst_slti, inst_sltiu;
+    logic   inst_slli, inst_slti, inst_sltiu;
     logic   inst_xori, inst_srli, inst_srai, inst_ori, inst_andi;
     assign  inst_grp_ari  = (op[6:2] == RV32_OPC_OP_IMM) & inst_full;
-    assign  inst_addi     = inst_grp_ari & (funct3 == 3'b000);
     assign  inst_slli     = inst_grp_ari & (funct3 == 3'b001);
     assign  inst_slti     = inst_grp_ari & (funct3 == 3'b010);
     assign  inst_sltiu    = inst_grp_ari & (funct3 == 3'b011);
@@ -320,6 +319,8 @@ module rv_decode
 /* verilator lint_on UNUSEDSIGNAL */
 
 `ifdef TO_SIM
+    logic   inst_addi;
+    assign  inst_addi     = inst_grp_ari & (funct3 == 3'b000);
     logic   inst_lb, inst_lh, inst_lw, inst_lbu, inst_lhu;
     assign  inst_lb       = inst_grp_load  & (funct3 == 3'b000);
     assign  inst_lh       = inst_grp_load  & (funct3 == 3'b001);
