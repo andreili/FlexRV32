@@ -19,4 +19,5 @@ tests_m:
 	make -C run -f ../Makefile.tests_m.mak trace=1 GTK_FLAGS=$(GTK_FLAGS) $(MAKECMDGOALS)
 
 #tests: tests_i tests_c
+#tests: tests_i
 tests: tests_m

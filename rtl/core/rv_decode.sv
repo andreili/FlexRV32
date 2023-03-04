@@ -5,6 +5,8 @@
 module rv_decode
 #(
     parameter int IADDR_SPACE_BITS      = 32,
+    parameter logic BRANCH_PREDICTION   = 1,
+    parameter int BRANCH_TABLE_SIZE_BITS= 2,
     parameter logic EXTENSION_F         = 1,
     parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1
@@ -16,7 +18,6 @@ module rv_decode
     input   wire[31:0]                  i_instruction,
     input   wire                        i_ready,
     input   wire[IADDR_SPACE_BITS-1:0]  i_pc,
-    input   wire                        i_branch_pred,
 `ifdef TO_SIM
     output  wire[31:0]                  o_instr,
 `endif
@@ -58,9 +59,9 @@ module rv_decode
     logic[31:0] instruction_c;
     logic[31:0] instruction_unc;
     logic[31:0] instruction;
-    logic       branch_pred;
     logic       not_comp;
     logic       inst_not_comp;
+    logic       branch_pred;
     logic[IADDR_SPACE_BITS-1:0] pc;
     logic[IADDR_SPACE_BITS-1:0] pc_next;
 
@@ -86,7 +87,7 @@ module rv_decode
         begin
             instruction   <= instruction_unc;
             inst_not_comp <= not_comp;
-            branch_pred   <= i_branch_pred;
+            branch_pred   <= '0;
             valid_input   <= i_ready;
             pc <= i_pc;
         end
@@ -315,7 +316,7 @@ module rv_decode
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = (|funct7);
+    assign  dummy = (|funct7) | BRANCH_PREDICTION | (|BRANCH_TABLE_SIZE_BITS);
 /* verilator lint_on UNUSEDSIGNAL */
 
 `ifdef TO_SIM

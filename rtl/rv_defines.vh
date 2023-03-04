@@ -10,5 +10,5 @@
 `ifdef TO_SIM
     `define TCM_ADDR_WIDTH              21
 `else
-    `define TCM_ADDR_WIDTH              13
+    `define TCM_ADDR_WIDTH              14
 `endif

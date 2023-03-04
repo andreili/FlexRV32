@@ -58,7 +58,6 @@ module rv_core
 
     logic[31:0] fetch_instruction;
     logic[IADDR_SPACE_BITS-1:0] fetch_pc;
-    logic       fetch_branch_pred;
     logic       fetch_ready;
     logic       fetch_stall;
     logic       fetch_flush;
@@ -71,8 +70,6 @@ module rv_core
     #(
         .RESET_ADDR                     (RESET_ADDR),
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
-        .BRANCH_PREDICTION              (BRANCH_PREDICTION),
-        .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
         .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
@@ -94,7 +91,6 @@ module rv_core
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
         .o_pc                           (fetch_pc),
-        .o_branch_pred                  (fetch_branch_pred),
         .o_ready                        (fetch_ready)
     );
 
@@ -130,6 +126,8 @@ module rv_core
     rv_decode
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
+        .BRANCH_PREDICTION              (BRANCH_PREDICTION),
+        .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
         .EXTENSION_F                    (EXTENSION_F),
         .EXTENSION_M                    (EXTENSION_M),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
@@ -142,7 +140,6 @@ module rv_core
         .i_instruction                  (fetch_instruction),
         .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
-        .i_branch_pred                  (fetch_branch_pred),
 `ifdef TO_SIM
         .o_instr                        (decode_instr),
 `endif
