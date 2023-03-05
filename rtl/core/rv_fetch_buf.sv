@@ -46,8 +46,11 @@ module rv_fetch_buf
     logic   full;
 
     assign  is_comp = (data_lo[1:0] != 2'b11);
-    assign  empty = (is_comp & (head == 0)) | (!is_comp & (head < 2));
-    assign  full = (int'(head) >= (QSize - 2));
+    // empty - is zero (if compressed instruction on tail) or 1
+    assign  empty = (!(|{ head[DEPTH_BITS:2], head[1], head[0] & is_comp }));
+    // full - if least of two elements is free
+    assign  full = (  head[DEPTH_BITS] & (!(|head[DEPTH_BITS-1:0]))) |
+                   ((!head[DEPTH_BITS]) &  (&head[DEPTH_BITS-1:0]));
 
     logic[WIDTH-1:0]      data[QSize];
 
