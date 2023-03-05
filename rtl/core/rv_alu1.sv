@@ -90,11 +90,9 @@ module rv_alu1
             inst_branch <= '0;
             store <= '0;
             reg_write <= '0;
-            res_src <= '0;
             inst_mret <= '0;
             to_trap <= '0;
             branch_pred <= '0;
-            alu_ctrl <= '0;
         end
         else if (!i_stall)
         begin

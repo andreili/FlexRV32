@@ -76,7 +76,7 @@ module rv_alu2
     always_comb
     begin
         case (state)
-        `ALU_START: state_next = (|i_alu_ctrl.group_mux) ? `ALU_WAIT : `ALU_START;
+        `ALU_START: state_next = (|i_alu_ctrl.group_mux & EXTENSION_M) ? `ALU_WAIT : `ALU_START;
         `ALU_WAIT : state_next = (op_cnt == 5'd30) ? `ALU_END : `ALU_WAIT;
         `ALU_END  : state_next = `ALU_START;
         default   : state_next = `ALU_START;
@@ -86,7 +86,7 @@ module rv_alu2
     logic       ready;
     logic       mul_op1_signed;
     logic       mul_op2_signed;
-    assign      ready = (state == `ALU_START);
+    assign      ready = (state == `ALU_START) | (!EXTENSION_M);
     assign      mul_op1_signed = !(&funct3[1:0]);
     assign      mul_op2_signed = !funct3[1];
 
@@ -111,8 +111,6 @@ module rv_alu2
     begin
         if ((!i_reset_n) | i_flush)
         begin
-            op1 <= '0;
-            op2 <= '0;
             rd <= '0;
             inst_jal_jalr <= '0;
             inst_branch <= '0;
