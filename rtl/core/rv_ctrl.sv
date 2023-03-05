@@ -23,7 +23,6 @@ module rv_ctrl
     input   wire                        i_wr_back_reg_write,
     input   wire                        i_need_pause,
     output  wire                        o_fetch_stall,
-    output  wire                        o_fetch_flush,
     output  wire                        o_decode_flush,
     output  wire                        o_decode_stall,
     output  ctrl_rs_bp_t                o_rs1_bp,
@@ -64,7 +63,6 @@ module rv_ctrl
             inst_sup <= { inst_sup[0], i_decode_inst_sup };
     end
 
-    assign  o_fetch_flush  = global_flush;
     assign  o_fetch_stall  = decode_stall;
     assign  o_decode_flush = global_flush;
     assign  o_decode_stall = decode_stall;

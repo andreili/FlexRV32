@@ -140,7 +140,20 @@ module rv_alu1
     assign  pc_target_offset = inst_mret ? '0 :
                                inst_jalr ? imm_i[IADDR_SPACE_BITS-1:1] :
                                imm_j[IADDR_SPACE_BITS-1:1];
-    assign  pc_target = pc_target_base + pc_target_offset;
+/* verilator lint_off PINCONNECTEMPTY */
+    add
+    #(
+        .WIDTH                          (IADDR_SPACE_BITS - 1)
+    )
+    u_pc_inc
+    (
+        .i_carry                        (1'b0),
+        .i_op1                          (pc_target_base),
+        .i_op2                          (pc_target_offset),
+        .o_add                          (pc_target),
+        .o_carry                        ()
+    );
+/* verilator lint_on  PINCONNECTEMPTY */
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;

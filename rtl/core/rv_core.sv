@@ -58,11 +58,12 @@ module rv_core
 
     logic[31:0] fetch_instruction;
     logic[IADDR_SPACE_BITS-1:1] fetch_pc;
+    logic[IADDR_SPACE_BITS-1:1] fetch_pc_next;
     logic       fetch_ready;
     logic       fetch_stall;
-    logic       fetch_flush;
     logic       alu2_to_trap;
     logic       alu2_pc_select;
+    logic       fetch_pc_change;
     logic[IADDR_SPACE_BITS-1:1] alu2_pc_target;
 
     rv_fetch
@@ -78,17 +79,18 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_stall                        (fetch_stall),
-        .i_flush                        (fetch_flush),
         .i_pc_target                    (alu2_pc_target),
         .i_pc_select                    (alu2_pc_select),
         .i_pc_trap                      (i_csr_trap_pc),
         .i_ebreak                       (alu2_to_trap),
         .i_instruction                  (i_instr_data),
         .i_ack                          (i_instr_ack),
+        .o_pc_change                    (fetch_pc_change),
         .o_addr                         (o_instr_addr),
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
         .o_pc                           (fetch_pc),
+        .o_pc_next                      (fetch_pc_next),
         .o_ready                        (fetch_ready)
     );
 
@@ -138,6 +140,7 @@ module rv_core
         .i_instruction                  (fetch_instruction),
         .i_ready                        (fetch_ready),
         .i_pc                           (fetch_pc),
+        .i_pc_next                      (fetch_pc_next),
 `ifdef TO_SIM
         .o_instr                        (decode_instr),
 `endif
@@ -392,16 +395,14 @@ module rv_core
     );
 
     logic   inv_inst;
-    logic   ctrl_pc_change;
     logic   ctrl_need_pause;
-    assign  ctrl_pc_change = alu2_pc_select | (alu2_to_trap & EXTENSION_Zicsr);
     assign  ctrl_need_pause = decode_inst_csr_req & (alu1_inst_jal_jalr | alu1_inst_branch);
     rv_ctrl
     u_ctrl
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
-        .i_pc_change                    (ctrl_pc_change),
+        .i_pc_change                    (fetch_pc_change),
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
@@ -417,7 +418,6 @@ module rv_core
         .i_wr_back_rd                   (wr_back_rd),
         .i_wr_back_reg_write            (wr_back_op),
         .i_need_pause                   (ctrl_need_pause),
-        .o_fetch_flush                  (fetch_flush),
         .o_fetch_stall                  (fetch_stall),
         .o_decode_flush                 (decode_flush),
         .o_decode_stall                 (decode_stall),

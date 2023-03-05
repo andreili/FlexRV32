@@ -18,9 +18,25 @@ module adder
     logic       negative;
     logic       zero;
     logic       carry;
+/* verilator lint_off UNUSEDSIGNAL */
+    logic       carry_ny;
+/* verilator lint_on  UNUSEDSIGNAL */
 
     assign  opb      = {32{i_is_sub}} ^ i_op2;
-    assign  add      = i_op1 + opb + { {32{1'b0}}, i_is_sub };
+
+    add
+    #(
+        .WIDTH                          (33)
+    )
+    u_add
+    (
+        .i_carry                        (i_is_sub),
+        .i_op1                          (i_op1),
+        .i_op2                          ({ 1'b0, opb }),
+        .o_add                          (add),
+        .o_carry                        (carry_ny)
+    );
+
     assign  overflow = (i_op1[31] ^ i_op2[31]) & (i_op1[31] ^ add[31]);
     assign  negative = add[31];
     assign  zero     = !(|add[31:0]);

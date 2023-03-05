@@ -17,6 +17,7 @@ module rv_fetch_buf
     output  wire[WIDTH-1:0]             o_data_lo,
     output  wire[WIDTH-1:0]             o_data_hi,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
+    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
     input   wire                        i_pop,
     output  wire                        o_empty,
     output  wire                        o_full
@@ -26,7 +27,7 @@ module rv_fetch_buf
 
     logic               pop_single, pop_double;
     logic[DEPTH_BITS:0] delta_pop, delta_push;
-    logic[DEPTH_BITS:0] head, head_next_pop, head_next;
+    logic[DEPTH_BITS:0] head, head_next_pop, head_next_ex, head_next;
     logic[WIDTH-1:0]    data_lo;
 
     assign  pop_single = i_pop &   is_comp;
@@ -34,8 +35,35 @@ module rv_fetch_buf
     assign  delta_pop = { {(DEPTH_BITS){(pop_double | pop_single)}},
                           ((!pop_double) & pop_single) };
     assign  delta_push = { {(DEPTH_BITS-1){1'b0}}, i_push_double, i_push_single };
-    assign  head_next_pop = head + delta_pop;
-    assign  head_next = (!i_reset_n) ? '0 : head_next_pop + delta_push;
+
+/* verilator lint_off PINCONNECTEMPTY */
+    add
+    #(
+        .WIDTH                          (DEPTH_BITS + 1)
+    )
+    u_head_pop
+    (
+        .i_carry                        (1'b0),
+        .i_op1                          (head),
+        .i_op2                          (delta_pop),
+        .o_add                          (head_next_pop),
+        .o_carry                        ()
+    );
+    add
+    #(
+        .WIDTH                          (DEPTH_BITS + 1)
+    )
+    u_head_add
+    (
+        .i_carry                        (1'b0),
+        .i_op1                          (head_next_pop),
+        .i_op2                          (delta_push),
+        .o_add                          (head_next_ex),
+        .o_carry                        ()
+    );
+/* verilator lint_on  PINCONNECTEMPTY */
+
+    assign  head_next = (!i_reset_n) ? '0 : head_next_ex;
     always_ff @(posedge i_clk)
     begin
         head <= head_next;
@@ -82,14 +110,31 @@ module rv_fetch_buf
     endgenerate
 
     logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc_incr;
+    logic[IADDR_SPACE_BITS-1:1] pc_next;
+
+    assign  pc_incr = is_comp ? 1 : 2;
+/* verilator lint_off PINCONNECTEMPTY */
+    add
+    #(
+        .WIDTH                          (IADDR_SPACE_BITS - 1)
+    )
+    u_pc_inc
+    (
+        .i_carry                        (1'b0),
+        .i_op1                          (pc),
+        .i_op2                          (pc_incr),
+        .o_add                          (pc_next),
+        .o_carry                        ()
+    );
+/* verilator lint_on  PINCONNECTEMPTY */
+
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
             pc <= i_pc;
-        else if (pop_single)
-            pc <= pc + 1;
-        else if (pop_double)
-            pc <= pc + 2;
+        else if (pop_single | pop_double)
+            pc <= pc_next;
     end
 
     assign  data_lo   = data[0];
@@ -97,6 +142,7 @@ module rv_fetch_buf
     assign  o_data_lo = data_lo;
     assign  o_data_hi = data[1];
     assign  o_pc = pc;
+    assign  o_pc_next = pc_next;
     assign  o_empty = empty;
     assign  o_full = full;
 
