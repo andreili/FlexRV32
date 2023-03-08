@@ -4,4 +4,5 @@
 -y ../../rtl/core/
 -y ../../rtl/core/math
 -y ../../rtl/csr/
+-y ../../rtl/lib_fpga/
 -y ../../vrf/
