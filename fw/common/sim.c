@@ -33,3 +33,10 @@ void sim_send_str(const char* const str)
         sim_send_ch(str[i]);
     }
 }
+
+int _kill(int pid, int sig)
+{
+    (void)(pid);
+    (void)(sig);
+    return 0;
+}
