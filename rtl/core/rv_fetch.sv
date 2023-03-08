@@ -78,7 +78,7 @@ module rv_fetch
 
     always_ff @(posedge i_clk)
     begin
-        ack <= i_ack & (!i_pc_select);
+        ack <= i_ack & (!change_pc);
     end
 
     assign instruction = i_instruction;
