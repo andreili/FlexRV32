@@ -79,7 +79,8 @@ module rv_fetch_buf
     // full - if least of two elements is free
     assign  full = (  head[DEPTH_BITS]/* & (!(|head[DEPTH_BITS-1:0]))*/) |
                    ((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b110)) | //-2)) |
-                   ((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b111));//-1));
+                   ((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b111)) | //-1)) |
+                   ((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b101));//-3));
 
     logic[WIDTH-1:0]      data[QSize];
 
