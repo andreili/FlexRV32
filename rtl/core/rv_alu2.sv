@@ -67,7 +67,7 @@ module rv_alu2
     logic[31:0] csr_data;
     logic       to_trap;
     logic       branch_pred;
-    logic[4:0]  op_cnt;
+    logic[5:0]  op_cnt;
 
     alu_state_t state;
     alu_state_t state_next;
@@ -77,7 +77,8 @@ module rv_alu2
     begin
         case (state)
         `ALU_START: state_next = (|i_alu_ctrl.group_mux & EXTENSION_M) ? `ALU_WAIT : `ALU_START;
-        `ALU_WAIT : state_next = (op_cnt == 5'd30) ? `ALU_END : `ALU_WAIT;
+        `ALU_WAIT : state_next = (((op_cnt == 6'd30) && (!alu_ctrl.div_mux)) |
+                                  ((op_cnt == 6'd32) && ( alu_ctrl.div_mux)))  ? `ALU_END : `ALU_WAIT;
         `ALU_END  : state_next = `ALU_START;
         default   : state_next = `ALU_START;
         endcase
@@ -86,9 +87,15 @@ module rv_alu2
     logic       ready;
     logic       mul_op1_signed;
     logic       mul_op2_signed;
+    logic       div_rem_signed;
+    logic       div_signed;
+    logic       rem_signed;
     assign      ready = (state == `ALU_START) | (!EXTENSION_M);
     assign      mul_op1_signed = !(&funct3[1:0]);
     assign      mul_op2_signed = !funct3[1];
+    assign      div_rem_signed = !funct3[0];
+    assign      div_signed = (funct3[1:0] == 2'b00);
+    assign      rem_signed = (funct3[1:0] == 2'b10);
 
     always_ff @(posedge i_clk)
     begin
@@ -222,6 +229,7 @@ module rv_alu2
     );
 
     logic[63:0] mul;
+    logic[31:0] div, rem;
     logic       md_op2;
     assign      md_op2 = alu_ctrl.div_mux ? op2[31] : op2[0];
     muldiv
@@ -229,16 +237,23 @@ module rv_alu2
     (
         .i_clk                          (i_clk),
         .i_on_wait                      (state == `ALU_WAIT),
+        .i_on_end                       (state == `ALU_END),
         .i_op1_signed                   (mul_op1_signed),
         .i_op2_signed                   (mul_op2_signed),
+        .i_dr_signed                    (div_rem_signed),
+        .i_div_signed                   (div_signed),
+        .i_rem_signed                   (rem_signed),
         .i_is_div                       (alu_ctrl.div_mux),
         .i_op1                          (op1),
+        .i_op2                          (op2),
         .i_op2_lsb                      (md_op2),
         .i_add                          (add),
         .i_funct3                       (i_funct3[1:0]),
         .o_mod                          (mul_mod),
         .o_add_prev                     (add_prev),
-        .o_mul                          (mul)
+        .o_mul                          (mul),
+        .o_div                          (div),
+        .o_rem                          (rem)
     );
 
     logic[31:0] alu_result;
@@ -258,6 +273,8 @@ module rv_alu2
         .i_lts                          (lts),
         .i_ltu                          (ltu),
         .i_mul                          (mul),
+        .i_div                          (div),
+        .i_rem                          (rem),
         .i_funct3                       (funct3),
         .i_add_override                 (alu_ctrl.add_override),
         .i_group_mux                    (alu_ctrl.group_mux),

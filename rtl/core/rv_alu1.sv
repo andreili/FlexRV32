@@ -94,6 +94,7 @@ module rv_alu1
             inst_mret <= '0;
             to_trap <= '0;
             branch_pred <= '0;
+            alu_ctrl <= '0;
         end
         else if (!i_stall)
         begin
@@ -124,11 +125,11 @@ module rv_alu1
     logic[31:0] op1, op2;
 
     assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc, 1'b0 } :
-                  alu_ctrl.div_mux ? i_reg2_data :
+                  //alu_ctrl.div_mux ? i_reg2_data :
                   i_reg1_data;
     assign  op2 = op2_sel.i  ? imm_i :
                   op2_sel.j  ? imm_j :
-                  alu_ctrl.div_mux ? i_reg1_data :
+                  //alu_ctrl.div_mux ? i_reg1_data :
                   i_reg2_data;
 
     logic[IADDR_SPACE_BITS-1:1] pc_target_base, pc_target_offset, pc_target;

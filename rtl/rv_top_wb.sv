@@ -15,7 +15,7 @@ module rv_top_wb
     parameter int INSTR_BUF_ADDR_SIZE   = 3,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
-    parameter logic EXTENSION_M         = 0,
+    parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1,
     parameter logic EXTENSION_Zicntr    = 1,
     parameter logic EXTENSION_Zihpm     = 0

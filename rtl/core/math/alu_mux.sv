@@ -19,6 +19,8 @@ module alu_mux
     input   wire                        i_lts,
     input   wire                        i_ltu,
     input   wire[63:0]                  i_mul,
+    input   wire[31:0]                  i_div,
+    input   wire[31:0]                  i_rem,
     input   wire[2:0]                   i_funct3,
     input   wire                        i_add_override,
     input   wire                        i_group_mux,
@@ -56,8 +58,10 @@ module alu_mux
         3'b001 : alu_m = i_mul[63:32];
         3'b010 : alu_m = i_mul[63:32];
         3'b011 : alu_m = i_mul[63:32];
-        //3'b10x : alu_m = div[31:0];
-        //3'b11x : alu_m = rem[31:0];
+        3'b100 : alu_m = i_div;
+        3'b101 : alu_m = i_div;
+        3'b110 : alu_m = i_rem;
+        3'b111 : alu_m = i_rem;
         default: alu_m = '0;
         endcase
     end
