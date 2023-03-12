@@ -4,6 +4,7 @@ module rv_regs
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
+    input   wire                        i_read_enable,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
     input   wire[4:0]                   i_rd,
@@ -87,8 +88,11 @@ module rv_regs
 
     always_ff @(posedge i_clk)
     begin
-        r_data1 <= rdata1;
-        r_data2 <= rdata2;
+        if (i_read_enable)
+        begin
+            r_data1 <= rdata1;
+            r_data2 <= rdata2;
+        end
     end
 
     assign  o_data1 = (|rs1) ? r_data1 : '0;
@@ -110,10 +114,13 @@ module rv_regs
     begin
         if (wr_en)
         reg_data[i_rd] <= i_data;
-        rdata1 <= reg_data[i_rs1];
-        rdata2 <= reg_data[i_rs2];
-        rs1 <= i_rs1;
-        rs2 <= i_rs2;
+        if (i_read_enable)
+        begin
+            rdata1 <= reg_data[i_rs1];
+            rdata2 <= reg_data[i_rs2];
+            rs1 <= i_rs1;
+            rs2 <= i_rs2;
+        end
     end
 
     assign  o_data1 = (|rs1) ? rdata1 : '0;
