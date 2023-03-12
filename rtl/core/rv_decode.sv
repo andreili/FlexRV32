@@ -222,16 +222,16 @@ module rv_decode
                                                    (op[6:2] == RV32_OPC_STORE) |    // 5'b01000
                                                    (op[6:2] == RV32_OPC_STORE_FP)); // 5'b01001
     assign  o_alu_ctrl.op1_inv_or_ecmp_inv = (op[6:2] == RV32_OPC_BRANCH) & inst_full & funct3[0];
-    assign  o_alu_ctrl.op2_inverse = 
-        inst_full & (
+    assign  o_alu_ctrl.op2_inverse =
+        (inst_full & (
             (op[6:2] == RV32_OPC_BRANCH) |
             ((op[6:2] == RV32_OPC_OP_IMM) & (funct3[2:1] == 2'b01)) |
-            ((op[6:2] == RV32_OPC_OP)     & (funct3[2:1] == 2'b01) & (funct7[0] == 1'b0)) |
-            ((op[6:2] == RV32_OPC_OP)     & (funct3 == 3'b101) & (funct7[5] == 1'b1) & (funct7[0] == 1'b0)) |
-            ((op[6:2] == RV32_OPC_OP_IMM) & (funct3 == 3'b101) & (funct7[5] == 1'b1))
-        ) ? '1 :
+            ((op[6:2] == RV32_OPC_OP)     & (funct3[2:1] == 2'b01) & (funct7[0] == 1'b0))
+            //((op[6:2] == RV32_OPC_OP)     & (funct7[5] == 1'b1) & (funct7[0] == 1'b0))
+        )) ? '1 :
         (inst_lui | inst_auipc | inst_jal | inst_grp_load | inst_grp_store | inst_grp_ari) ? '0 :
         funct7[5];
+    assign  o_alu_ctrl.sh_ar = (funct7[5] == 1'b1);
     logic   ariph_m;
     assign  ariph_m = (op[6:2] == RV32_OPC_OP) & inst_full & (funct7[0] == 1'b1) & EXTENSION_M;
     assign  o_alu_ctrl.group_mux = ariph_m;

@@ -183,7 +183,7 @@ module rv_alu2
     bitwise
     u_bits
     (
-        .i_sra                          (alu_ctrl.op2_inverse),
+        .i_sra                          (alu_ctrl.sh_ar),
         .i_op1                          (op1),
         .i_op2                          (op2),
         .o_xor                          (xor_),
