@@ -77,7 +77,7 @@ module rv_fetch_buf
     // empty - is zero (if compressed instruction on tail) or 1
     assign  empty = (!(|{ head[DEPTH_BITS:2], head[1], head[0] & is_comp }));
     // full - if least of two elements is free
-    assign  full = (  head[DEPTH_BITS] & (!(|head[DEPTH_BITS-1:0]))) |
+    assign  full = (  head[DEPTH_BITS]/* & (!(|head[DEPTH_BITS-1:0]))*/) |
                    ((!head[DEPTH_BITS]) &  (&head[DEPTH_BITS-1:0]));
 
     logic[WIDTH-1:0]      data[QSize];
