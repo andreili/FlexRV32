@@ -1,27 +1,29 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sun Mar 12 16:21:37 2023
+[*] Sun Mar 12 19:56:33 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\top.fst"
-[dumpfile_mtime] "Sun Mar 12 16:21:24 2023"
-[dumpfile_size] 705592
+[dumpfile_mtime] "Sun Mar 12 19:52:31 2023"
+[dumpfile_size] 26104906
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
-[timestart] 300
+[timestart] 1236794
 [size] 1920 1017
-[pos] -9 -9
-*-2.952884 308 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-2.799280 1236812 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.u_rv.
+[treeopen] TOP.top.u_rv.g_csr.
+[treeopen] TOP.top.u_rv.g_csr.u_st3_csr.
+[treeopen] TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.
 [treeopen] TOP.top.u_rv.u_core.
-[treeopen] TOP.top.u_rv.u_core.u_st4_alu2.
+[treeopen] TOP.top.u_rv.u_core.u_st1_fetch.
 [sst_width] 212
 [signals_width] 644
 [sst_expanded] 1
 [sst_vpaned_height] 305
-@23
-TOP.top.i_clk
 @22
+TOP.top.i_clk
 TOP.top.w_reset_n
 @c00200
 -WB
@@ -88,8 +90,25 @@ TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_push_single
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_push_double
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.pop_single
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.pop_double
+@c00022
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
+@28
+(0)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
+(1)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
+(2)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
+(3)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head[3:0]
+@1401200
+-group_end
+@c00022
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
+@28
+(0)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
+(1)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
+(2)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
+(3)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.head_next[3:0]
+@1401200
+-group_end
+@22
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[0][15:0]
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[1][15:0]
 TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[2][15:0]
@@ -175,7 +194,7 @@ TOP.top.u_rv.u_core.u_st4_alu2.alu_ctrl.op1_inv_or_ecmp_inv
 TOP.top.u_rv.u_core.u_st4_alu2.alu_ctrl.op2_inverse
 TOP.top.u_rv.u_core.u_st4_alu2.alu_ctrl.group_mux
 TOP.top.u_rv.u_core.u_st4_alu2.add[32:0]
-@800200
+@c00200
 -MULDIV
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.mul_op1_signed
@@ -201,7 +220,7 @@ TOP.top.u_rv.u_core.u_st4_alu2.u_muldiv.outsign
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.op_end
 TOP.top.u_rv.u_core.u_st4_alu2.ready
-@1000200
+@1401200
 -MULDIV
 @22
 TOP.top.u_rv.u_core.u_st4_alu2.rd[4:0]
@@ -214,6 +233,7 @@ TOP.top.u_rv.u_core.u_st4_alu2.funct3[2:0]
 @1401200
 -group_end
 @22
+TOP.top.u_rv.u_core.u_st4_alu2.and_[31:0]
 TOP.top.u_rv.u_core.u_st4_alu2.eq
 TOP.top.u_rv.u_core.u_st4_alu2.lts
 TOP.top.u_rv.u_core.u_st4_alu2.ltu
@@ -265,13 +285,46 @@ TOP.top.u_rv.u_core.u_ctrl.o_alu1_flush
 TOP.top.u_rv.u_core.u_ctrl.o_alu2_flush
 @1401200
 -CTRL
-@c00200
+@800200
 -REGS
 @22
 TOP.top.u_rv.u_core.u_regs.i_write
 TOP.top.u_rv.u_core.u_regs.i_rd[4:0]
 TOP.top.u_rv.u_core.u_regs.i_data[31:0]
-@1401200
+TOP.top.u_rv.u_core.u_regs.reg_data[1][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[2][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[3][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[4][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[5][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[6][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[7][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[8][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[9][31:0]
+@23
+TOP.top.u_rv.u_core.u_regs.reg_data[10][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[11][31:0]
+@22
+TOP.top.u_rv.u_core.u_regs.reg_data[12][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[13][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[14][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[15][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[16][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[17][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[18][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[19][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[20][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[21][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[22][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[23][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[24][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[25][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[26][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[27][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[28][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[29][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[30][31:0]
+TOP.top.u_rv.u_core.u_regs.reg_data[31][31:0]
+@1000200
 -REGS
 @c00200
 -TRACE
@@ -289,5 +342,6 @@ TOP.top.u_rv.g_csr.u_st3_csr.u_machine.mcause_data[31:0]
 TOP.top.u_rv.g_csr.u_st3_csr.u_machine.mtvec_data[31:0]
 TOP.top.u_rv.g_csr.u_st3_csr.u_machine.cause_pc[31:1]
 TOP.top.u_rv.g_csr.u_st3_csr.u_machine.mepc_data[31:1]
+TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_inst_ret[63:0]
 [pattern_trace] 1
 [pattern_trace] 0

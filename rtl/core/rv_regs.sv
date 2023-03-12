@@ -4,6 +4,7 @@ module rv_regs
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
+    input   wire                        i_rs_valid,
     input   wire                        i_read_enable,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
@@ -107,17 +108,21 @@ module rv_regs
     logic[4:0]  rs2;
     logic[31:0] rdata1;
     logic[31:0] rdata2;
+    logic[4:0]  rs1_mux;
+    logic[4:0]  rs2_mux;
 
-    assign wr_en = i_reset_n & i_write;
+    assign  wr_en = i_reset_n & i_write;
+    assign  rs1_mux = i_read_enable ? i_rs1 : rs1;
+    assign  rs2_mux = i_read_enable ? i_rs2 : rs2;
 
     always_ff @(posedge i_clk)
     begin
         if (wr_en)
         reg_data[i_rd] <= i_data;
-        if (i_read_enable)
+        rdata1 <= reg_data[rs1_mux];
+        rdata2 <= reg_data[rs2_mux];
+        if (i_rs_valid)
         begin
-            rdata1 <= reg_data[i_rs1];
-            rdata2 <= reg_data[i_rs2];
             rs1 <= i_rs1;
             rs2 <= i_rs2;
         end

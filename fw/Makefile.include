@@ -4,7 +4,7 @@ TOOLCHAIN_NAME = riscv64-unknown-elf
 WORK_DIR = out
 LD_SCRIPT = ../riscv_soc.ld
 #DEV_ARCH = rv32i_zicsr
-DEV_ARCH = rv32i_c_zicsr
+DEV_ARCH = rv32i_m_c_zicsr
 
 AS = $(TOOLCHAIN_NAME)-as
 GCC = $(TOOLCHAIN_NAME)-gcc
@@ -28,9 +28,9 @@ ARCH_FLAGS_ALL = -march=$(DEV_ARCH) -mabi=ilp32
 ARCH_FLAGS = $(ARCH_FLAGS_ALL) -specs=nosys.specs
 WARN_FLAGS = -Wall -Wextra -Wfatal-errors -Wno-unknown-pragmas
 ifneq ($(debug),)
-	DEBUG_FLAGS = -g3 -DDEBUG
+	DEBUG_FLAGS = -g -DDEBUG
 endif
-OPTIMIZE_FLAGS = -O3 -ffunction-sections -fdata-sections -fearly-inlining -finline-small-functions
+OPTIMIZE_FLAGS = -Ofast -ffunction-sections -fdata-sections -fearly-inlining -finline-small-functions
 ifneq ($(lto),)
 	OPTIMIZE_FLAGS += -flto
 endif
@@ -40,7 +40,7 @@ ifneq ($(sim),)
 	C_FLAGS += -DSIM
 endif
 CPP_FLAGS := $(C_FLAGS) -std=gnu++1z -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit
-LD_FLAGS += $(ARCH_FLAGS) -march=rv32i -T"$(LD_SCRIPT)" -Wl,-Map="$(MAP_FILE)"
+LD_FLAGS += $(ARCH_FLAGS) -march=rv32imac -T"$(LD_SCRIPT)" -Wl,-Map="$(MAP_FILE)"
 LD_FLAGS += -Wl,--no-warn-rwx-segment -Wl,--gc-sections -nodefaultlibs -nostartfiles -static
 LIBS = -Wl,--start-group -lc -lm -lgcc -lstdc++ -lsupc++ -lnosys -Wl,--end-group
 
