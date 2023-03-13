@@ -26,6 +26,11 @@ module rv_regs
     logic[31:0] reg_data[32];
     logic[30:0] reg_data1[32];
     logic[30:0] reg_data2[32];
+    logic[4:0]  rs1_mux;
+    logic[4:0]  rs2_mux;
+
+    assign  rs1_mux = i_rs_valid ? i_rs1 : rs1;
+    assign  rs2_mux = i_rs_valid ? i_rs2 : rs2;
 
     genvar i, j;
     generate
@@ -61,17 +66,19 @@ module rv_regs
     logic[4:0] rs1;
     logic[4:0] rs2;
 
-    reg_s r_rs1[4:0]
+    reg_e r_rs1[4:0]
     (
         .CLK(i_clk),
         .D  (i_rs1),
+        .DE (i_rs_valid),
         .Q  (rs1)
     );
 
-    reg_s r_rs2[4:0]
+    reg_e r_rs2[4:0]
     (
         .CLK(i_clk),
         .D  (i_rs2),
+        .DE (i_rs_valid),
         .Q  (rs2)
     );
 
@@ -88,11 +95,8 @@ module rv_regs
 
     always_ff @(posedge i_clk)
     begin
-        if (i_rs_valid)
-        begin
-            r_data1 <= rdata1;
-            r_data2 <= rdata2;
-        end
+        r_data1 <= rdata1;
+        r_data2 <= rdata2;
     end
 
     assign  o_data1 = (|rs1) ? r_data1 : '0;
