@@ -382,7 +382,6 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_rs_valid                     (alu2_ready),
-        .i_read_enable                  (!decode_stall),
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
         .i_rd                           (write_rd),
