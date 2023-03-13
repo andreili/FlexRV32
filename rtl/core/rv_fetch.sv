@@ -92,7 +92,7 @@ module rv_fetch
         logic[BufWidth-1:0]         instr_lo;
         logic[BufWidth-1:0]         instr_hi;
 
-        assign  buf_pop = !(i_stall | change_pc | empty) & i_reset_n;
+        assign  buf_pop = !(i_stall | empty);
         if (EXTENSION_C)
         begin : g_comp
             assign  data_lo = instruction[15: 0];
