@@ -19,15 +19,15 @@ module rv_fetch_buf
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
     input   wire                        i_pop,
-    output  wire                        o_empty,
-    output  wire                        o_full
+    output  wire                        o_not_empty,
+    output  wire                        o_not_full
 );
 
     localparam int QSize = 2 ** DEPTH_BITS;
 
     logic               pop_single, pop_double;
     logic[DEPTH_BITS:0] delta_pop, delta_push;
-    logic[DEPTH_BITS:0] head, head_next_pop, head_next_ex, head_next, free_cnt_next;
+    logic[DEPTH_BITS:0] head, head_next_pop, head_next_ex, head_next;
     logic[WIDTH-1:0]    data_lo;
 
     assign  pop_single = i_pop &   is_comp;
@@ -77,12 +77,8 @@ module rv_fetch_buf
     // empty - is zero (if compressed instruction on tail) or 1
     assign  empty = (!(|{ head[DEPTH_BITS:2], head[1], head[0] & is_comp }));
     // full - if least of two elements is free
-    assign  free_cnt_next = (2**DEPTH_BITS) - head_next;
-    assign  full = (free_cnt_next < 2);
-    /*assign  full = head[DEPTH_BITS] |
-                   ((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b110)) | //-2)) |
-                   ((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b111));// | //-1)) |
-                   //((!head[DEPTH_BITS]) &  (head[DEPTH_BITS-1:0] == 3'b101));//-3));*/
+    assign  full = head_next[DEPTH_BITS] |
+                ((!head_next[DEPTH_BITS]) &  (&head_next[DEPTH_BITS-1:0]));
 
     logic[WIDTH-1:0]      data[QSize];
 
@@ -147,7 +143,7 @@ module rv_fetch_buf
     assign  o_data_hi = data[1];
     assign  o_pc = pc;
     assign  o_pc_next = pc_next;
-    assign  o_empty = empty;
-    assign  o_full = full;
+    assign  o_not_empty = !empty;
+    assign  o_not_full = !full;
 
 endmodule
