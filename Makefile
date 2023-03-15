@@ -14,10 +14,14 @@ endif
 arch:
 	make -C sim tests
 
+bit:
+	make -C proj/quartus
+
 clean:
 	make -C ./fw/test clean
 	make -C ./fw/dhrystone clean
 	make -C sim clean
+	make -C proj/quartus clean
 
 .PHONY: sim clean
 $(V).SILENT:

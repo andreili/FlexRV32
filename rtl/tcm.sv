@@ -68,7 +68,7 @@ module tcm
             $readmemh("fw.vh", r_mem);
     `else
       `ifndef QUARTUS
-            $readmemh("../fw/test/out/risc.vh", r_mem);
+            $readmemh("../fw/test/out/riscv.vh", r_mem);
       `endif
     `endif
     end

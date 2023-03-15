@@ -1,0 +1,7 @@
+{
+    "cyc_iv_pll" :
+    {
+        "type" : "hdl",
+        "file" : "ips/pll/pll.v"
+    }
+}

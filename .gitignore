@@ -5,4 +5,8 @@ sim/run/obj_dir/*
 *.bak
 *.vcd
 *.fst
-proj/*
+proj/core_test/*
+*.xlsx
+*.zip
+*.txt
+.vscode/*
