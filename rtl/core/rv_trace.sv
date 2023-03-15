@@ -405,6 +405,7 @@ module rv_trace
     logic[4:0]  rd;
     assign      rd = r_instr_wr[11:7];
 
+`ifdef TO_SIM
     final
     begin
         if (|r_instr_wr)
@@ -416,6 +417,7 @@ module rv_trace
         $fwrite(f, "|%8.3fns|%10s|%10s| %-53s |\n", get_ts(), "", "", "Trace finished.");
         $fwrite(f, "+----------+----------+----------+-------------------------------------------------------+\n");
     end
+`endif
 
     assign  o_rd = rd;
 
