@@ -56,6 +56,9 @@ module rv_decode
     output  wire                        o_inst_csr_req
 );
 
+    logic   clk;
+    buf buf_clk(clk, i_clk);
+
     logic       valid_input;
     logic[31:0] instruction_c;
     logic[31:0] instruction_unc;
@@ -75,7 +78,7 @@ module rv_decode
     );
 /* verilator lint_on  PINCONNECTEMPTY */
 
-    always_ff @(posedge i_clk)
+    always_ff @(posedge clk)
     begin
         if (i_flush)
         begin

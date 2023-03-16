@@ -40,13 +40,17 @@ module rv_fetch
 
     logic       pc_next_trap_sel;
     logic       not_full;
+    logic       clk, reset_n;
+
+    buf buf_clk(clk, i_clk);
+    buf buf_reset(reset_n, i_reset_n);
 
     // logic for change PC value (interrupts, jumps/branches, bus wait)
     assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
     assign  move_pc          = (i_ack & not_full);
     assign  change_pc        = pc_next_trap_sel | i_pc_select;
     assign  dont_change_pc   = !change_pc;
-    assign  update_pc        = (!i_reset_n) | change_pc | move_pc;
+    assign  update_pc        = (!reset_n) | change_pc | move_pc;
     assign  pc_incr          = { {(IADDR_SPACE_BITS-3){1'b0}}, !pc[1], pc[1] };
 
 /* verilator lint_off PINCONNECTEMPTY */
@@ -66,12 +70,12 @@ module rv_fetch
 /* verilator lint_on  PINCONNECTEMPTY */
 
     // mux for PC pointer
-    assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:1] :
-                pc_next_trap_sel   ? i_pc_trap :
-                i_pc_select        ? i_pc_target :
+    assign  pc_next = (!reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:1] :
+                pc_next_trap_sel ? i_pc_trap :
+                i_pc_select      ? i_pc_target :
                 pc_sum;
 
-    always_ff @(posedge i_clk)
+    always_ff @(posedge clk)
     begin
         if (update_pc)
             pc <= pc_next;
@@ -83,10 +87,10 @@ module rv_fetch
 
     // detect input data size - depend from read address
     assign  pc_half_align    = pc[1] & EXTENSION_C;
-    assign  push_next = i_reset_n & i_ack & dont_change_pc;
+    assign  push_next        = reset_n & i_ack & dont_change_pc;
     assign  push_single_next = push_next &   pc_half_align ;
     assign  push_double_next = push_next & (!pc_half_align);
-    always_ff @(posedge i_clk)
+    always_ff @(posedge clk)
     begin
         push_single <= push_single_next;
         push_double <= push_double_next;
@@ -118,7 +122,7 @@ module rv_fetch
     logic   not_empty;
 
     // buffer reset logic
-    assign  buf_reset_n = i_reset_n & dont_change_pc;
+    assign  buf_reset_n = reset_n & dont_change_pc;
     // if buffer contain a full instruction - pop it
     assign  buf_pop     = (!i_stall) & not_empty;
 
@@ -130,7 +134,7 @@ module rv_fetch
     )
     u_buf
     (
-        .i_clk                  (i_clk),
+        .i_clk                  (clk),
         .i_reset_n              (buf_reset_n),
         .i_pc                   (pc_next),
         .i_data_lo              (data_lo),

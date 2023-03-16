@@ -18,8 +18,11 @@ module rv_regs
     output  wire[31:0]                  o_data2
 );
 
-`ifdef ASIC
+    logic   clk, reset_n;
+    buf buf_clk(clk, i_clk);
+    buf buf_reset(reset_n, i_reset_n);
 
+`ifdef ASIC
     reg[31:0]   r_data1;
     reg[31:0]   r_data2;
 
@@ -38,7 +41,7 @@ module rv_regs
         begin : g_word
             logic rs1_sel, rs2_sel, wr_en;
 
-            assign wr_en = i_reset_n & i_write & (i == i_rd);
+            assign wr_en = reset_n & i_write & (i == i_rd);
             assign rs1_sel = (i == i_rs1);
             assign rs2_sel = (i == i_rs2);
 
@@ -49,7 +52,7 @@ module rv_regs
                 reg_e
                 r_bit
                 (
-                    .CLK(i_clk),
+                    .CLK(clk),
                     .D  (i_data[j]),
                     .DE (wr_en),
                     .Q  (ro)
@@ -68,7 +71,7 @@ module rv_regs
 
     reg_e r_rs1[4:0]
     (
-        .CLK(i_clk),
+        .CLK(clk),
         .D  (i_rs1),
         .DE (i_rs_valid),
         .Q  (rs1)
@@ -76,7 +79,7 @@ module rv_regs
 
     reg_e r_rs2[4:0]
     (
-        .CLK(i_clk),
+        .CLK(clk),
         .D  (i_rs2),
         .DE (i_rs_valid),
         .Q  (rs2)
@@ -93,7 +96,7 @@ module rv_regs
         end
     endgenerate
 
-    always_ff @(posedge i_clk)
+    always_ff @(posedge clk)
     begin
         r_data1 <= rdata1;
         r_data2 <= rdata2;
@@ -114,11 +117,11 @@ module rv_regs
     logic[4:0]  rs1_mux;
     logic[4:0]  rs2_mux;
 
-    assign  wr_en = i_reset_n & i_write;
+    assign  wr_en = reset_n & i_write;
     assign  rs1_mux = i_rs_valid ? i_rs1 : rs1;
     assign  rs2_mux = i_rs_valid ? i_rs2 : rs2;
 
-    always_ff @(posedge i_clk)
+    always_ff @(posedge clk)
     begin
         if (wr_en)
         reg_data[i_rd] <= i_data;
