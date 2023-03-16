@@ -1,8 +1,8 @@
-default: sim
+default: all
 
 sim:
 ifneq ($(fw),)
-	@echo "--- Build FW ---"
+	@echo ">>> Build FW <<<"
 ifeq ($(fw),coremark)
 	make -C ./fw/$(fw) PORT_DIR=../coremark_port secondary-outputs
 else
@@ -12,16 +12,25 @@ endif
 	make -C sim $(target)
 
 arch:
+	@echo ">>> Run architecture tests <<<"
 	make -C sim tests
 
 bit:
 	make -C proj/quartus
+	python sim_common/results.py results.json html
 
 clean:
+	@echo ">>> Clean all <<<"
 	make -C ./fw/test clean
 	make -C ./fw/dhrystone clean
 	make -C sim clean
 	make -C proj/quartus clean
+
+results:
+	python sim_common/results.py results.json parse_quartus proj/quartus/output_files/riscv_soc
+	python sim_common/results.py results.json html
+
+all: clean arch bit results
 
 .PHONY: sim clean
 $(V).SILENT:

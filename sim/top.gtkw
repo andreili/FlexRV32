@@ -1,14 +1,14 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Thu Mar 16 10:56:22 2023
+[*] Thu Mar 16 11:57:18 2023
 [*]
 [dumpfile] "D:\Projects\RISC-V\core_tiny\sim\run\logs_top\wave.fst"
-[dumpfile_mtime] "Thu Mar 16 10:53:47 2023"
-[dumpfile_size] 62197
+[dumpfile_mtime] "Thu Mar 16 11:57:13 2023"
+[dumpfile_size] 1869274
 [savefile] "D:\Projects\RISC-V\core_tiny\sim\top.gtkw"
 [timestart] 70
 [size] 1920 1017
-[pos] -9 -9
+[pos] -1 -1
 *-2.628073 78 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
