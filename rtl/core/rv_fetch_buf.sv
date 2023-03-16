@@ -119,9 +119,7 @@ module rv_fetch_buf
     logic[IADDR_SPACE_BITS-1:1] pc;
     logic[IADDR_SPACE_BITS-1:1] pc_incr;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
-    logic                       pc_move;
 
-    assign  pc_move = pop_single | pop_double;
     assign  pc_incr = is_comp ? 1 : 2;
 /* verilator lint_off PINCONNECTEMPTY */
     add
@@ -142,7 +140,7 @@ module rv_fetch_buf
     begin
         if (!i_reset_n)
             pc <= i_pc;
-        else if (pc_move)
+        else if (i_pop)
             pc <= pc_next;
     end
 

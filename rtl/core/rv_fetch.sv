@@ -78,13 +78,14 @@ module rv_fetch
     end
 
     logic   pc_half_align;
-    logic   push_single_next, push_double_next;
+    logic   push_next, push_single_next, push_double_next;
     logic   push_single, push_double;
 
     // detect input data size - depend from read address
     assign  pc_half_align    = pc[1] & EXTENSION_C;
-    assign  push_single_next = i_ack & dont_change_pc &   pc_half_align ;
-    assign  push_double_next = i_ack & dont_change_pc & (!pc_half_align);
+    assign  push_next = i_reset_n & i_ack & dont_change_pc;
+    assign  push_single_next = push_next &   pc_half_align ;
+    assign  push_double_next = push_next & (!pc_half_align);
     always_ff @(posedge i_clk)
     begin
         push_single <= push_single_next;
