@@ -10,14 +10,6 @@ typedef struct packed
 
 typedef struct packed
 {
-    logic                   i;
-    logic                   j;
-    // always latest - it's default
-    logic                   r;
-} src_op2_t;
-
-typedef struct packed
-{
     logic                   cmp;
     logic                   bits;
     logic                   shift;

@@ -102,14 +102,13 @@ module rv_core
     logic[4:0]  decode_rs2;
     logic[4:0]  decode_rd;
     logic[31:0] decode_imm_i;
-    logic[31:0] decode_imm_j;
     alu_res_t   decode_alu_res;
     logic[2:0]  decode_funct3;
     alu_ctrl_t  decode_alu_ctrl;
     res_src_t   decode_res_src;
     logic       decode_reg_write;
     logic       decode_op1_src;
-    src_op2_t   decode_op2_src;
+    logic       decode_op2_src;
     logic       decode_inst_mret;
     logic       decode_inst_jalr;
     logic       decode_inst_jal;
@@ -160,7 +159,6 @@ module rv_core
         .o_rs2                          (decode_rs2),
         .o_rd                           (decode_rd),
         .o_imm_i                        (decode_imm_i),
-        .o_imm_j                        (decode_imm_j),
         .o_alu_res                      (decode_alu_res),
         .o_funct3                       (decode_funct3),
         .o_alu_ctrl                     (decode_alu_ctrl),
@@ -249,7 +247,6 @@ module rv_core
         .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
         .i_imm_i                        (decode_imm_i),
-        .i_imm_j                        (decode_imm_j),
         .i_alu_res                      (decode_alu_res),
         .i_funct3                       (decode_funct3),
         .i_alu_ctrl                     (decode_alu_ctrl),

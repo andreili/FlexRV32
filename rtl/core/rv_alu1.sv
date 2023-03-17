@@ -21,14 +21,13 @@ module rv_alu1
     input   wire[4:0]                   i_rs2,
     input   wire[4:0]                   i_rd,
     input   wire[31:0]                  i_imm_i,
-    input   wire[31:0]                  i_imm_j,
     input   alu_res_t                   i_alu_res,
     input   wire[2:0]                   i_funct3,
     input   alu_ctrl_t                  i_alu_ctrl,
     input   res_src_t                   i_res_src,
     input   wire                        i_reg_write,
     input   wire                        i_op1_src,
-    input   src_op2_t                   i_op2_src,
+    input   wire                        i_op2_src,
     input   wire                        i_inst_mret,
     input   wire                        i_inst_jalr,
     input   wire                        i_inst_jal,
@@ -64,9 +63,8 @@ module rv_alu1
     logic[4:0]  rs2;
     logic[4:0]  rd;
     logic[31:0] imm_i;
-    logic[31:0] imm_j;
     logic       op1_sel;
-    src_op2_t   op2_sel;
+    logic       op2_sel;
     alu_res_t   res;
     logic       inst_jalr, inst_jal, inst_branch;
     logic       inst_mret;
@@ -102,7 +100,6 @@ module rv_alu1
             rs2  <= i_rs2;
             rd   <= i_rd;
             imm_i  <= i_imm_i;
-            imm_j  <= i_imm_j;
             res <= i_alu_res;
             funct3  <= i_funct3;
             alu_ctrl <= i_alu_ctrl;
@@ -127,8 +124,7 @@ module rv_alu1
     assign  op1 = op1_sel ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc, 1'b0 } :
                   //alu_ctrl.div_mux ? i_reg2_data :
                   i_reg1_data;
-    assign  op2 = op2_sel.i  ? imm_i :
-                  op2_sel.j  ? imm_j :
+    assign  op2 = op2_sel  ? imm_i :
                   //alu_ctrl.div_mux ? i_reg1_data :
                   i_reg2_data;
 
@@ -137,9 +133,7 @@ module rv_alu1
     assign  pc_target_base   = inst_mret ? i_ret_addr :
                                inst_jalr ? i_reg1_data[IADDR_SPACE_BITS-1:1] :
                                pc;
-    assign  pc_target_offset = inst_mret ? '0 :
-                               inst_jalr ? imm_i[IADDR_SPACE_BITS-1:1] :
-                               imm_j[IADDR_SPACE_BITS-1:1];
+    assign  pc_target_offset = inst_mret ? '0 : imm_i[IADDR_SPACE_BITS-1:1];
 /* verilator lint_off PINCONNECTEMPTY */
     add
     #(
@@ -154,11 +148,6 @@ module rv_alu1
         .o_carry                        ()
     );
 /* verilator lint_on  PINCONNECTEMPTY */
-
-/* verilator lint_off UNUSEDSIGNAL */
-    logic   dummy;
-    assign  dummy = op2_sel.r;
-/* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_op1 = op1;
     assign  o_op2 = op2;

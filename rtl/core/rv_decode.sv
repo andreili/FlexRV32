@@ -39,14 +39,13 @@ module rv_decode
     output  wire[4:0]                   o_rs2,
     output  wire[4:0]                   o_rd,
     output  wire[31:0]                  o_imm_i,
-    output  wire[31:0]                  o_imm_j,
     output  alu_res_t                   o_alu_res,
     output  wire[2:0]                   o_funct3,
     output  alu_ctrl_t                  o_alu_ctrl,
     output  res_src_t                   o_res_src,
     output  wire                        o_reg_write,
     output  wire                        o_op1_src,
-    output  src_op2_t                   o_op2_src,
+    output  wire                        o_op2_src,
     output  wire                        o_inst_mret,
     output  wire                        o_inst_jalr,
     output  wire                        o_inst_jal,
@@ -111,7 +110,6 @@ module rv_decode
 
     // get immediate values
     logic[31:0] imm_i, imm_j, imm_s, imm_b, imm_u;
-    logic[31:0] imm_mux;
     assign  imm_i = { {21{instruction[31]}}, instruction[30:20] };
     assign  imm_s = { {21{instruction[31]}}, instruction[30:25], instruction[11:7] };
     assign  imm_b = { {20{instruction[31]}}, instruction[7], instruction[30:25],
@@ -241,9 +239,6 @@ module rv_decode
     assign  o_alu_ctrl.group_mux = ariph_m;
     assign  o_alu_ctrl.div_mux = ariph_m & (funct3[2] == 1'b1);
 
-    assign  o_imm_j = inst_jal ? imm_j : imm_b;
-    assign  o_imm_i = imm_mux;
-
     assign  o_csr_idx     = instruction[31:20];
     assign  o_csr_imm     = instruction[19:15];
     assign  o_csr_imm_sel = funct3[2];
@@ -264,18 +259,17 @@ module rv_decode
     assign  o_rs2 = rs2;
     assign  o_op1_src = |{inst_auipc,inst_jal};
 
-    assign  o_op2_src.j = inst_jal;
-    assign  o_op2_src.i = inst_full & (op[6:2] == RV32_OPC_LOAD) |      // 5'b00000
-                                      (op[6:2] == RV32_OPC_LOAD_FP) |   // 5'b00001
-                                      (op[6:2] == RV32_OPC_OP_IMM) |    // 5'b00100
-                                      (op[6:2] == RV32_OPC_AUIPC) |     // 5'b00101
-                                      (op[6:2] == RV32_OPC_STORE) |     // 5'b01000
-                                      (op[6:2] == RV32_OPC_STORE_FP) |  // 5'b01001
-                                      (op[6:2] == RV32_OPC_LUI) |       // 5'b01101
-                                      (op[6:2] == RV32_OPC_JALR);       // 5'b11001
-    assign  o_op2_src.r = inst_full & (op[6:2] == RV32_OPC_OP) |        // 5'b01100
-                                      (op[6:2] == RV32_OPC_OP_FP) |     // 5'b10100
-                                      (op[6:2] == RV32_OPC_BRANCH);     // 5'b11000
+    assign  o_imm_i = (|{inst_lui, inst_auipc}) ? imm_u :
+                      inst_jal                  ? imm_j :
+                      (inst_grp_store)          ? imm_s :
+                      inst_grp_branch           ? imm_b :
+                      imm_i;
+
+    logic   imm_sel_r;
+    assign  imm_sel_r = inst_full & (op[6:2] == RV32_OPC_OP) |        // 5'b01100
+                                    (op[6:2] == RV32_OPC_OP_FP) |     // 5'b10100
+                                    (op[6:2] == RV32_OPC_BRANCH);     // 5'b11000
+    assign  o_op2_src = !imm_sel_r;
 
     logic   res_src_mem, res_src_pc_next;
     assign  res_src_mem = inst_grp_load;
@@ -305,9 +299,6 @@ module rv_decode
 `endif
     assign  o_branch_pred = branch_pred;
     assign  o_inst_csr_req = inst_csr_req;
-
-    assign  imm_mux = (|{inst_lui, inst_auipc}) ? imm_u :
-                      (inst_grp_store) ? imm_s : imm_i;
 
     assign  o_inst_supported =
             (!valid_input) |
