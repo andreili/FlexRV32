@@ -21,7 +21,6 @@ typedef struct packed
 {
     logic       add_override;
     logic       sh_ar;
-    logic       op1_inv_or_ecmp_inv;
     logic       op2_inverse;
     logic       group_mux;
     logic       div_mux;

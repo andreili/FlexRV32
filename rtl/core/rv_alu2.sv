@@ -68,6 +68,7 @@ module rv_alu2
     logic       to_trap;
     logic       branch_pred;
     logic[5:0]  op_cnt;
+    logic       cmp_inv;
 
     alu_state_t state;
     alu_state_t state_next;
@@ -148,6 +149,7 @@ module rv_alu2
             csr_data <= i_csr_data;
             to_trap <= i_to_trap;
             branch_pred <= i_branch_pred;
+            cmp_inv <= i_funct3[0] & i_inst_branch;
         end
         else
         begin
@@ -176,7 +178,7 @@ module rv_alu2
     u_adder
     (
         .i_is_sub                       (op2_inverse),
-        .i_cmp_inverse                  (alu_ctrl.op1_inv_or_ecmp_inv),
+        .i_cmp_inverse                  (cmp_inv),
         .i_op1                          (op1_mux),
         .i_op2                          (op2_mux),
         .o_add                          (add),

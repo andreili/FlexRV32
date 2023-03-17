@@ -11,4 +11,4 @@ include ../../sim_common/Makefile.include
 tests_ls = $(addprefix test_,$(tests_name))
 
 tests: $(tests_ls)
-	rm -rf obj_dir
+#	rm -rf obj_dir
