@@ -10,15 +10,6 @@ typedef struct packed
 
 typedef struct packed
 {
-    logic                   cmp;
-    logic                   bits;
-    logic                   shift;
-    // always latest of result - it's default
-    logic                   arith;
-} alu_res_t;
-
-typedef struct packed
-{
     logic       add_override;
     logic       sh_ar;
     logic       op2_inverse;

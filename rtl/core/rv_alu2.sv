@@ -18,7 +18,6 @@ module rv_alu2
     input   wire                        i_flush,
     input   wire[31:0]                  i_op1,
     input   wire[31:0]                  i_op2,
-    input   alu_res_t                   i_res,
     input   wire                        i_store,
     input   wire                        i_reg_write,
     input   wire[4:0]                   i_rd,
@@ -51,7 +50,6 @@ module rv_alu2
 );
 
     logic[31:0] op1, op2;
-    alu_res_t   res;
     logic       store;
     logic       reg_write;
     logic[4:0]  rd;
@@ -72,7 +70,6 @@ module rv_alu2
 
     alu_state_t state;
     alu_state_t state_next;
-    logic       op_end;
 
     always_comb
     begin
@@ -87,16 +84,19 @@ module rv_alu2
 
     logic       ready;
     logic       mul_op1_signed;
+    logic       mul_op2_signed_next;
     logic       mul_op2_signed;
     logic       div_rem_signed;
     logic       div_signed;
     logic       rem_signed;
+    logic       cmp_inv_next;
     assign      ready = (state == `ALU_START) | (!EXTENSION_M);
     assign      mul_op1_signed = !(&funct3[1:0]);
-    assign      mul_op2_signed = !funct3[1];
     assign      div_rem_signed = !funct3[0];
     assign      div_signed = (funct3[1:0] == 2'b00);
     assign      rem_signed = (funct3[1:0] == 2'b10);
+    assign      mul_op2_signed_next = (state_next == `ALU_END) & !funct3[1];
+    assign      cmp_inv_next = i_funct3[0] & i_inst_branch;
 
     always_ff @(posedge i_clk)
     begin
@@ -104,7 +104,7 @@ module rv_alu2
             state <= `ALU_START;
         else
             state <= state_next;
-        op_end <= (state_next == `ALU_END);
+        mul_op2_signed <= mul_op2_signed_next;
     end
 
     always_ff @(posedge i_clk)
@@ -132,7 +132,6 @@ module rv_alu2
         begin
             op1 <= i_op1;
             op2 <= i_op2;
-            res <= i_res;
             store <= i_store;
             reg_write <= i_reg_write;
             rd <= i_rd;
@@ -149,7 +148,7 @@ module rv_alu2
             csr_data <= i_csr_data;
             to_trap <= i_to_trap;
             branch_pred <= i_branch_pred;
-            cmp_inv <= i_funct3[0] & i_inst_branch;
+            cmp_inv <= cmp_inv_next;
         end
         else
         begin
@@ -168,8 +167,8 @@ module rv_alu2
                       op2;
 
     // adder - for all (add/sub/cmp)
-    logic       op2_inverse;
-    assign  op2_inverse = alu_ctrl.op2_inverse | (op_end & mul_op2_signed);
+    logic   op2_inverse;
+    assign  op2_inverse = alu_ctrl.op2_inverse | mul_op2_signed;
 
     // adder - for all (add/sub/cmp/mul)
     logic[32:0] add;
@@ -299,7 +298,7 @@ module rv_alu2
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
-    assign  dummy = shr[32] & res.arith & res.cmp & res.bits & res.shift & alu_ctrl.div_mux;
+    assign  dummy = shr[32] & alu_ctrl.div_mux;
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_result = result;

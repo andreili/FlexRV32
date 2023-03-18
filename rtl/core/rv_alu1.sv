@@ -21,7 +21,6 @@ module rv_alu1
     input   wire[4:0]                   i_rs2,
     input   wire[4:0]                   i_rd,
     input   wire[31:0]                  i_imm_i,
-    input   alu_res_t                   i_alu_res,
     input   wire[2:0]                   i_funct3,
     input   alu_ctrl_t                  i_alu_ctrl,
     input   res_src_t                   i_res_src,
@@ -39,7 +38,6 @@ module rv_alu1
     input   wire                        i_to_trap,
     output  wire[31:0]                  o_op1,
     output  wire[31:0]                  o_op2,
-    output  alu_res_t                   o_res,
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rs1,
@@ -65,7 +63,6 @@ module rv_alu1
     logic[31:0] imm_i;
     logic       op1_sel;
     logic       op2_sel;
-    alu_res_t   res;
     logic       inst_jalr, inst_jal, inst_branch;
     logic       inst_mret;
     logic[2:0]  funct3;
@@ -100,7 +97,6 @@ module rv_alu1
             rs2  <= i_rs2;
             rd   <= i_rd;
             imm_i  <= i_imm_i;
-            res <= i_alu_res;
             funct3  <= i_funct3;
             alu_ctrl <= i_alu_ctrl;
             res_src <= i_res_src;
@@ -151,7 +147,6 @@ module rv_alu1
 
     assign  o_op1 = op1;
     assign  o_op2 = op2;
-    assign  o_res = res;
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rs1 = rs1;

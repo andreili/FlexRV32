@@ -102,7 +102,6 @@ module rv_core
     logic[4:0]  decode_rs2;
     logic[4:0]  decode_rd;
     logic[31:0] decode_imm_i;
-    alu_res_t   decode_alu_res;
     logic[2:0]  decode_funct3;
     alu_ctrl_t  decode_alu_ctrl;
     res_src_t   decode_res_src;
@@ -159,7 +158,6 @@ module rv_core
         .o_rs2                          (decode_rs2),
         .o_rd                           (decode_rd),
         .o_imm_i                        (decode_imm_i),
-        .o_alu_res                      (decode_alu_res),
         .o_funct3                       (decode_funct3),
         .o_alu_ctrl                     (decode_alu_ctrl),
         .o_res_src                      (decode_res_src),
@@ -209,7 +207,6 @@ module rv_core
 
     logic[31:0] alu1_op1;
     logic[31:0] alu1_op2;
-    alu_res_t   alu1_res;
     logic       alu1_store;
     logic       alu1_reg_write;
     logic[4:0]  alu1_rs1;
@@ -247,7 +244,6 @@ module rv_core
         .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
         .i_imm_i                        (decode_imm_i),
-        .i_alu_res                      (decode_alu_res),
         .i_funct3                       (decode_funct3),
         .i_alu_ctrl                     (decode_alu_ctrl),
         .i_res_src                      (decode_res_src),
@@ -265,7 +261,6 @@ module rv_core
         .i_to_trap                      (decode_to_trap),
         .o_op1                          (alu1_op1),
         .o_op2                          (alu1_op2),
-        .o_res                          (alu1_res),
         .o_store                        (alu1_store),
         .o_reg_write                    (alu1_reg_write),
         .o_rs1                          (alu1_rs1),
@@ -308,7 +303,6 @@ module rv_core
         .i_flush                        (alu2_flush),
         .i_op1                          (alu1_op1),
         .i_op2                          (alu1_op2),
-        .i_res                          (alu1_res),
         .i_store                        (alu1_store),
         .i_reg_write                    (alu1_reg_write),
         .i_rd                           (alu1_rd),
