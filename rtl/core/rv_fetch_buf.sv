@@ -72,7 +72,7 @@ module rv_fetch_buf
     end
 
     logic   is_comp;
-    logic   head_lo, head_next_lo_full;
+    logic   head_lo;//, head_next_lo_full;
     logic   not_empty;
     logic   full;
 
@@ -81,8 +81,10 @@ module rv_fetch_buf
     assign  head_lo = head[0] & is_comp;
     assign  not_empty = |{ head[DEPTH_BITS:2], head[1], head_lo };
     // full - if least of two elements is free
-    assign  head_next_lo_full = &head_next[DEPTH_BITS-1:0];
-    assign  full = head_next[DEPTH_BITS] | ((!head_next[DEPTH_BITS]) & head_next_lo_full);
+    //assign  head_next_lo_full = &head_next[DEPTH_BITS-1:0];
+    //assign  full = head_next[DEPTH_BITS] | ((!head_next[DEPTH_BITS]) & head_next_lo_full);
+    //assign  full = (head >= 5);
+    assign  full = head[DEPTH_BITS] | (head[DEPTH_BITS-1] & (head[DEPTH_BITS-2] | head[DEPTH_BITS-3]));
 
     logic[WIDTH-1:0]      data[QSize];
 
