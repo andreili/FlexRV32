@@ -16,7 +16,6 @@ module rv_alu1
     input   wire                        i_stall,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
-    input   wire                        i_branch_pred,
     input   wire[4:0]                   i_rs1,
     input   wire[4:0]                   i_rs2,
     input   wire[4:0]                   i_rd,
@@ -47,7 +46,6 @@ module rv_alu1
     output  wire                        o_inst_branch,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
-    output  wire                        o_branch_pred,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc_target,
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
@@ -73,7 +71,6 @@ module rv_alu1
     logic[IADDR_SPACE_BITS-1:1] pc;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
     logic       to_trap;
-    logic       branch_pred;
 
     always_ff @(posedge i_clk)
     begin
@@ -88,7 +85,6 @@ module rv_alu1
             res_src <= '0;
             inst_mret <= '0;
             to_trap <= '0;
-            branch_pred <= '0;
             alu_ctrl <= '0;
         end
         else if (!i_stall)
@@ -111,7 +107,6 @@ module rv_alu1
             pc <= i_pc;
             pc_next <= i_pc_next;
             to_trap <= i_to_trap;
-            branch_pred <= i_branch_pred;
         end
     end
 
@@ -163,6 +158,5 @@ module rv_alu1
     assign  o_reg_data1 = i_reg1_data;
     assign  o_reg_data2 = i_reg2_data;
     assign  o_to_trap = to_trap;
-    assign  o_branch_pred = branch_pred;
 
 endmodule

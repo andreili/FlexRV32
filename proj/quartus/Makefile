@@ -37,24 +37,25 @@ assignment:
 
 ip_gen:
 	$(info RTL: Generate IP cores)
-	$(QUARTUS_SH) --64bit -t ./scripts/ip_gen.tcl ./$(PROJECT).qpf $(REVISION) $(shell pwd)/ip.json > /dev/null
+	mkdir -p output_files
+	$(QUARTUS_SH) --64bit -t ./scripts/ip_gen.tcl ./$(PROJECT).qpf $(REVISION) $(shell pwd)/ip.json > ./output_files/msg_ip.txt
 	rm -rf 0.qsf
 
 map:
 	$(info RTL: Analysis & Synthesis)
-	$(QUARTUS_MAP) --64bit --read_settings_files=on $(addprefix --source=,$(SRCS)) $(PROJECT) | grep -i error
+	$(QUARTUS_MAP) --64bit --read_settings_files=on $(addprefix --source=,$(SRCS)) $(PROJECT) > ./output_files/msg_map.txt
 
 fit:
 	$(info RTL: Fitter)
-	$(QUARTUS_FIT) --64bit --part=$(PART) --read_settings_files=on $(PROJECT) > /dev/null
+	$(QUARTUS_FIT) --64bit --part=$(PART) --read_settings_files=on $(PROJECT) > ./output_files/msg_fit.txt
 
 asm:
 	$(info RTL: Assembly)
-	$(QUARTUS_ASM) --64bit $(PROJECT) > /dev/null
+	$(QUARTUS_ASM) --64bit $(PROJECT) > ./output_files/msg_asm.txt
 
 sta:
 	$(info RTL: Timing Analyze)
-	$(QUARTUS_STA) --64bit $(PROJECT) > /dev/null
+	$(QUARTUS_STA) --64bit $(PROJECT) > ./output_files/msg_sta.txt
 #	$(QUARTUS_SH) --64bit --determine_smart_action $(PROJECT) > smart.log
 
 update_mif:

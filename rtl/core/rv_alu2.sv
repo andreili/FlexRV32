@@ -25,7 +25,6 @@ module rv_alu2
     input   wire                        i_inst_branch,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
-    input   wire                        i_branch_pred,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc_target,
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
@@ -64,7 +63,6 @@ module rv_alu2
     logic       csr_read;
     logic[31:0] csr_data;
     logic       to_trap;
-    logic       branch_pred;
     logic[5:0]  op_cnt;
     logic       cmp_inv;
 
@@ -126,7 +124,6 @@ module rv_alu2
             reg_write <= '0;
             res_src <= '0;
             to_trap <= '0;
-            branch_pred <= '0;
         end
         else if (ready)
         begin
@@ -147,7 +144,6 @@ module rv_alu2
             csr_read <= i_csr_read;
             csr_data <= i_csr_data;
             to_trap <= i_to_trap;
-            branch_pred <= i_branch_pred;
             cmp_inv <= cmp_inv_next;
         end
         else
@@ -219,7 +215,7 @@ module rv_alu2
     u_pc_sel
     (
         .i_cmp                          (cmp_result),
-        .i_branch_pred                  (branch_pred),
+        .i_branch_pred                  ('0),
         .i_inst_jal_jalr                (inst_jal_jalr),
         .i_inst_branch                  (inst_branch),
         .i_pc                           (pc),
