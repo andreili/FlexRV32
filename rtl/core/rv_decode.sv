@@ -243,9 +243,9 @@ module rv_decode
     assign  o_csr_idx     = instruction[31:20];
     assign  o_csr_imm     = instruction[19:15];
     assign  o_csr_imm_sel = funct3[2];
-    assign  o_csr_write   = inst_grp_sys & (funct3[1:0] == 2'b01) & (!i_stall);
-    assign  o_csr_set     = inst_grp_sys & (funct3[1:0] == 2'b10) & (!i_stall);
-    assign  o_csr_clear   = inst_grp_sys & (funct3[1:0] == 2'b11) & (!i_stall);
+    assign  o_csr_write   = inst_grp_sys & (funct3[1:0] == 2'b01) & (!i_flush);
+    assign  o_csr_set     = inst_grp_sys & (funct3[1:0] == 2'b10) & (!i_flush);
+    assign  o_csr_clear   = inst_grp_sys & (funct3[1:0] == 2'b11) & (!i_flush);
     assign  o_csr_read    = inst_grp_sys & (|funct3);
     assign  o_csr_ebreak  = inst_ebreak;
     assign  o_csr_pc_next = pc_next;

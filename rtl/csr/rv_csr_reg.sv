@@ -6,6 +6,7 @@ module rv_csr_reg
 )
 (
     input   wire                        i_clk,
+    input   wire                        i_reset_n,
     input   wire                        i_sel,
     input   wire[31:0]                  i_data,
     input   wire                        i_write,
@@ -29,7 +30,9 @@ module rv_csr_reg
 
     always_ff @(posedge i_clk)
     begin
-        if (i_sel & (i_write | i_set | i_clear))
+        if (!i_reset_n)
+            data <= '0;
+        else if (i_sel & (i_write | i_set | i_clear))
             data <= data_next;
     end
 

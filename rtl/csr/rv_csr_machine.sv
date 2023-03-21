@@ -38,6 +38,7 @@ module rv_csr_machine
     u_``name \
     ( \
         .i_clk                          (i_clk), \
+        .i_reset_n                      (i_reset_n), \
         .i_sel                          (sel), \
         .i_data                         (i_data), \
         .i_write                        (i_write), \
