@@ -47,7 +47,7 @@ module rv_ctrl
                              (i_decode_rs2 == i_alu1_rd  ));
 
     logic   decode_stall, alu1_stall;
-    assign  decode_stall = (!i_reset_n) | need_mem_data1 | i_need_pause | (!i_alu2_ready);
+    assign  decode_stall = (!i_reset_n) | need_mem_data1 | i_need_pause | (!i_alu2_ready) | i_pc_change;
     assign  alu1_stall   = !i_alu2_ready;
 
     logic   global_flush, alu1_flush;

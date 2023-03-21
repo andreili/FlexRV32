@@ -3,7 +3,7 @@ ROOTDIR = $(CURDIR)/../../fw/riscv-arch-test
 TARGETDIR = $(ROOTDIR)/riscv-target
 RISCV_TARGET = mycore
 RISCV_DEVICE = c
-RVTEST_DEFINES = -march=rv32iczicsr -mabi=ilp32
+RVTEST_DEFINES = -march=rv32ic_zicsr_zifencei -mabi=ilp32
 
 include $(ROOTDIR)/riscv-test-suite/Makefile.include
 include ../../sim_common/Makefile.include
