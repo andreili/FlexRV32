@@ -22,52 +22,68 @@ module rv_regs
     buf buf_clk(clk, i_clk);
     buf buf_reset(reset_n, i_reset_n);
 
-`ifdef ASIC
-    reg[31:0]   r_data1;
-    reg[31:0]   r_data2;
-
-    logic[31:0] reg_data[32];
-    logic[30:0] reg_data1[32];
-    logic[30:0] reg_data2[32];
+`ifndef ASIC
+    logic       wr_en;
+    logic[4:0]  rs1;
+    logic[4:0]  rs2;
+    logic[31:0] rdata1[32];
+    logic[31:0] rdata2[32];
+    logic[31:0] r_data1;
+    logic[31:0] r_data2;
     logic[4:0]  rs1_mux;
     logic[4:0]  rs2_mux;
 
+    assign  wr_en = reset_n & i_write;
     assign  rs1_mux = i_rs_valid ? i_rs1 : rs1;
     assign  rs2_mux = i_rs_valid ? i_rs2 : rs2;
 
     genvar i, j;
     generate
-        for (i=1 ; i<32 ; i++)
-        begin : g_word
-            logic rs1_sel, rs2_sel, wr_en;
+        for (i=0 ; i<32 ; i++)
+        begin : g_bit
+            for (j=1 ; j<32 ; j++)
+            begin : g_word
+                logic rd_sel, rs1_sel, rs2_sel, wr_sel, reg_out;
 
-            assign wr_en = reset_n & i_write & (i == i_rd);
-            assign rs1_sel = (i == i_rs1);
-            assign rs2_sel = (i == i_rs2);
+                assign  rd_sel = (i_rd == j);
+                assign  rs1_sel = (rs1_mux == j);
+                assign  rs2_sel = (rs2_mux == j);
+                assign  wr_sel = wr_en & rd_sel;
 
-            for (j=0 ; j<32 ; j++)
-            begin : g_bit
-                logic ro;
-
-                reg_e
-                r_bit
+                reg_e r_bit
                 (
                     .CLK(clk),
-                    .D  (i_data[j]),
-                    .DE (wr_en),
-                    .Q  (ro)
+                    .D  (i_data[i]),
+                    .DE (wr_sel),
+                    .Q  (reg_out)
                 );
 
-                assign reg_data1[j][i-1] = rs1_sel & ro;
-                assign reg_data2[j][i-1] = rs2_sel & ro;
-
-                assign reg_data[i][j] = ro;
+                assign rdata1[i][j] = rs1_sel & reg_out;
+                assign rdata2[i][j] = rs2_sel & reg_out;
             end
+            assign rdata1[i][0] = '0;
+            assign rdata2[i][0] = '0;
+
+            logic dat1, dat2;
+
+            assign dat1 = |rdata1[i];
+            assign dat2 = |rdata2[i];
+
+            reg_s r_rs1
+            (
+                .CLK(clk),
+                .D  (dat1),
+                .Q  (r_data1[i])
+            );
+
+            reg_s r_rs2
+            (
+                .CLK(clk),
+                .D  (dat2),
+                .Q  (r_data2[i])
+            );
         end
     endgenerate
-
-    logic[4:0] rs1;
-    logic[4:0] rs2;
 
     reg_e r_rs1[4:0]
     (
@@ -85,27 +101,8 @@ module rv_regs
         .Q  (rs2)
     );
 
-    logic[31:0] rdata1;
-    logic[31:0] rdata2;
-
-    generate
-        for (i=0 ; i<32 ; i++)
-        begin : g_mux
-            assign rdata1[i] = |reg_data1[i];
-            assign rdata2[i] = |reg_data2[i];
-        end
-    endgenerate
-
-    always_ff @(posedge clk)
-    begin
-        r_data1 <= rdata1;
-        r_data2 <= rdata2;
-    end
-
-    assign  o_data1 = (|rs1) ? r_data1 : '0;
-    assign  o_data2 = (|rs2) ? r_data2 : '0;
-
-    assign reg_data[0] = '0;
+    assign  o_data1 = r_data1;
+    assign  o_data2 = r_data2;
 `else
 
     logic       wr_en;
@@ -140,7 +137,7 @@ module rv_regs
 `endif
 
 `ifdef TO_SIM
-    assign  o_rd_tr = reg_data[i_rd_tr];
+    assign  o_rd_tr = rdata1[i_rd_tr];
 `endif
 
 endmodule
