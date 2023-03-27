@@ -26,6 +26,9 @@ clean:
 	make -C sim clean
 	make -C proj/quartus clean
 
+wave:
+	gtkwave -a sim/top.gtkw -6 -7 --rcfile=sim/gtkwaverc sim/run/logs_top/wave.fst
+
 results:
 	python sim_common/results.py results.json parse_quartus proj/quartus/output_files/riscv_soc
 	python sim_common/results.py results.json html
