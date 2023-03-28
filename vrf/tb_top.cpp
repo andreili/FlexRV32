@@ -5,7 +5,7 @@
 
 double sc_time_stamp() { return 0; }
 
-#define TICK_TIME 2
+#define TICK_TIME 10
 #define TICK_PERIOD (TICK_TIME / 2)
 #define SIM_TIME_MAX (1000*10)
 #define SIM_TIME_MAX_TICK (TICK_TIME * SIM_TIME_MAX)

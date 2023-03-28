@@ -5,3 +5,4 @@
 -y ../../rtl/core/math
 -y ../../rtl/csr/
 -y ../../vrf/
+--timing
