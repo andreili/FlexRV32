@@ -1,9 +1,7 @@
 `timescale 1ps/1ps
 
 `include "../rv_defines.vh"
-`ifndef TO_SIM
 `include "../rv_structs.vh"
-`endif
 
 module rv_write
 (

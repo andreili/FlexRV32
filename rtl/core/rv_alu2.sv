@@ -1,14 +1,12 @@
 `timescale 1ps/1ps
 
 `include "../rv_defines.vh"
-`ifndef TO_SIM
 `include "../rv_structs.vh"
-`endif
 
 module rv_alu2
 #(
-    parameter int IADDR_SPACE_BITS      = 32,
-    parameter logic BRANCH_PREDICTION   = 1,
+    parameter int IADDR_SPACE_BITS      = 16,
+    parameter logic BRANCH_PREDICTION   = 0,
     parameter logic EXTENSION_Zicsr     = 1,
     parameter logic EXTENSION_M         = 1
 )

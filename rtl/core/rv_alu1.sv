@@ -1,13 +1,11 @@
 `timescale 1ps/1ps
 
 `include "../rv_defines.vh"
-`ifndef TO_SIM
 `include "../rv_structs.vh"
-`endif
 
 module rv_alu1
 #(
-    parameter int IADDR_SPACE_BITS      = 32
+    parameter int IADDR_SPACE_BITS      = 16
 )
 (
     input   wire                        i_clk,
@@ -50,8 +48,6 @@ module rv_alu1
     output  res_src_t                   o_res_src,
     output  wire[2:0]                   o_funct3,
     output  alu_ctrl_t                  o_alu_ctrl,
-    output  wire[31:0]                  o_reg_data1,
-    output  wire[31:0]                  o_reg_data2,
     output  wire                        o_to_trap
 );
 
@@ -155,8 +151,6 @@ module rv_alu1
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
     assign  o_alu_ctrl = alu_ctrl;
-    assign  o_reg_data1 = i_reg1_data;
-    assign  o_reg_data2 = i_reg2_data;
     assign  o_to_trap = to_trap;
 
 endmodule

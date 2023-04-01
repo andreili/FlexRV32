@@ -1,3 +1,6 @@
+`ifndef __RV_OPCODES__
+`define __RV_OPCODES__
+
 /* verilator lint_off UNUSEDPARAM */
 localparam  logic[1:0] RV32_C_Q0_DET = 2'b00;
 localparam  logic[1:0] RV32_C_Q1_DET = 2'b01;
@@ -35,3 +38,5 @@ localparam  logic[4:0] RV32_OPC_SYSTEM   = 5'b11100;
 localparam  logic[4:0] RV32_OPC_RESERVED2= 5'b11101;
 localparam  logic[4:0] RV32_OPC_CUSTOM3  = 5'b11110;
 /* verilator lint_on UNUSEDPARAM */
+
+`endif // __RV_OPCODES__

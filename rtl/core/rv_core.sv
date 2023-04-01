@@ -8,9 +8,9 @@ module rv_core
 #(
     parameter logic[31:0] RESET_ADDR    = 32'h0000_0000,
     parameter int IADDR_SPACE_BITS      = 16,
-    parameter logic BRANCH_PREDICTION   = 1,
+    parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 2,
-    parameter int INSTR_BUF_ADDR_SIZE   = 2, // buffer size is 2**N half-words (16 bit)
+    parameter int INSTR_BUF_ADDR_SIZE   = 3, // buffer size is 2**N half-words (16 bit)
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 1,
     parameter logic EXTENSION_M         = 1,
@@ -218,8 +218,6 @@ module rv_core
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
     alu_ctrl_t  alu1_alu_ctrl;
-    logic[31:0] alu1_reg_data1;
-    logic[31:0] alu1_reg_data2;
     logic       alu1_flush;
     logic       alu1_stall;
     logic       alu1_to_trap;
@@ -270,8 +268,6 @@ module rv_core
         .o_res_src                      (alu1_res_src),
         .o_funct3                       (alu1_funct3),
         .o_alu_ctrl                     (alu1_alu_ctrl),
-        .o_reg_data1                    (alu1_reg_data1),
-        .o_reg_data2                    (alu1_reg_data2),
         .o_to_trap                      (alu1_to_trap)
     );
 
@@ -309,7 +305,7 @@ module rv_core
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
         .i_alu_ctrl                     (alu1_alu_ctrl),
-        .i_reg_data2                    (alu1_reg_data2),
+        .i_reg_data2                    (data_hz2),
         .i_csr_read                     (i_csr_read),
         .i_csr_data                     (i_csr_data),
         .i_to_trap                      (alu1_to_trap),
@@ -450,7 +446,7 @@ module rv_core
     assign  o_data_write = alu2_store;
     assign  o_data_addr = alu2_add;
     assign  o_instr_issued = (data_req | alu2_reg_write);
-    assign  o_reg_rdata1 = alu1_reg_data1;
+    assign  o_reg_rdata1 = data_hz1;
 
 `ifdef TO_SIM
     assign  o_debug[0] = inv_inst;

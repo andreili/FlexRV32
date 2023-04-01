@@ -47,7 +47,7 @@ module fifo
 
     generate
         genvar i;
-        for (i=0 ; i<(2**DEPTH_BITS) ; ++i)
+        for (i=0 ; i<(2**DEPTH_BITS) ; i++)
         begin : g_fifo
             always_ff @(posedge i_clk)
             begin

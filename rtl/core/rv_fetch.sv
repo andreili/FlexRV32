@@ -6,7 +6,7 @@ module rv_fetch
 #(
     parameter logic[31:0]  RESET_ADDR   = 32'h0000_0000,
     parameter int IADDR_SPACE_BITS      = 16,
-    parameter int INSTR_BUF_ADDR_SIZE   = 2,
+    parameter int INSTR_BUF_ADDR_SIZE   = 3,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_Zicsr     = 1
 )

@@ -2,7 +2,7 @@
 
 module pc_sel
 #(
-    parameter int IADDR_SPACE_BITS      = 32,
+    parameter int IADDR_SPACE_BITS      = 16,
     parameter logic BRANCH_PREDICTION   = 1
 )
 (

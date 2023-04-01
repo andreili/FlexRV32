@@ -90,7 +90,7 @@ module rv_fetch_buf
 
     generate
         genvar i;
-        for (i=0 ; i<QSize ; ++i)
+        for (i=0 ; i<QSize ; i++)
         begin : g_data
             logic   update_lo_word;
             logic   update_hi_word;

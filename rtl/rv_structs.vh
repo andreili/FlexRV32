@@ -1,4 +1,5 @@
-
+`ifndef __RV_STRUCTS__
+`define __RV_STRUCTS__
 
 typedef struct packed
 {
@@ -50,3 +51,5 @@ typedef struct packed
     logic   pending_timer;
     logic   pending_soft;
 } int_ctrl_state_csr_t;
+
+`endif // __RV_STRUCTS__

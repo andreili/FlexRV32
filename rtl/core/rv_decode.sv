@@ -1,13 +1,15 @@
 `timescale 1ps/1ps
 
 `include "../rv_defines.vh"
+`include "../rv_structs.vh"
+`include "rv_opcodes.vh"
 
 module rv_decode
 #(
-    parameter int IADDR_SPACE_BITS      = 32,
-    parameter logic BRANCH_PREDICTION   = 1,
+    parameter int IADDR_SPACE_BITS      = 16,
+    parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 2,
-    parameter logic EXTENSION_F         = 1,
+    parameter logic EXTENSION_F         = 0,
     parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1
 )

@@ -35,7 +35,7 @@ module rv_fetch_branch_pred
 
     genvar i;
     generate
-        for (i=0 ; i<TABLE_SIZE ; ++i)
+        for (i=0 ; i<TABLE_SIZE ; i++)
         begin : g_idx
             assign tb_idx[(i * TABLE_SIZE_BITS)+:TABLE_SIZE_BITS] = i;
         end
@@ -58,7 +58,7 @@ module rv_fetch_branch_pred
 /* verilator lint_on PINCONNECTEMPTY */
 
     generate
-        for (i=0 ; i<TABLE_SIZE ; ++i)
+        for (i=0 ; i<TABLE_SIZE ; i++)
         begin : g_btb
             logic[(VALID_SIZE-1):0] valid_cur;
             logic[(VALID_SIZE-2):0] valid_prev;

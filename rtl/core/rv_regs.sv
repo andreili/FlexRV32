@@ -22,8 +22,6 @@ module rv_regs
     logic[31:0] reg_data[31];
     logic[4:0]  rs1;
     logic[4:0]  rs2;
-    logic[31:0] rdata1;
-    logic[31:0] rdata2;
     logic[4:0]  rs1_mux;
     logic[4:0]  rs2_mux;
 
@@ -42,8 +40,8 @@ module rv_regs
     begin
         if (wr_en)
             reg_data[rde] <= i_data;
-        rdata1 <= reg_data[rs1_mux];
-        rdata2 <= reg_data[rs2_mux];
+        //rdata1 <= reg_data[rs1_mux];
+        //rdata2 <= reg_data[rs2_mux];
         if (i_rs_valid)
         begin
             rs1 <= rs1e;
@@ -51,8 +49,40 @@ module rv_regs
         end
     end
 
-    assign  o_data1 = (&rs1) ? '0 : rdata1;
-    assign  o_data2 = (&rs2) ? '0 : rdata2;
+    logic[30:0] rs1_or[32];
+    logic[30:0] rs2_or[32];
+    logic[31:0] rdata1;
+    logic[31:0] rdata2;
+    genvar i, j;
+    generate
+        for (i=0 ; i<31 ; i++)
+        begin : g_read
+            logic rs1_sel, rs2_sel;
+            assign rs1_sel = (rs1_mux == i);
+            assign rs2_sel = (rs2_mux == i);
+            for (j=0 ; j<32 ; j++)
+            begin : g_bit
+                assign rs1_or[j][i] = reg_data[i][j] & rs1_sel;
+                assign rs2_or[j][i] = reg_data[i][j] & rs2_sel;
+            end
+        end
+        for (i=0 ; i<32 ; i++)
+        begin : g_scan
+            assign rdata1[i] = |rs1_or[i];
+            assign rdata2[i] = |rs2_or[i];
+        end
+    endgenerate
+
+    logic[31:0] r_data1;
+    logic[31:0] r_data2;
+    always_ff @(posedge i_clk)
+    begin
+        r_data1 <= rdata1;
+        r_data2 <= rdata2;
+    end
+
+    assign  o_data1 = (&rs1) ? '0 : r_data1;
+    assign  o_data2 = (&rs2) ? '0 : r_data2;
 
 `ifdef TO_SIM
     assign  o_rd_tr = reg_data[i_rd_tr-1];
