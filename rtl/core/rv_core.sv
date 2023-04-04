@@ -182,25 +182,17 @@ module rv_core
     ctrl_rs_bp_t rs2_bp;
 
     rv_hazard
-    u_dhz1
+    u_dhz
     (
-        .i_reg_data                     (reg_rdata1),
+        .i_reg_data1                    (reg_rdata1),
+        .i_reg_data2                    (reg_rdata2),
         .i_alu2_data                    (alu2_result),
         .i_wr_data                      (write_data),
         .i_wr_back_data                 (wr_back_data),
-        .i_bp                           (rs1_bp),
-        .o_data                         (data_hz1)
-    );
-
-    rv_hazard
-    u_dhz2
-    (
-        .i_reg_data                     (reg_rdata2),
-        .i_alu2_data                    (alu2_result),
-        .i_wr_data                      (write_data),
-        .i_wr_back_data                 (wr_back_data),
-        .i_bp                           (rs2_bp),
-        .o_data                         (data_hz2)
+        .i_bp1                          (rs1_bp),
+        .i_bp2                          (rs2_bp),
+        .o_data1                        (data_hz1),
+        .o_data2                        (data_hz2)
     );
 
     logic[31:0] alu1_op1;
