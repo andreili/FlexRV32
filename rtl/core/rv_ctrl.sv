@@ -10,37 +10,18 @@ module rv_ctrl
     input   wire                        i_decode_inst_sup,
     input   wire[4:0]                   i_decode_rs1,
     input   wire[4:0]                   i_decode_rs2,
-    input   wire[4:0]                   i_alu_rs1,
-    input   wire[4:0]                   i_alu_rs2,
     input   wire                        i_alu1_mem_rd,
     input   wire[4:0]                   i_alu1_rd,
-    input   wire[4:0]                   i_alu2_rd,
-    input   wire                        i_alu2_reg_write,
     input   wire                        i_alu2_ready,
-    input   wire[4:0]                   i_write_rd,
-    input   wire                        i_write_reg_write,
-    input   wire[4:0]                   i_wr_back_rd,
-    input   wire                        i_wr_back_reg_write,
     input   wire                        i_need_pause,
     output  wire                        o_fetch_stall,
     output  wire                        o_decode_flush,
     output  wire                        o_decode_stall,
-    output  ctrl_rs_bp_t                o_rs1_bp,
-    output  ctrl_rs_bp_t                o_rs2_bp,
     output  wire                        o_alu1_flush,
     output  wire                        o_alu1_stall,
     output  wire                        o_alu2_flush,
     output  wire                        o_inv_inst
 );
-
-    logic   rs1_on_alu2, rs1_on_write, rs1_on_wr_back;
-    assign  rs1_on_alu2    = i_alu2_reg_write    & (|i_alu2_rd   ) & (i_alu_rs1 == i_alu2_rd   );
-    assign  rs1_on_write   = i_write_reg_write   & (|i_write_rd  ) & (i_alu_rs1 == i_write_rd  );
-    assign  rs1_on_wr_back = i_wr_back_reg_write & (|i_wr_back_rd) & (i_alu_rs1 == i_wr_back_rd);
-    logic   rs2_on_alu2, rs2_on_write, rs2_on_wr_back;
-    assign  rs2_on_alu2    = i_alu2_reg_write    & (|i_alu2_rd   ) & (i_alu_rs2 == i_alu2_rd   );
-    assign  rs2_on_write   = i_write_reg_write   & (|i_write_rd  ) & (i_alu_rs2 == i_write_rd  );
-    assign  rs2_on_wr_back = i_wr_back_reg_write & (|i_wr_back_rd) & (i_alu_rs2 == i_wr_back_rd);
 
     logic   need_mem_data1;
     assign  need_mem_data1 = i_alu1_mem_rd   & (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
@@ -69,14 +50,6 @@ module rv_ctrl
     assign  o_alu1_flush = alu1_flush;
     assign  o_alu1_stall = alu1_stall;
     assign  o_alu2_flush = global_flush;
-
-    assign  o_rs1_bp.alu2    = rs1_on_alu2    ;
-    assign  o_rs1_bp.write   = rs1_on_write   & (!rs1_on_alu2);
-    assign  o_rs1_bp.wr_back = rs1_on_wr_back & (!rs1_on_alu2) & (!rs1_on_write);
-
-    assign  o_rs2_bp.alu2 = rs2_on_alu2       ;
-    assign  o_rs2_bp.write   = rs2_on_write   & (!rs2_on_alu2);
-    assign  o_rs2_bp.wr_back = rs2_on_wr_back & (!rs2_on_alu2) & (!rs2_on_write);
 
     assign  o_inv_inst = !inst_sup[1];
 

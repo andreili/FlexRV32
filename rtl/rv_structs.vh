@@ -36,6 +36,7 @@ typedef struct packed
     logic   alu2;
     logic   write;
     logic   wr_back;
+    logic   reg_f;
 } ctrl_rs_bp_t;
 
 typedef struct packed
