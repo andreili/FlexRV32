@@ -182,9 +182,11 @@ module rv_core
     logic[31:0] write_data;
     logic[4:0]  write_rd;
     logic       write_op;
-    logic[31:0] data_hz1;
-    logic[31:0] data_hz2;
-    logic[31:0] data_hz2_alu2;
+    logic[31:0] dh_data1;
+    logic[31:0] dh_data2;
+    logic[31:0] dh_alu2_result;
+    logic[31:0] dh_write_data;
+    logic[31:0] dh_data2_alu2;
 
     rv_hazard
     u_dhz
@@ -200,9 +202,11 @@ module rv_core
         .i_reg_data2                    (reg_rdata2),
         .i_alu2_data                    (alu2_result),
         .i_wr_data                      (write_data),
-        .o_data1                        (data_hz1),
-        .o_data2                        (data_hz2),
-        .o_data2_ex                     (data_hz2_alu2)
+        .o_data1                        (dh_data1),
+        .o_data2                        (dh_data2),
+        .o_alu2_data                    (dh_alu2_result),
+        .o_write_data                   (dh_write_data),
+        .o_data2_ex                     (dh_data2_alu2)
     );
 
     logic[31:0] alu1_op1;
@@ -249,8 +253,8 @@ module rv_core
         .i_inst_branch                  (decode_inst_branch),
         .i_inst_store                   (decode_inst_store),
         .i_ret_addr                     (i_csr_ret_addr),
-        .i_reg1_data                    (data_hz1),
-        .i_reg2_data                    (data_hz2),
+        .i_reg1_data                    (dh_data1),
+        .i_reg2_data                    (dh_data2),
         .i_to_trap                      (decode_to_trap),
         .o_op1                          (alu1_op1),
         .o_op2                          (alu1_op2),
@@ -302,7 +306,7 @@ module rv_core
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
         .i_alu_ctrl                     (alu1_alu_ctrl),
-        .i_reg_data2                    (data_hz2_alu2),
+        .i_reg_data2                    (dh_data2_alu2),
         .i_csr_read                     (i_csr_read),
         .i_csr_data                     (i_csr_data),
         .i_to_trap                      (alu1_to_trap),
@@ -327,7 +331,7 @@ module rv_core
         .i_clk                          (i_clk),
         .i_flush                        (!alu2_ready),
         .i_funct3                       (alu2_funct3),
-        .i_alu_result                   (alu2_result),
+        .i_alu_result                   (dh_alu2_result),
         .i_reg_write                    (alu2_reg_write),
         .i_rd                           (alu2_rd),
         .i_res_src                      (alu2_res_src),
@@ -352,7 +356,7 @@ module rv_core
         .i_rs2                          (decode_rs2),
         .i_rd                           (write_rd),
         .i_write                        (write_op),
-        .i_data                         (write_data),
+        .i_data                         (dh_write_data),
 `ifdef TO_SIM
         .i_rd_tr                        (trace_rd),
         .o_rd_tr                        (trace_rd_data),
@@ -421,7 +425,7 @@ module rv_core
     assign  o_data_write = alu2_store;
     assign  o_data_addr = alu2_add;
     assign  o_instr_issued = (data_req | alu2_reg_write);
-    assign  o_reg_rdata1 = data_hz1;
+    assign  o_reg_rdata1 = dh_data1;
 
 `ifdef TO_SIM
     assign  o_debug[0] = inv_inst;

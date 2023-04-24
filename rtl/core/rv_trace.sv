@@ -27,6 +27,8 @@ module rv_trace
     input   wire[31:0]                  i_rd
 );
 
+/* verilator lint_off BLKSEQ */
+
     logic[31:0] r_instr_exec;
     logic[IADDR_SPACE_BITS-1:0] r_pc_exec;
     logic       r_reg_write_exec, r_mem_write_exec, r_mem_read_exec;
@@ -277,7 +279,8 @@ module rv_trace
                                input logic[IADDR_SPACE_BITS-1:0] pc,
                                input logic mem_read, input logic mem_write);
         string reg_op, mem_op, addr_str, opcode;
-        string instr_str = decode_instr(instr);
+        string instr_str;
+        instr_str = decode_instr(instr);
         addr_str.hextoa(addr);
         opcode.hextoa(instr);
         if (r_reg_write_wr)
@@ -420,5 +423,7 @@ module rv_trace
 `endif
 
     assign  o_rd = rd;
+
+/* verilator lint_on  BLKSEQ */
 
 endmodule

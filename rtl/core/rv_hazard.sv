@@ -18,6 +18,8 @@ module rv_hazard
     input   wire[31:0]                  i_wr_data,
     output  wire[31:0]                  o_data1,
     output  wire[31:0]                  o_data2,
+    output  wire[31:0]                  o_alu2_data,
+    output  wire[31:0]                  o_write_data,
     output  wire[31:0]                  o_data2_ex
 );
 
@@ -66,6 +68,8 @@ module rv_hazard
 
     assign  o_data1 = data1;
     assign  o_data2 = data2;
-    assign  o_data2_ex = data2;
+    assign  o_alu2_data  = i_alu2_data;
+    assign  o_write_data = i_wr_data;
+    assign  o_data2_ex   = data2;
 
 endmodule
