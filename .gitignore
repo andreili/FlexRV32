@@ -10,3 +10,19 @@ proj/core_test/*
 *.zip
 *.txt
 .vscode/*
+
+#Quartus files
+*.qsf
+*.qpf
+*.qws
+*.cmp
+*.bsf
+*.ppf
+*.qip
+*.sip
+*.spd
+*/*/db/*
+*/*/*/*/*_sim/*
+*/*/*/*/*/*
+/**/output_files/*
+*/*/incremental_db/*
