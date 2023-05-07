@@ -34,14 +34,14 @@ module rv_hazard
     end
 
     logic   rs1_on_alu2, rs1_on_write, rs1_on_wr_back;
-    assign  rs1_on_alu2    = i_alu2_reg_write  & (|i_alu_rs1) & (!|(i_alu_rs1 ^ i_alu2_rd));
-    assign  rs1_on_write   = i_write_reg_write & (|i_alu_rs1) & (!|(i_alu_rs1 ^ i_write_rd));
-    assign  rs1_on_wr_back = wr_back_op        & (|i_alu_rs1) & (!|(i_alu_rs1 ^ wr_back_rd));
+    assign  rs1_on_alu2    = i_alu2_reg_write  & (|i_alu_rs1) & (!(|(i_alu_rs1 ^ i_alu2_rd)));
+    assign  rs1_on_write   = i_write_reg_write & (|i_alu_rs1) & (!(|(i_alu_rs1 ^ i_write_rd)));
+    assign  rs1_on_wr_back = wr_back_op        & (|i_alu_rs1) & (!(|(i_alu_rs1 ^ wr_back_rd)));
 
     logic   rs2_on_alu2, rs2_on_write, rs2_on_wr_back;
-    assign  rs2_on_alu2    = i_alu2_reg_write  & (|i_alu_rs2) & (!|(i_alu_rs2 ^ i_alu2_rd ));
-    assign  rs2_on_write   = i_write_reg_write & (|i_alu_rs2) & (!|(i_alu_rs2 ^ i_write_rd));
-    assign  rs2_on_wr_back = wr_back_op        & (|i_alu_rs2) & (!|(i_alu_rs2 ^ wr_back_rd));
+    assign  rs2_on_alu2    = i_alu2_reg_write  & (|i_alu_rs2) & (!(|(i_alu_rs2 ^ i_alu2_rd )));
+    assign  rs2_on_write   = i_write_reg_write & (|i_alu_rs2) & (!(|(i_alu_rs2 ^ i_write_rd)));
+    assign  rs2_on_wr_back = wr_back_op        & (|i_alu_rs2) & (!(|(i_alu_rs2 ^ wr_back_rd)));
 
     logic   rs1_alu2_sel, rs1_wr_sel, rs1_wrb_sel, rs1_dir_sel;
     assign  rs1_alu2_sel = rs1_on_alu2;
