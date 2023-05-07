@@ -139,7 +139,7 @@ module top
         .o_ack                          (w_wb_ack)
     );
 
-    /*tcm
+    tcm
     #(
         .MEM_ADDR_WIDTH                 (`TCM_ADDR_WIDTH)
     )
@@ -153,31 +153,7 @@ module top
         .i_data                         (w_wb_wdata),
         .o_ack                          (w_main_slave_ack[MAIN_NIC_SLAVE_TCM]),
         .o_data                         (w_main_slave_rdata[MAIN_NIC_SLAVE_TCM*32+:32])
-    );*/
-    /* verilator lint_off PINMISSING */
-    sky130_sram_2rw0r0w_32_8192
-    #(
-        .ADDR_WIDTH                     (`TCM_ADDR_WIDTH)
-    )
-    u_tcm
-    (
-        .clk0                           (w_clk),
-        .csb0                           (!w_main_slave_sel[MAIN_NIC_SLAVE_TCM]),
-        .web0                           (!w_wb_we),
-        .wmask0                         (w_wb_sel),
-        .addr0                          (w_wb_addr[(`TCM_ADDR_WIDTH+1):2]),
-        .din0                           (w_wb_wdata),
-        .dout0                          (w_main_slave_rdata[MAIN_NIC_SLAVE_TCM*32+:32]),
-        .clk1                           (w_clk),
-        .csb1                           ('1)
     );
-    /* verilator lint_on  PINMISSING */
-    logic tcm_ack;
-    always_ff @(posedge i_clk)
-    begin
-        tcm_ack <= w_main_slave_sel[MAIN_NIC_SLAVE_TCM];
-    end
-    assign  w_main_slave_ack[MAIN_NIC_SLAVE_TCM] = tcm_ack;
 
     wire    w_uart_txen;
 
@@ -214,9 +190,9 @@ begin
 `ifdef TO_SIM
     string fw_file;
     if ($value$plusargs("TEST_FW=%s", fw_file))
-        $readmemh(fw_file, u_tcm.mem);
+        $readmemh(fw_file, u_tcm.r_mem);
     else
-        $readmemh("fw.vh", u_tcm.mem);
+        $readmemh("fw.vh", u_tcm.r_mem);
 `else
   `ifndef QUARTUS
         $readmemh("../fw/test/out/riscv.vh", u_tcm.mem);

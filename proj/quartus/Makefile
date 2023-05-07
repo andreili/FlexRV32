@@ -1,14 +1,14 @@
 PROJECT = riscv_soc
 REVISION = 0
 
-QUARTUS_PATH = /c/intelFPGA_lite/18.1/quartus/bin64/
-QUARTUS_MAP  = $(QUARTUS_PATH)quartus_map
-QUARTUS_FIT  = $(QUARTUS_PATH)quartus_fit
-QUARTUS_ASM  = $(QUARTUS_PATH)quartus_asm
-QUARTUS_STA  = $(QUARTUS_PATH)quartus_sta
-QUARTUS_SH   = $(QUARTUS_PATH)quartus_sh
-QUARTUS_PGM  = $(QUARTUS_PATH)quartus_pgm
-QUARTUS_CDB  = $(QUARTUS_PATH)quartus_cdb
+QUARTUS_PATH = /mnt/c/intelFPGA_lite/22.1std/quartus/bin64/
+QUARTUS_MAP  = $(QUARTUS_PATH)quartus_map.exe
+QUARTUS_FIT  = $(QUARTUS_PATH)quartus_fit.exe
+QUARTUS_ASM  = $(QUARTUS_PATH)quartus_asm.exe
+QUARTUS_STA  = $(QUARTUS_PATH)quartus_sta.exe
+QUARTUS_SH   = $(QUARTUS_PATH)quartus_sh.exe
+QUARTUS_PGM  = $(QUARTUS_PATH)quartus_pgm.exe
+QUARTUS_CDB  = $(QUARTUS_PATH)quartus_cdb.exe
 
 MSIM_PATH = /c/intelFPGA_lite/18.1/modelsim_ase/win32aloem/
 MSI_MVSIM  = $(MSIM_PATH)vsim
@@ -18,8 +18,8 @@ PART = 5CSEMA5F31C6
 BOARDFILE = CycV_SoC_v1
 SDC = SoC.sdc
 
-PROJ_DIR = $(shell pwd)
-RTL_DIR = $(shell pwd)/../../rtl
+PROJ_DIR = ./
+RTL_DIR = ../../rtl
 
 TEST_NAMES = test_dc
 SIM_TARGETS := $(TEST_NAMES:%=%.vcd)
@@ -38,7 +38,7 @@ assignment:
 ip_gen:
 	$(info RTL: Generate IP cores)
 	mkdir -p output_files
-	$(QUARTUS_SH) --64bit -t ./scripts/ip_gen.tcl ./$(PROJECT).qpf $(REVISION) $(shell pwd)/ip.json > ./output_files/msg_ip.txt
+	$(QUARTUS_SH) --64bit -t ./scripts/ip_gen.tcl ./$(PROJECT).qpf $(REVISION) ./ip.json > ./output_files/msg_ip.txt
 	rm -rf 0.qsf
 
 map:

@@ -1,5 +1,5 @@
 RM := rm -rf
-TOOLCHAIN_NAME = riscv64-unknown-elf
+TOOLCHAIN_NAME = riscv32-unknown-elf
 
 WORK_DIR = out
 LD_SCRIPT = ../riscv_soc.ld

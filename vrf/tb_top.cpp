@@ -106,7 +106,7 @@ int main(int argc, char** argv, char** env)
         ret = 0;
     }
 
-    printf("Simulation time: %.3f(s), %d/%d cycles\n", elapsed_seconds, cycles_cnt, cycles);
+    printf("Simulation time: %.3f(s), %d/%d cycles\n", elapsed_seconds.count(), cycles_cnt, cycles);
 
     tb->finish();
     top->final();
