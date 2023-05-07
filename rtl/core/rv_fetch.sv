@@ -29,57 +29,39 @@ module rv_fetch
     output  wire                        o_ready
 );
 
-    logic[IADDR_SPACE_BITS-1:1] pc;
-    logic[IADDR_SPACE_BITS-1:1] pc_sum;
-    logic[IADDR_SPACE_BITS-1:1] pc_next;
-    logic[IADDR_SPACE_BITS-1:1] pc_incr;
-    logic                       move_pc;
-    logic                       change_pc;
-    logic                       dont_change_pc;
-    logic                       update_pc;
-
-    logic       pc_next_trap_sel;
     logic       not_full;
     logic       clk, reset_n;
 
     buf buf_clk(clk, i_clk);
     buf buf_reset(reset_n, i_reset_n);
 
-    // logic for change PC value (interrupts, jumps/branches, bus wait)
-    assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
-    assign  move_pc          = (i_ack & not_full);
-    assign  change_pc        = pc_next_trap_sel | i_pc_select;
+    logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[IADDR_SPACE_BITS-1:1] pc_next;
+    logic                       change_pc;
+    logic                       dont_change_pc;
+
     assign  dont_change_pc   = !change_pc;
-    assign  update_pc        = (!reset_n) | change_pc | move_pc;
-    assign  pc_incr          = { {(IADDR_SPACE_BITS-3){1'b0}}, !pc[1], pc[1] };
 
-/* verilator lint_off PINCONNECTEMPTY */
-    // adder - implementation defined
-    add
+    rv_fetch_addr
     #(
-        .WIDTH                          (IADDR_SPACE_BITS - 1)
+        .RESET_ADDR                     (RESET_ADDR),
+        .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
+        .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
-    u_pc_inc
+    u_addr
     (
-        .i_carry                        (1'b0),
-        .i_op1                          (pc),
-        .i_op2                          (pc_incr),
-        .o_add                          (pc_sum),
-        .o_carry                        ()
+        .i_clk                          (clk),
+        .i_reset_n                      (reset_n),
+        .i_fifo_not_full                (not_full),
+        .i_ack                          (i_ack),
+        .i_pc_target                    (i_pc_target),
+        .i_pc_select                    (i_pc_select),
+        .i_pc_trap                      (i_pc_trap),
+        .i_ebreak                       (i_ebreak),
+        .o_pc                           (pc),
+        .o_pc_next                      (pc_next),
+        .o_change_pc                    (change_pc)
     );
-/* verilator lint_on  PINCONNECTEMPTY */
-
-    // mux for PC pointer
-    assign  pc_next = (!reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:1] :
-                pc_next_trap_sel ? i_pc_trap :
-                i_pc_select      ? i_pc_target :
-                pc_sum;
-
-    always_ff @(posedge clk)
-    begin
-        if (update_pc)
-            pc <= pc_next;
-    end
 
     logic   pc_half_align;
     logic   push_next, push_single_next, push_double_next;
