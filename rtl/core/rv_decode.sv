@@ -9,6 +9,7 @@ module rv_decode
     parameter int IADDR_SPACE_BITS      = 16,
     parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 2,
+    parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
     parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicsr     = 1
@@ -67,13 +68,22 @@ module rv_decode
 
     assign  instruction_c = i_ready ? i_instruction : '0;
 /* verilator lint_off PINCONNECTEMPTY */
-    rv_decode_comp
-    u_comp
-    (
-        .i_instruction                  (instruction_c),
-        .o_instruction                  (instruction_unc),
-        .o_illegal_instruction          ()
-    );
+    generate
+        if (EXTENSION_C)
+        begin
+            rv_decode_comp
+            u_comp
+            (
+                .i_instruction                  (instruction_c),
+                .o_instruction                  (instruction_unc),
+                .o_illegal_instruction          ()
+            );
+        end
+        else
+        begin
+            assign instruction_unc = instruction_c;
+        end
+    endgenerate
 /* verilator lint_on  PINCONNECTEMPTY */
 
     always_ff @(posedge clk)

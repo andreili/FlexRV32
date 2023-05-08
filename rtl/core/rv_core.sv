@@ -125,13 +125,14 @@ module rv_core
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
         .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
+        .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_F                    (EXTENSION_F),
         .EXTENSION_M                    (EXTENSION_M),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st2_decode
     (
-        .i_clk                          (i_clk),
+        //.i_clk                          (i_clk),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
