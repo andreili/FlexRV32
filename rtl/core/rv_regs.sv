@@ -40,8 +40,6 @@ module rv_regs
     begin
         if (wr_en)
             reg_data[rde] <= i_data;
-        //rdata1 <= reg_data[rs1_mux];
-        //rdata2 <= reg_data[rs2_mux];
         if (i_rs_valid)
         begin
             rs1 <= rs1e;
@@ -49,10 +47,15 @@ module rv_regs
         end
     end
 
-    logic[30:0] rs1_or[32];
-    logic[30:0] rs2_or[32];
     logic[31:0] rdata1;
     logic[31:0] rdata2;
+
+`ifdef QUARTUS
+    assign  rdata1 = reg_data[rs1_mux];
+    assign  rdata2 = reg_data[rs2_mux];
+`else
+    logic[30:0] rs1_or[32];
+    logic[30:0] rs2_or[32];
     genvar i, j;
     generate
         for (i=0 ; i<31 ; i++)
@@ -72,6 +75,7 @@ module rv_regs
             assign rdata2[i] = |rs2_or[i];
         end
     endgenerate
+`endif
 
     logic[31:0] r_data1;
     logic[31:0] r_data2;

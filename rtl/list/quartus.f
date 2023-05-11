@@ -8,6 +8,7 @@ SRCS += $(RTL_DIR)/core/rv_ctrl.sv
 SRCS += $(RTL_DIR)/core/rv_regs.sv
 SRCS += $(RTL_DIR)/core/rv_trace.sv
 SRCS += $(RTL_DIR)/core/rv_fetch.sv
+SRCS += $(RTL_DIR)/core/rv_fetch_addr.sv
 SRCS += $(RTL_DIR)/core/rv_fetch_buf.sv
 SRCS += $(RTL_DIR)/core/rv_decode.sv
 SRCS += $(RTL_DIR)/core/rv_decode_comp.sv

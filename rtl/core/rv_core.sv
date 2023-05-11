@@ -10,7 +10,7 @@ module rv_core
     parameter int IADDR_SPACE_BITS      = 16,
     parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 2,
-    parameter int INSTR_BUF_ADDR_SIZE   = 3, // buffer size is 2**N half-words (16 bit)
+    parameter int INSTR_BUF_ADDR_SIZE   = 2, // buffer size is 2**N words (32 bit)
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 1,
     parameter logic EXTENSION_M         = 1,
@@ -71,7 +71,7 @@ module rv_core
         .RESET_ADDR                     (RESET_ADDR),
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
-        .EXTENSION_C                    (EXTENSION_C),
+        //.EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
     u_st1_fetch
@@ -128,11 +128,12 @@ module rv_core
         .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_F                    (EXTENSION_F),
         .EXTENSION_M                    (EXTENSION_M),
-        .EXTENSION_Zicsr                (EXTENSION_Zicsr)
+        .EXTENSION_Zicsr                (EXTENSION_Zicsr),
+        .BUFFERED                       (0)
     )
     u_st2_decode
     (
-        //.i_clk                          (i_clk),
+        .i_clk                          (i_clk),
         .i_stall                        (decode_stall),
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),

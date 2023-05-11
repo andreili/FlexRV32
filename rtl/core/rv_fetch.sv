@@ -6,8 +6,8 @@ module rv_fetch
 #(
     parameter logic[31:0]  RESET_ADDR   = 32'h0000_0000,
     parameter int IADDR_SPACE_BITS      = 16,
-    parameter int INSTR_BUF_ADDR_SIZE   = 3,
-    parameter logic EXTENSION_C         = 1,
+    parameter int INSTR_BUF_ADDR_SIZE   = 2,
+    //parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_Zicsr     = 1
 )
 (
@@ -63,86 +63,45 @@ module rv_fetch
         .o_change_pc                    (change_pc)
     );
 
-    logic   pc_half_align;
-    logic   push_next, push_single_next, push_double_next;
-    logic   push_single, push_double;
+    logic   push_next, push;
+    logic   buf_reset_n;
+    logic   not_empty;
 
-    // detect input data size - depend from read address
-    assign  pc_half_align    = pc[1] & EXTENSION_C;
-    assign  push_next        = reset_n & i_ack & dont_change_pc;
-    assign  push_single_next = push_next &   pc_half_align ;
-    assign  push_double_next = push_next & (!pc_half_align);
+    assign  push_next = reset_n & i_ack & dont_change_pc;
     always_ff @(posedge clk)
     begin
-        push_single <= push_single_next;
-        push_double <= push_double_next;
+        push <= push_next;
     end
-
-    // 16/32 bits per buffer entry - implementation defined
-    localparam int BufWidth = (EXTENSION_C ? 16 : 32);
-    logic[BufWidth-1:0] data_lo;
-    logic[BufWidth-1:0] data_hi;
-    logic[BufWidth-1:0] instr_lo;
-    logic[BufWidth-1:0] instr_hi;
-    generate
-        if (EXTENSION_C)
-        begin : g_comp
-            assign  data_lo       = i_instruction[15: 0];
-            assign  data_hi       = i_instruction[31:16];
-            assign  o_instruction = { instr_hi, instr_lo };
-        end
-            else
-        begin : g_nocomp
-            assign  data_lo       = i_instruction;
-            assign  data_hi       = '0;
-            assign  o_instruction = instr_lo;
-        end
-    endgenerate
-
-    logic   buf_reset_n;
-    logic   buf_pop;
-    logic   not_empty;
 
     // buffer reset logic
     assign  buf_reset_n = reset_n & dont_change_pc;
-    // if buffer contain a full instruction - pop it
-    assign  buf_pop     = (!i_stall) & not_empty;
 
     rv_fetch_buf
     #(
         .IADDR_SPACE_BITS       (IADDR_SPACE_BITS),
-        .WIDTH                  (BufWidth),
+        .WIDTH                  (32),
         .DEPTH_BITS             (INSTR_BUF_ADDR_SIZE)
     )
     u_buf
     (
         .i_clk                  (clk),
         .i_reset_n              (buf_reset_n),
+        .i_stall                (i_stall),
         .i_pc                   (pc_next),
-        .i_data_lo              (data_lo),
-        .i_data_hi              (data_hi),
-        .i_push_single          (push_single),
-        .i_push_double          (push_double),
-        .o_data_lo              (instr_lo),
-        .o_data_hi              (instr_hi),
+        .i_data                 (i_instruction),
+        .i_push                 (push),
+        .o_data                 (o_instruction),
         .o_pc                   (o_pc),
         .o_pc_next              (o_pc_next),
-        .i_pop                  (buf_pop),
         .o_not_empty            (not_empty),
         .o_not_full             (not_full)
     );
 
-/* verilator lint_off UNUSEDSIGNAL */
-    logic   dummy;
-    assign  dummy = (|instr_hi);
-/* verilator lint_on UNUSEDSIGNAL */
-
     assign  o_pc_change = change_pc;
+    assign  o_ready     = not_empty;
     // generate bus requests
     assign  o_cyc       = not_full;
     assign  o_addr      = pc;
-
-    assign  o_ready     = not_empty;
 
 initial
 begin

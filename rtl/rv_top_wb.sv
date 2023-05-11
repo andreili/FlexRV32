@@ -12,7 +12,7 @@ module rv_top_wb
 `endif
     parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 3,
-    parameter int INSTR_BUF_ADDR_SIZE   = 3,
+    parameter int INSTR_BUF_ADDR_SIZE   = 2,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
     parameter logic EXTENSION_M         = 1,

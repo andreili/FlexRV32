@@ -12,7 +12,8 @@ module rv_decode
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
     parameter logic EXTENSION_M         = 1,
-    parameter logic EXTENSION_Zicsr     = 1
+    parameter logic EXTENSION_Zicsr     = 1,
+    parameter logic BUFFERED            = 1
 )
 (
     input   wire                        i_clk,
@@ -56,21 +57,24 @@ module rv_decode
     output  wire                        o_inst_csr_req
 );
 
+/* verilator lint_off UNUSEDSIGNAL */
     logic   clk;
     buf buf_clk(clk, i_clk);
+/* verilator lint_on  UNUSEDSIGNAL */
 
-    logic       valid_input;
     logic[31:0] instruction_c;
     logic[31:0] instruction_unc;
+
+    logic       valid_input;
     logic[31:0] instruction;
     logic[IADDR_SPACE_BITS-1:1] pc;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
 
     assign  instruction_c = i_ready ? i_instruction : '0;
-/* verilator lint_off PINCONNECTEMPTY */
     generate
         if (EXTENSION_C)
         begin
+            /* verilator lint_off PINCONNECTEMPTY */
             rv_decode_comp
             u_comp
             (
@@ -78,29 +82,42 @@ module rv_decode
                 .o_instruction                  (instruction_unc),
                 .o_illegal_instruction          ()
             );
+            /* verilator lint_on  PINCONNECTEMPTY */
+
+            if (BUFFERED)
+            begin
+                always_ff @(posedge clk)
+                begin
+                    if (i_flush)
+                    begin
+                        instruction   <= '0;
+                        valid_input   <= '0;
+                    end
+                    else if (!i_stall)
+                    begin
+                        instruction   <= instruction_unc;
+                        valid_input   <= i_ready;
+                        pc <= i_pc;
+                        pc_next <= i_pc_next;
+                    end
+                end
+            end
+            else
+            begin
+                assign instruction = instruction_unc;
+                assign pc = i_pc;
+                assign pc_next = i_pc_next;
+                assign valid_input = !i_stall & i_ready;
+            end
         end
         else
         begin
-            assign instruction_unc = instruction_c;
+            assign instruction = instruction_c;
+            assign pc = i_pc;
+            assign pc_next = i_pc_next;
+            assign valid_input = !i_flush & i_ready;
         end
     endgenerate
-/* verilator lint_on  PINCONNECTEMPTY */
-
-    always_ff @(posedge clk)
-    begin
-        if (i_flush)
-        begin
-            instruction   <= '0;
-            valid_input   <= '0;
-        end
-        else if (!i_stall)
-        begin
-            instruction   <= instruction_unc;
-            valid_input   <= i_ready;
-            pc <= i_pc;
-            pc_next <= i_pc_next;
-        end
-    end
 
     // get a parts of opcode
     logic[4:0]  rd, rs1, rs2;
