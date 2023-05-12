@@ -38,9 +38,6 @@ module rv_fetch
     logic[IADDR_SPACE_BITS-1:1] pc;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
     logic                       change_pc;
-    logic                       dont_change_pc;
-
-    assign  dont_change_pc   = !change_pc;
 
     rv_fetch_addr
     #(
@@ -67,14 +64,14 @@ module rv_fetch
     logic   buf_reset_n;
     logic   not_empty;
 
-    assign  push_next = reset_n & i_ack & dont_change_pc;
+    assign  push_next = !(!buf_reset_n | !i_ack);
     always_ff @(posedge clk)
     begin
         push <= push_next;
     end
 
     // buffer reset logic
-    assign  buf_reset_n = reset_n & dont_change_pc;
+    assign  buf_reset_n = !(!reset_n | change_pc);
 
     rv_fetch_buf
     #(
