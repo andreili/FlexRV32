@@ -26,3 +26,5 @@ proj/core_test/*
 */*/*/*/*/*
 /**/output_files/*
 */*/incremental_db/*
+*.xml
+pll_sim.f

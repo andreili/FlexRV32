@@ -5,13 +5,14 @@ PROJ_NAME = coremark
 OBJS = init.o uart.o sim.o core_portme.o ee_printf.o core_list_join.o core_main.o core_matrix.o core_state.o core_util.o
 C_FLAGS = -I$(PORT_DIR) -I../coremark/ -I../common/ -DHZ=75000000 -DITERATIONS=1200
 C_FLAGS += -DPERFORMANCE_RUN=1
+WORK_DIR = $(PORT_DIR)/out
+OPATH = $(WORK_DIR)
 
 include ../Makefile.include
 
 CF := $(C_FLAGS)
 C_FLAGS += -DFLAGS_STR="\"$(CF)\""
 
-OPATH = $(WORK_DIR)
 EXE = .el
 
 LFLAGS_END = 
