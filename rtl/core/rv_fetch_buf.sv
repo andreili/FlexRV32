@@ -29,27 +29,24 @@ module rv_fetch_buf
     logic[WIDTH-1:0]    data[QSize];
     logic[QSize:0]      is_head;
 
-    assign  not_full  = !(is_head[QSize] |
-                          !(!is_head[QSize-1] | !i_push | pop)
-                         );
-    assign  pop       = !(i_stall | is_head[0]);
+    assign  not_full  = !is_head[QSize] & !(is_head[QSize-1] & i_push & !pop);
+    assign  pop       = !i_stall & !is_head[0];
 
     logic  latch_dn, latch_up;
     logic  latch_m_dn, latch_m_up;
     
-    assign latch_dn = !(!(pop & !pc[1]) &
-                        !(pop & !(hi_valid & is_comp))
-                       );
-    assign latch_up =   !(pop & !pc[1]) & i_push;
-    assign latch_m_dn = !(!latch_dn |  i_push);
-    assign latch_m_up = !( latch_dn | !i_push);
+    assign latch_dn =  (pop & !pc[1]) | (pop & (!hi_valid | !is_comp));
+    assign latch_up = !(pop & !pc[1]) & i_push;
+    assign latch_m_dn =  latch_dn & !i_push;
+    assign latch_m_up = !latch_dn &  i_push;
 
     // 0
     logic  is_head_next_0;
-    assign is_head_next_0 = !(i_reset_n &
-                              !( latch_m_dn & is_head[1]) &
-                              !(!latch_m_up & is_head[0])
-                             );
+    assign is_head_next_0 = !i_reset_n |
+                              !(
+                                !( latch_m_dn & is_head[1]) &
+                                !(!latch_m_up & is_head[0])
+                              );
     always_ff @(posedge i_clk)
     begin
         is_head[0] <= is_head_next_0;
@@ -59,38 +56,40 @@ module rv_fetch_buf
         genvar i;
         for (i=0 ; i<QSize ; i++)
         begin : g_data
-            logic  h_next, h_move;
-            logic  d_latch_new, d_move;
+            logic  h_next;
+            logic  d_latch_new;
             logic[31:0] d_next;
             if (i == (QSize-1))
             begin
-                assign h_move = !(i_reset_n & !latch_m_dn & !(latch_m_up & is_head[i + 0]));
-                assign h_next = !(!i_reset_n | latch_m_dn | !is_head[i]);
-                assign d_next = {32{d_latch_new}} & i_data;
+                assign h_next = i_reset_n & !(
+                                    !(latch_m_up & is_head[i]) &
+                                    !(!latch_m_dn & !latch_m_up & is_head[i + 1])
+                                 );
+                assign d_next = ~(
+                                  ~({32{d_latch_new}} & i_data) &
+                                  ~({32{!(d_latch_new | latch_dn)}} & data[i])
+                                 );
             end
             else
             begin
-                assign h_move = !(i_reset_n & !latch_m_dn & !latch_m_up);
-                assign h_next = !(!i_reset_n |
-                                  !(
-                                    ( latch_m_dn & is_head[i + 2]) |
-                                    (!latch_m_dn & is_head[i])
-                                   )
+                assign h_next = i_reset_n & !(
+                                  !(latch_m_dn & is_head[i + 2]) &
+                                  !(latch_m_up & is_head[i]) &
+                                  !(!latch_m_up & !latch_m_dn & is_head[i + 1])
                                  );
-                assign d_next = d_latch_new ? i_data : data[i + 1];
+                assign d_next = ~(
+                                  ~({32{ d_latch_new}} & i_data) &
+                                  ~({32{!(d_latch_new | latch_dn)}} & data[i]) &
+                                  ~({32{!d_latch_new &  latch_dn}} & data[i + 1])
+                                 );
             end
-            assign d_latch_new = !(
-                                   !(is_head[i + 1] & latch_dn) &
-                                   !(is_head[i + 0] & latch_up)
-                                  );
-            assign d_move = !(!d_latch_new & !latch_dn);
+            assign d_latch_new = (is_head[i + 1] & latch_dn) |
+                                 (is_head[i + 0] & latch_up);
 
             always_ff @(posedge i_clk)
             begin
-                if (h_move)
-                    is_head[i + 1] <= h_next;
-                if (d_move)
-                    data[i] <= d_next;
+                is_head[i + 1] <= h_next;
+                data[i] <= d_next;
             end
         end
     endgenerate
@@ -99,7 +98,6 @@ module rv_fetch_buf
     logic[IADDR_SPACE_BITS-1:1] pc_incr;
     logic[IADDR_SPACE_BITS-1:1] pc_add;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
-    logic                       pc_update;
 
     assign  pc_incr = is_comp ? 1 : 2;
 /* verilator lint_off PINCONNECTEMPTY */
@@ -117,13 +115,15 @@ module rv_fetch_buf
     );
 /* verilator lint_on  PINCONNECTEMPTY */
 
-    assign pc_update = !(i_reset_n & !(pop & !first_half));
-    assign pc_next = i_reset_n ? pc_add : i_pc;
+    assign pc_next = ~(
+                        ~({(IADDR_SPACE_BITS-1){i_reset_n &  (pop & !first_half)}} & pc_add) &
+                        ~({(IADDR_SPACE_BITS-1){i_reset_n & !(pop & !first_half)}} & pc) &
+                        ~({(IADDR_SPACE_BITS-1){!i_reset_n}} & i_pc)
+                      );
 
     always_ff @(posedge i_clk)
     begin
-        if (pc_update)
-            pc <= pc_next;
+        pc <= pc_next;
     end
 
     logic       half_aligned_access;
@@ -131,16 +131,14 @@ module rv_fetch_buf
     logic       hi_update, hi_next, hi_valid;
     logic       first_half;
 
-    assign hi_update = !( i_reset_n & !(i_push & pop));
-    assign hi_next   = !(!i_reset_n | is_head[0]);
+    assign hi_update = !i_reset_n | (i_push & pop);
+    assign hi_next   = i_reset_n & !is_head[0];
 
     always_ff @(posedge i_clk)
     begin
-        if (pop)
-            latch_hi <= data[0][31:16];
-        if (hi_update)
-            hi_valid <= hi_next;
-        first_half <= !(!is_head[0] | !pc[1] | hi_valid);
+        latch_hi <= pop ? data[0][31:16] : latch_hi;
+        hi_valid <= hi_update ? hi_next : hi_valid;
+        first_half <= is_head[0] & pc[1] & !hi_valid;
     end
 
     assign  half_aligned_access = pc[1];
@@ -151,7 +149,7 @@ module rv_fetch_buf
     assign  o_data = { data_hi, data_lo };
     assign  o_pc = pc;
     assign  o_pc_next = pc_next;
-    assign  o_not_empty = !(is_head[0] | first_half);
+    assign  o_not_empty = !is_head[0] & !first_half;
     assign  o_not_full = not_full;
 
 endmodule
