@@ -1,14 +1,14 @@
 PROJECT = riscv_soc
 REVISION = 0
 
-QUARTUS_PATH = /mnt/c/intelFPGA_lite/22.1std/quartus/bin64/
-QUARTUS_MAP  = $(QUARTUS_PATH)quartus_map.exe
-QUARTUS_FIT  = $(QUARTUS_PATH)quartus_fit.exe
-QUARTUS_ASM  = $(QUARTUS_PATH)quartus_asm.exe
-QUARTUS_STA  = $(QUARTUS_PATH)quartus_sta.exe
-QUARTUS_SH   = $(QUARTUS_PATH)quartus_sh.exe
-QUARTUS_PGM  = $(QUARTUS_PATH)quartus_pgm.exe
-QUARTUS_CDB  = $(QUARTUS_PATH)quartus_cdb.exe
+QUARTUS_PATH = /opt/intelFPGA_lite/22.1std/quartus/bin/
+QUARTUS_MAP  = $(QUARTUS_PATH)quartus_map
+QUARTUS_FIT  = $(QUARTUS_PATH)quartus_fit
+QUARTUS_ASM  = $(QUARTUS_PATH)quartus_asm
+QUARTUS_STA  = $(QUARTUS_PATH)quartus_sta
+QUARTUS_SH   = $(QUARTUS_PATH)quartus_sh
+QUARTUS_PGM  = $(QUARTUS_PATH)quartus_pgm
+QUARTUS_CDB  = $(QUARTUS_PATH)quartus_cdb
 
 MSIM_PATH = /c/intelFPGA_lite/18.1/modelsim_ase/win32aloem/
 MSI_MVSIM  = $(MSIM_PATH)vsim

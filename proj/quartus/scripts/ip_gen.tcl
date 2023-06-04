@@ -22,9 +22,9 @@ source ${scripts_dir}/json.tcl
 
 set quartus_dir [get_quartus_dir]
 
-set sopc_dir "${quartus_dir}\\sopc_builder\\bin"
-set qsys_gen "${sopc_dir}\\qsys-generate.exe"
-set qmegawiz "${quartus_dir}\\bin64\\qmegawiz.exe"
+set sopc_dir "${quartus_dir}/sopc_builder/bin"
+set qsys_gen "${sopc_dir}/qsys-generate"
+set qmegawiz "${quartus_dir}/bin/qmegawiz"
 
 project_open -force ${qpf} -revision ${rev}
 
