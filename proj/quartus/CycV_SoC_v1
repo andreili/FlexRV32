@@ -1,5 +1,5 @@
-set_global_assignment -name FAMILY "Cyclone V"
-set_global_assignment -name DEVICE 5CSEMA5F31C6
+set_global_assignment -name FAMILY "Cyclone IV E"
+set_global_assignment -name DEVICE ep4ce6f17c8
 set_global_assignment -name TOP_LEVEL_ENTITY top
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 

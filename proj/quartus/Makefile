@@ -13,8 +13,8 @@ QUARTUS_CDB  = $(QUARTUS_PATH)quartus_cdb
 MSIM_PATH = /c/intelFPGA_lite/18.1/modelsim_ase/win32aloem/
 MSI_MVSIM  = $(MSIM_PATH)vsim
 
-FAMILY = "Cyclone V"
-PART = 5CSEMA5F31C6
+FAMILY = "Cyclone IV E"
+PART = ep4ce6f17c8
 BOARDFILE = CycV_SoC_v1
 SDC = SoC.sdc
 

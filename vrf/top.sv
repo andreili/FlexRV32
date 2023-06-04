@@ -33,9 +33,9 @@ module top
     pll
     u_pll
     (
-        .refclk                         (i_clk),
-        .rst                            ('0),
-        .outclk_0                       (w_clk),
+        .inclk0                         (i_clk),
+        .areset                         ('0),
+        .c0                             (w_clk),
         .locked                         (w_locked)
     );
   `else
