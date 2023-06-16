@@ -30,10 +30,6 @@ module rv_fetch
 );
 
     logic       not_full;
-    logic       clk, reset_n;
-
-    buf buf_clk(clk, i_clk);
-    buf buf_reset(reset_n, i_reset_n);
 
     logic[IADDR_SPACE_BITS-1:1] pc;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
@@ -47,8 +43,8 @@ module rv_fetch
     )
     u_addr
     (
-        .i_clk                          (clk),
-        .i_reset_n                      (reset_n),
+        .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
         .i_fifo_not_full                (not_full),
         .i_ack                          (i_ack),
         .i_pc_target                    (i_pc_target),
@@ -65,13 +61,13 @@ module rv_fetch
     logic   not_empty;
 
     assign  push_next = !(!buf_reset_n | !i_ack);
-    always_ff @(posedge clk)
+    always_ff @(posedge i_clk)
     begin
         push <= push_next;
     end
 
     // buffer reset logic
-    assign  buf_reset_n = !(!reset_n | change_pc);
+    assign  buf_reset_n = !(!i_reset_n | change_pc);
 
     rv_fetch_buf
     #(
@@ -81,7 +77,7 @@ module rv_fetch
     )
     u_buf
     (
-        .i_clk                  (clk),
+        .i_clk                  (i_clk),
         .i_reset_n              (buf_reset_n),
         .i_stall                (i_stall),
         .i_pc                   (pc_next),

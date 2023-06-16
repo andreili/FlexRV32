@@ -57,11 +57,6 @@ module rv_decode
     output  wire                        o_inst_csr_req
 );
 
-/* verilator lint_off UNUSEDSIGNAL */
-    logic   clk;
-    buf buf_clk(clk, i_clk);
-/* verilator lint_on  UNUSEDSIGNAL */
-
     logic[31:0] instruction_c;
     logic[31:0] instruction_unc;
 
@@ -86,7 +81,7 @@ module rv_decode
 
             if (BUFFERED)
             begin
-                always_ff @(posedge clk)
+                always_ff @(posedge i_clk)
                 begin
                     if (i_flush)
                     begin
