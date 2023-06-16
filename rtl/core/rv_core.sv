@@ -30,6 +30,7 @@ module rv_core
     output  wire                        o_csr_set,
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
+    output  wire                        o_csr_masked,
     output  wire                        o_csr_ebreak,
     output  wire[IADDR_SPACE_BITS-1:1]  o_csr_pc_next,
     input   wire                        i_csr_to_trap,
@@ -129,7 +130,7 @@ module rv_core
         .EXTENSION_F                    (EXTENSION_F),
         .EXTENSION_M                    (EXTENSION_M),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr),
-        .BUFFERED                       (0)
+        .BUFFERED                       (1)
     )
     u_st2_decode
     (
@@ -174,6 +175,7 @@ module rv_core
     );
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
+    assign  o_csr_masked = decode_flush;
 
     logic[4:0]  alu1_rs1;
     logic[4:0]  alu1_rs2;

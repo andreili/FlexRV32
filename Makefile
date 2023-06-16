@@ -17,6 +17,7 @@ arch:
 
 bit:
 	make -C proj/quartus
+	python sim_common/results.py results.json parse_quartus proj/quartus/output_files/riscv_soc
 	python sim_common/results.py results.json html
 
 clean:

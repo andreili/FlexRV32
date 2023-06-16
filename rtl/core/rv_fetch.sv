@@ -100,9 +100,11 @@ module rv_fetch
     assign  o_cyc       = not_full;
     assign  o_addr      = pc;
 
+`ifdef TO_SIM
 initial
 begin
     pc = '0;
 end
+`endif
 
 endmodule

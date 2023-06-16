@@ -24,6 +24,7 @@ module rv_csr
     input   wire                        i_set,
     input   wire                        i_clear,
     input   wire                        i_read,
+    input   wire                        i_masked,
     input   wire                        i_ebreak,
     input   wire                        i_instr_issued,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
@@ -46,15 +47,25 @@ module rv_csr
 
     always_ff @(posedge i_clk)
     begin
+        if (!i_masked)
+        begin
+            write <= i_write;
+            set <= i_set;
+            clear <= i_clear;
+            read <= i_read;
+        end
+        else
+        begin
+            write <= '0;
+            set <= '0;
+            clear <= '0;
+            read <= '0;
+        end
         idx <= i_idx;
         imm <= i_imm;
         imm_sel <= i_imm_sel;
-        write <= i_write;
-        set <= i_set;
-        clear <= i_clear;
-        read <= i_read;
-        ebreak <= i_ebreak;
         pc <= i_pc_next;
+        ebreak <= i_ebreak;
     end
 
     logic[31:0] write_value;

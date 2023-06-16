@@ -70,6 +70,7 @@ module rv_top_wb
     logic       csr_set;
     logic       csr_clear;
     logic       csr_read;
+    logic       csr_masked;
     logic       csr_ebreak;
     logic[IADDR_SPACE_BITS-1:1] csr_pc_next;
     logic[31:0] csr_rdata;
@@ -106,6 +107,7 @@ module rv_top_wb
         .o_csr_set                      (csr_set),
         .o_csr_clear                    (csr_clear),
         .o_csr_read                     (csr_read),
+        .o_csr_masked                   (csr_masked),
         .o_csr_ebreak                   (csr_ebreak),
         .o_csr_pc_next                  (csr_pc_next),
         .i_csr_to_trap                  (csr_to_trap),
@@ -150,6 +152,7 @@ module rv_top_wb
                 .i_set                          (csr_set),
                 .i_clear                        (csr_clear),
                 .i_read                         (csr_read),
+                .i_masked                       (csr_masked),
                 .i_ebreak                       (csr_ebreak),
                 .i_pc_next                      (csr_pc_next),
                 .i_instr_issued                 (instr_issued),
