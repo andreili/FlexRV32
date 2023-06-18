@@ -1,0 +1,259 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Tests and Implementation Report</title>
+        <style>
+            #tests-table {
+                border: 1px solid #cccccc;
+                color: #313131;
+                font-size: 14px;
+                width: 100%
+            }
+            #tests-table th, #tests-table td {
+                padding: 5px;
+                border: 1px solid #E6E6E6;
+                text-align: left
+            }
+            #tests-table th {
+                font-weight: bold
+            }
+            .sortable {
+                cursor: pointer;
+            }
+            .sort-icon {
+                font-size: 0px;
+                float: left;
+                margin-right: 5px;
+                margin-top: 5px;
+                /*triangle*/
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+            }
+            .inactive .sort-icon {
+                /*finish triangle*/
+                border-top: 8px solid #E6E6E6;
+            }
+
+            .asc.active .sort-icon {
+                /*finish triangle*/
+                border-bottom: 8px solid #999;
+            }
+            .desc.active .sort-icon {
+                /*finish triangle*/
+                border-top: 8px solid #999;
+            }
+        </style>
+        <script>
+            function toArray(iter) {
+                if (iter === null) {
+                    return null;
+                }
+                return Array.prototype.slice.call(iter);
+            }
+
+            function find(selector, elem) {
+                if (!elem) {
+                    elem = document;
+                }
+                return elem.querySelector(selector);
+            }
+
+            function find_all(selector, elem) {
+                if (!elem) {
+                    elem = document;
+                }
+                return toArray(elem.querySelectorAll(selector));
+            }
+
+            function reset_sort_headers() {
+                find_all('.sort-icon').forEach(function(elem) {
+                    elem.parentNode.removeChild(elem);
+                });
+                find_all('.sortable').forEach(function(elem) {
+                    var icon = document.createElement("div");
+                    icon.className = "sort-icon";
+                    icon.textContent = "vvv";
+                    elem.insertBefore(icon, elem.firstChild);
+                    elem.classList.remove("desc", "active");
+                    elem.classList.add("asc", "inactive");
+                });
+            }
+
+            function toggle_sort_states(elem) {
+                //if active, toggle between asc and desc
+                if (elem.classList.contains('active')) {
+                    elem.classList.toggle('asc');
+                    elem.classList.toggle('desc');
+                }
+
+                //if inactive, reset all other functions and add ascending active
+                if (elem.classList.contains('inactive')) {
+                    reset_sort_headers();
+                    elem.classList.remove('inactive');
+                    elem.classList.add('active');
+                }
+            }
+
+            function key_alpha(col_index) {
+                return function(elem) {
+                    return elem.childNodes[0].childNodes[col_index].firstChild.data.toLowerCase();
+                };
+            }
+
+            function sort_column(elem) {
+                toggle_sort_states(elem);
+                name = ((elem).closest('table')).id;
+                var colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+                var key;
+                if (elem.classList.contains('numeric')) {
+                    key = key_num;
+                } else if (elem.classList.contains('result')) {
+                    key = key_result;
+                } else {
+                    key = key_alpha;
+                }
+                sort_table(elem, key(colIndex), name);
+            }
+
+            function sort(items, key_func, reversed) {
+                var sort_array = items.map(function(item, i) {
+                    return [key_func(item), i];
+                });
+                var multiplier = reversed ? -1 : 1;
+
+                sort_array.sort(function(a, b) {
+                    var key_a = a[0];
+                    var key_b = b[0];
+                    return multiplier * (key_a >= key_b ? 1 : -1);
+                });
+
+                return sort_array.map(function(item) {
+                    var index = item[1];
+                    return items[index];
+                });
+            }
+
+            function sort_table(clicked, key_func, tname) {
+                var rows = find_all('.'+tname+'-row');
+                var reversed = !clicked.classList.contains('asc');
+                var sorted_rows = sort(rows, key_func, reversed);
+                /* Whole table is removed here because browsers acts much slower
+                * when appending existing elements.
+                */
+                var thead = document.getElementById(tname+"-head");
+                document.getElementById(tname).remove();
+                var parent = document.createElement("table");
+                parent.id = tname;
+                parent.appendChild(thead);
+                sorted_rows.forEach(function(elem) {
+                    parent.appendChild(elem);
+                });
+                document.getElementsByTagName(tname+"-BODY")[0].appendChild(parent);
+            }
+
+            function init () {
+                reset_sort_headers();
+                toggle_sort_states(find('.initial-sort'));
+                find_all('.sortable').forEach(function(elem) {
+                    elem.addEventListener("click",
+                                        function(event) {
+                                            sort_column(elem);
+                                        }, false)
+                });
+            };
+        </script
+    </head>
+    <body onLoad="init()">
+        <h2>Test results</h2>
+        <tests-table-body>
+        <table id="tests-table">
+            <thead id="tests-table-head">
+                <tr><th class="sortable name initial-sort" col="tname">Name</th><th class="sortable name initial-sort" col="tcode">Result</th><th class="sortable name initial-sort" col="tdata">Last run</th></tr>
+            </thead>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_add-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:05.828133</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_addi-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:06.115963</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_and-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:06.450468</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_andi-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:06.720628</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_auipc-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:06.867729</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_beq-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:07.364675</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_bge-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:07.839398</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_bgeu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:08.380389</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_blt-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:08.966757</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_bltu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:09.525133</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_bne-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:10.088070</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_fence-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:10.201293</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_jal-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:10.796323</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_jalr-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:10.944842</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_lb-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.088184</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_lbu-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.214747</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_lh-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.337456</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_lhu-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.464714</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_lui-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.631257</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_lw-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.772801</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_or-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:12.235038</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_ori-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:12.544155</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sb-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:12.687084</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sh-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:12.835863</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sll-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:13.038253</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_slli-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:13.192079</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_slt-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:13.493556</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_slti-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:13.752995</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sltiu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:14.048347</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sltu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:14.440519</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sra-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:14.575183</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_srai-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:14.717945</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_srl-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:14.876143</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_srli-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:15.023554</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sub-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:15.379070</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_sw-align-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:15.513500</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_xor-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:15.869686</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_xori-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:16.148283</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cadd-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:16.582137</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_caddi-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:16.812598</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_caddi16sp-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:16.956976</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_caddi4spn-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:17.088618</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cand-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:17.436623</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_candi-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:17.679958</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cbeqz-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:17.848092</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cbnez-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.012996</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cebreak-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.146790</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cj-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.278414</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cjal-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.482801</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cjalr-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.621131</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cjr-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.771985</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cli-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:18.900094</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_clui-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:19.022711</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_clw-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:19.144627</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_clwsp-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:19.265982</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cmv-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:19.416964</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cnop-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:19.546764</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cor-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:19.915892</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cslli-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:20.047308</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_csrai-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:20.187680</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_csrli-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:20.352002</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_csub-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:20.688452</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_csw-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:20.839643</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cswsp-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:20.982964</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_cxor-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:21.383241</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_div-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:21.980393</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_divu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:22.582956</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_mul-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:23.127625</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_mulh-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:23.674661</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_mulhsu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:24.230570</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_mulhu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:24.808757</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_rem-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:25.349211</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_remu-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:26.009698</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td class="col-tname">test_misalign1-jalr-01</td><td class="col-tcode">Pass</td><td class="col-tdata">2023-05-11T19:30:11.902069</td></tr></tbody>
+        </table>
+        <h2>Timing reports</h2>
+        <table id="tests-table">
+            <thead id="tests-table-head">
+                <tr><th>Model</th><th>Fmax</th></tr>
+            </thead>
+<tbody class="tests-table-row"><tr><td>Slow 1200mV 85C</td><td>71.65 MHz</td></tr></tbody>
+<tbody class="tests-table-row"><tr><td>Slow 1200mV 0C</td><td>76.83 MHz</td></tr></tbody>
+        </table>
+    </body>
+</html>
