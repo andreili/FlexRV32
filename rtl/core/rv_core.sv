@@ -208,7 +208,7 @@ module rv_core
     );
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
-    assign  o_csr_masked = decode_flush;
+    assign  o_csr_masked = decode_flush | decode_stall;
 
     logic[4:0]  alu1_rs1;
     logic[4:0]  alu1_rs2;
@@ -317,6 +317,7 @@ module rv_core
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
     logic       alu2_ready;
+    logic       alu2_instr_jal_jalr_branch;
 
     rv_alu2
     #(
@@ -358,15 +359,18 @@ module rv_core
         .o_wdata                        (o_data_wdata),
         .o_wsel                         (o_data_sel),
         .o_funct3                       (alu2_funct3),
+        .o_instr_jal_jalr_branch        (alu2_instr_jal_jalr_branch),
         .o_to_trap                      (alu2_to_trap),
         .o_ready                        (alu2_ready)
     );
+
+    logic write_flush;
 
     rv_write
     u_st5_write
     (
         .i_clk                          (i_clk),
-        .i_flush                        (!alu2_ready),
+        .i_flush                        (write_flush),
         .i_funct3                       (alu2_funct3),
         .i_alu_result                   (dh_alu2_result),
         .i_reg_write                    (alu2_reg_write),
@@ -404,7 +408,8 @@ module rv_core
 
     logic   inv_inst;
     logic   ctrl_need_pause;
-    assign  ctrl_need_pause = decode_inst_csr_req & (alu1_inst_jal_jalr | alu1_inst_branch);
+    assign  ctrl_need_pause = decode_inst_csr_req &
+                              (alu1_inst_jal_jalr | alu1_inst_branch | alu2_instr_jal_jalr_branch);
     rv_ctrl
     u_ctrl
     (
@@ -424,6 +429,7 @@ module rv_core
         .o_alu1_flush                   (alu1_flush),
         .o_alu1_stall                   (alu1_stall),
         .o_alu2_flush                   (alu2_flush),
+        .o_write_flush                  (write_flush),
         .o_inv_inst                     (inv_inst)
     );
 
@@ -450,6 +456,7 @@ module rv_core
         .i_exec2_ready                  (alu2_ready),
         .i_exec_flush                   (alu1_flush),
         .i_exec_stall                   (alu1_stall),
+        .i_write_flush                  (write_flush),
         .o_rd                           (trace_rd),
         .i_rd                           (trace_rd_data)
     );

@@ -22,6 +22,15 @@ module rv_fetch_addr
     output  wire                        o_change_pc
 );
 
+    logic                       pc_select;
+    logic[IADDR_SPACE_BITS-1:1] pc_target;
+
+    always_ff @(posedge i_clk)
+    begin
+        pc_select <= i_pc_select;
+        pc_target <= i_pc_target;
+    end
+
     logic[IADDR_SPACE_BITS-1:1] pc;
     logic[IADDR_SPACE_BITS-1:1] pc_sum;
     logic[IADDR_SPACE_BITS-1:1] pc_next;
@@ -35,7 +44,7 @@ module rv_fetch_addr
     // logic for change PC value (interrupts, jumps/branches, bus wait)
     assign  pc_next_trap_sel = i_ebreak & EXTENSION_Zicsr;
     assign  move_pc          = (i_ack & i_fifo_not_full);
-    assign  change_pc        = pc_next_trap_sel | i_pc_select;
+    assign  change_pc        = pc_next_trap_sel | pc_select;
     assign  update_pc        = (!i_reset_n) | change_pc | move_pc;
     assign  pc_incr          = { {(IADDR_SPACE_BITS-3){1'b0}}, !pc[1], pc[1] };
 
@@ -58,7 +67,7 @@ module rv_fetch_addr
     // mux for PC pointer
     assign  pc_next = (!i_reset_n) ? RESET_ADDR[IADDR_SPACE_BITS-1:1] :
                 pc_next_trap_sel ? i_pc_trap :
-                i_pc_select      ? i_pc_target :
+                pc_select        ? pc_target :
                 pc_sum;
 
     always_ff @(posedge i_clk)

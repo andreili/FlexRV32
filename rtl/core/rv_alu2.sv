@@ -43,6 +43,7 @@ module rv_alu2
     output  wire[3:0]                   o_wsel,
     output  wire[2:0]                   o_funct3,
     output  wire                        o_to_trap,
+    output  wire                        o_instr_jal_jalr_branch,
     output  wire                        o_ready
 );
 
@@ -58,8 +59,8 @@ module rv_alu2
     logic[2:0]  funct3;
     alu_ctrl_t  alu_ctrl;
     logic[31:0] reg_data2;
-    logic       csr_read;
-    logic[31:0] csr_data;
+    //logic       csr_read;
+    //logic[31:0] csr_data;
     logic       to_trap;
     logic[5:0]  op_cnt;
     logic       cmp_inv;
@@ -86,6 +87,7 @@ module rv_alu2
     logic       div_signed;
     logic       rem_signed;
     logic       cmp_inv_next;
+    logic       instr_jal_jalr_branch;
     assign      ready = (state == `ALU_START) | (!EXTENSION_M);
     assign      mul_op1_signed = !(&funct3[1:0]);
     assign      div_rem_signed = !funct3[0];
@@ -139,8 +141,8 @@ module rv_alu2
             funct3 <= i_funct3;
             alu_ctrl <= i_alu_ctrl;
             reg_data2 <= i_reg_data2;
-            csr_read <= i_csr_read;
-            csr_data <= i_csr_data;
+            //csr_read <= i_csr_read;
+            //csr_data <= i_csr_data;
             to_trap <= i_to_trap;
             cmp_inv <= cmp_inv_next;
         end
@@ -149,6 +151,8 @@ module rv_alu2
             op2 <= alu_ctrl.div_mux ? { op2[30:0], 1'b0 } : { 1'b0, op2[31:1] };
         end
     end
+
+    assign instr_jal_jalr_branch = inst_jal_jalr | inst_branch;
 
     logic[32:0] op1_mux;
     logic[31:0] op2_mux;
@@ -205,6 +209,8 @@ module rv_alu2
         endcase
     end
 
+    logic pc_select;
+
     pc_sel
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
@@ -219,9 +225,11 @@ module rv_alu2
         .i_pc                           (pc),
         .i_pc_next                      (pc_next),
         .i_pc_target                    (pc_target),
-        .o_pc_select                    (o_pc_select),
+        .o_pc_select                    (pc_select),
         .o_pc_target                    (o_pc_target)
     );
+
+    assign o_pc_select = pc_select & !i_flush;
 
     logic[63:0] mul;
     logic[31:0] div, rem;
@@ -287,7 +295,7 @@ module rv_alu2
     );
 
     assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next, 1'b0 } :
-                     (csr_read & EXTENSION_Zicsr) ? csr_data :
+                     (i_csr_read & EXTENSION_Zicsr) ? i_csr_data :
                      alu_result;
 
 /* verilator lint_off UNUSEDSIGNAL */
@@ -302,6 +310,7 @@ module rv_alu2
     assign  o_rd = rd;
     assign  o_res_src = res_src;
     assign  o_funct3 = funct3;
+    assign  o_instr_jal_jalr_branch = instr_jal_jalr_branch;
     assign  o_to_trap = to_trap;
     assign  o_ready = ready;
 

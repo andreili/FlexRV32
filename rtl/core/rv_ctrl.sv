@@ -20,6 +20,7 @@ module rv_ctrl
     output  wire                        o_alu1_flush,
     output  wire                        o_alu1_stall,
     output  wire                        o_alu2_flush,
+    output  wire                        o_write_flush,
     output  wire                        o_inv_inst
 );
 
@@ -28,12 +29,13 @@ module rv_ctrl
                              (i_decode_rs2 == i_alu1_rd  ));
 
     logic   decode_stall, alu1_stall;
-    assign  decode_stall = (!i_reset_n) | need_mem_data1 | i_need_pause | (!i_alu2_ready);
+    assign  decode_stall = need_mem_data1 | i_need_pause | (!i_alu2_ready);
     assign  alu1_stall   = !i_alu2_ready;
 
-    logic   global_flush, alu1_flush;
+    logic   global_flush, alu1_flush, write_flush;
     assign  global_flush = (!i_reset_n) | i_pc_change;
     assign  alu1_flush   = global_flush | (decode_stall & i_alu2_ready);
+    assign  write_flush  = global_flush | !i_alu2_ready;
 
     logic[1:0]  inst_sup;
     always_ff @(posedge i_clk)
@@ -50,6 +52,7 @@ module rv_ctrl
     assign  o_alu1_flush = alu1_flush;
     assign  o_alu1_stall = alu1_stall;
     assign  o_alu2_flush = global_flush;
+    assign  o_write_flush = write_flush;
 
     assign  o_inv_inst = !inst_sup[1];
 

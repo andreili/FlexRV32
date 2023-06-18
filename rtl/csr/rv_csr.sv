@@ -35,42 +35,58 @@ module rv_csr
     output  wire                        o_read
 );
 
-    logic[11:0] idx;
-    logic[4:0]  imm;
-    logic       imm_sel;
-    logic       write;
-    logic       set;
-    logic       clear;
-    logic       read;
-    logic       ebreak;
-    logic[IADDR_SPACE_BITS-1:1] pc;
+    logic[11:0] idx, buf_idx;
+    logic[4:0]  imm, buf_imm;
+    logic       imm_sel, buf_imm_sel;
+    logic       write, buf_write;
+    logic       set, buf_set;
+    logic       clear, buf_clear;
+    logic       read, buf_read;
+    logic       ebreak, buf_ebreak;
+    logic[IADDR_SPACE_BITS-1:1] pc, buf_pc;
+    logic[31:0] reg_data;//, buf_reg_data;
 
     always_ff @(posedge i_clk)
     begin
         if (!i_masked)
         begin
-            write <= i_write;
-            set <= i_set;
-            clear <= i_clear;
-            read <= i_read;
+            buf_write <= i_write;
+            buf_set <= i_set;
+            buf_clear <= i_clear;
+            buf_read <= i_read;
         end
         else
         begin
-            write <= '0;
-            set <= '0;
-            clear <= '0;
-            read <= '0;
+            buf_write <= '0;
+            buf_set <= '0;
+            buf_clear <= '0;
+            buf_read <= '0;
         end
-        idx <= i_idx;
-        imm <= i_imm;
-        imm_sel <= i_imm_sel;
-        pc <= i_pc_next;
-        ebreak <= i_ebreak;
+        buf_idx <= i_idx;
+        buf_imm <= i_imm;
+        buf_imm_sel <= i_imm_sel;
+        buf_pc <= i_pc_next;
+        buf_ebreak <= i_ebreak;
+        //buf_reg_data <= i_reg_data;
+    end
+
+    always_ff @(posedge i_clk)
+    begin
+        write <= buf_write;
+        set <= buf_set;
+        clear <= buf_clear;
+        read <= buf_read;
+        idx <= buf_idx;
+        imm <= buf_imm;
+        imm_sel <= buf_imm_sel;
+        pc <= buf_pc;
+        ebreak <= buf_ebreak;
+        reg_data <= i_reg_data;
     end
 
     logic[31:0] write_value;
 
-    assign  write_value = imm_sel ? { {27{1'b0}}, imm } : i_reg_data;
+    assign  write_value = imm_sel ? { {27{1'b0}}, imm } : reg_data;
 
     logic[1:0]  idx_category;
     logic[1:0]  idx_sub_category;

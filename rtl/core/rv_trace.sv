@@ -23,6 +23,7 @@ module rv_trace
     input   wire                        i_exec2_ready,
     input   wire                        i_exec_flush,
     input   wire                        i_exec_stall,
+    input   wire                        i_write_flush,
     output  wire[4:0]                   o_rd,
     input   wire[31:0]                  i_rd
 );
@@ -363,7 +364,7 @@ module rv_trace
 
     always_ff @(posedge i_clk)
     begin
-        if (!i_exec2_ready)
+        if (i_write_flush)
         begin
             r_pc_wr <= '0;
             r_instr_wr <= '0;
