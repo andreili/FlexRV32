@@ -3,6 +3,7 @@
 `include "../rv_defines.vh"
 `include "../rv_structs.vh"
 `include "rv_opcodes.vh"
+/* verilator lint_off UNUSEDSIGNAL */
 
 module rv_decode
 #(
@@ -528,3 +529,4 @@ end
 `endif
 
 endmodule
+/* verilator lint_on UNUSEDSIGNAL */

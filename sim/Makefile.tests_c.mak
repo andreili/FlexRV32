@@ -2,7 +2,7 @@ XLEN = 32
 ROOTDIR = $(CURDIR)/../../fw/riscv-arch-test
 TARGETDIR = $(ROOTDIR)/riscv-target
 RISCV_TARGET = mycore
-RISCV_DEVICE = c
+RISCV_DEVICE = C
 RVTEST_DEFINES = -march=rv32ic_zicsr_zifencei -mabi=ilp32
 
 include $(ROOTDIR)/riscv-test-suite/Makefile.include

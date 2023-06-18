@@ -5,4 +5,6 @@
 -y ../../rtl/core/math
 -y ../../rtl/csr/
 -y ../../vrf/
+-y ../../asic/blocks/rv_fetch/simulation/
+-y ../../asic/cells_sim/
 --timing

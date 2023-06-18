@@ -4,6 +4,10 @@
 `include "../rv_structs.vh"
 `include "rv_opcodes.vh"
 
+`ifdef USE_SCHEMATIC
+/* verilator lint_off UNUSEDPARAM */
+`endif
+
 module rv_core
 #(
     parameter logic[31:0] RESET_ADDR    = 32'h0000_0000,
@@ -67,6 +71,34 @@ module rv_core
     logic       fetch_pc_change;
     logic[IADDR_SPACE_BITS-1:1] alu2_pc_target;
 
+`ifdef USE_SCHEMATIC
+/* verilator lint_off UNUSEDSIGNAL */
+    logic[9:0] fetch_pc_hi;
+    logic[9:0] fetch_pc_next_hi;
+    logic[9:0] fetch_addr_hi;
+/* verilator lint_on UNUSEDSIGNAL */
+
+    rv_fetch_sch
+    u_st1_fetch
+    (
+        .i_clk                          (i_clk),
+        .i_reset_n                      (i_reset_n),
+        .i_stall                        (fetch_stall),
+        .i_pc_target                    ({ {10{1'b0}}, alu2_pc_target }),
+        .i_pc_select                    (alu2_pc_select),
+        .i_pc_trap                      ({ {10{1'b0}}, i_csr_trap_pc }),
+        .i_ebreak                       (alu2_to_trap),
+        .i_instruction                  (i_instr_data),
+        .i_ack                          (i_instr_ack),
+        .o_pc_change                    (fetch_pc_change),
+        .o_addr                         ({fetch_addr_hi, o_instr_addr }),
+        .o_cyc                          (o_instr_req),
+        .o_instruction                  (fetch_instruction),
+        .o_pc                           ({ fetch_pc_hi, fetch_pc }),
+        .o_pc_next                      ({ fetch_pc_next_hi, fetch_pc_next }),
+        .o_ready                        (fetch_ready)
+    );
+`else
     rv_fetch
     #(
         .RESET_ADDR                     (RESET_ADDR),
@@ -94,6 +126,7 @@ module rv_core
         .o_pc_next                      (fetch_pc_next),
         .o_ready                        (fetch_ready)
     );
+`endif
 
     logic       decode_stall;
     logic       decode_flush;
@@ -442,3 +475,7 @@ module rv_core
 /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule
+
+`ifdef USE_SCHEMATIC
+/* verilator lint_on UNUSEDPARAM */
+`endif
