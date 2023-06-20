@@ -6,5 +6,6 @@
 -y ../../rtl/csr/
 -y ../../vrf/
 -y ../../asic/blocks/rv_fetch/simulation/
+-y ../../asic/blocks/rv_decode_comp/simulation/
 -y ../../asic/cells_sim/
 --timing

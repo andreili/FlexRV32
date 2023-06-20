@@ -1,295 +1,295 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sun Jun 18 19:12:41 2023
+[*] Tue Jun 20 20:33:53 2023
 [*]
-[dumpfile] "/media/FlexRV32/sim/run/logs_top/wave.fst"
-[dumpfile_mtime] "Sun Jun 18 19:10:48 2023"
-[dumpfile_size] 1919775
+[dumpfile] "/media/FlexRV32/sim/top.fst"
+[dumpfile_mtime] "Tue Jun 20 20:33:50 2023"
+[dumpfile_size] 642826
 [savefile] "/media/FlexRV32/sim/top.gtkw"
 [timestart] 589
 [size] 1720 1356
 [pos] 1720 0
 *-4.470626 636 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
-[treeopen] TOP.top.
-[treeopen] TOP.top.u_rv.
-[treeopen] TOP.top.u_rv.g_csr.
-[treeopen] TOP.top.u_rv.g_csr.u_st3_csr.
-[treeopen] TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.
-[treeopen] TOP.top.u_rv.u_core.
-[treeopen] TOP.top.u_rv.u_core.u_st1_fetch.u_buf.
+[treeopen] TOP.tb_top.
+[treeopen] TOP.tb_top.u_rv.
+[treeopen] TOP.tb_top.u_rv.g_csr.
+[treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.
+[treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.
+[treeopen] TOP.tb_top.u_rv.u_core.
+[treeopen] TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.
 [sst_width] 212
 [signals_width] 644
 [sst_expanded] 1
 [sst_vpaned_height] 424
 @22
-TOP.top.i_clk
-TOP.top.w_reset_n
+TOP.tb_top.i_clk
+TOP.tb_top.w_reset_n
 @800200
 -WB
 @22
-TOP.top.u_rv.o_wb_adr[31:0]
-TOP.top.u_rv.o_wb_dat[31:0]
+TOP.tb_top.u_rv.o_wb_adr[31:0]
+TOP.tb_top.u_rv.o_wb_dat[31:0]
 @820
-TOP.top.u_rv.o_wb_dat[31:0]
+TOP.tb_top.u_rv.o_wb_dat[31:0]
 @22
-TOP.top.u_rv.o_wb_sel[3:0]
-TOP.top.u_rv.o_wb_we
-TOP.top.u_rv.o_wb_stb
-TOP.top.u_rv.o_wb_cyc
-TOP.top.u_rv.i_wb_dat[31:0]
+TOP.tb_top.u_rv.o_wb_sel[3:0]
+TOP.tb_top.u_rv.o_wb_we
+TOP.tb_top.u_rv.o_wb_stb
+TOP.tb_top.u_rv.o_wb_cyc
+TOP.tb_top.u_rv.i_wb_dat[31:0]
 @820
-TOP.top.u_rv.i_wb_dat[31:0]
+TOP.tb_top.u_rv.i_wb_dat[31:0]
 @22
-TOP.top.u_rv.i_wb_ack
+TOP.tb_top.u_rv.i_wb_ack
 @1000200
 -WB
 @c00200
 -TCM
 @22
-TOP.top.u_tcm.i_addr[22:2]
-TOP.top.u_tcm.i_data[31:0]
-TOP.top.u_tcm.i_dev_sel
-TOP.top.u_tcm.i_sel[3:0]
-TOP.top.u_tcm.i_write
-TOP.top.u_tcm.o_ack
-TOP.top.u_tcm.o_data[31:0]
+TOP.tb_top.u_tcm.i_addr[22:2]
+TOP.tb_top.u_tcm.i_data[31:0]
+TOP.tb_top.u_tcm.i_dev_sel
+TOP.tb_top.u_tcm.i_sel[3:0]
+TOP.tb_top.u_tcm.i_write
+TOP.tb_top.u_tcm.o_ack
+TOP.tb_top.u_tcm.o_data[31:0]
 @820
-TOP.top.u_tcm.o_data[31:0]
+TOP.tb_top.u_tcm.o_data[31:0]
 @1401200
 -TCM
 @c00200
 -TOP WB
 @22
-TOP.top.u_rv.instr_req
-TOP.top.u_rv.instr_ack
-TOP.top.u_rv.instr_data[31:0]
-TOP.top.u_rv.data_req
-TOP.top.u_rv.data_write
-TOP.top.u_rv.data_addr[31:0]
-TOP.top.u_rv.data_wdata[31:0]
-TOP.top.u_rv.data_sel[3:0]
-TOP.top.u_rv.data_ack
-TOP.top.u_rv.data_rdata[31:0]
+TOP.tb_top.u_rv.instr_req
+TOP.tb_top.u_rv.instr_ack
+TOP.tb_top.u_rv.instr_data[31:0]
+TOP.tb_top.u_rv.data_req
+TOP.tb_top.u_rv.data_write
+TOP.tb_top.u_rv.data_addr[31:0]
+TOP.tb_top.u_rv.data_wdata[31:0]
+TOP.tb_top.u_rv.data_sel[3:0]
+TOP.tb_top.u_rv.data_ack
+TOP.tb_top.u_rv.data_rdata[31:0]
 @1401200
 -TOP WB
 @c00200
 -ST1 FETCH
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.i_ack
+TOP.tb_top.u_rv.u_core.u_st1_fetch.i_ack
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.i_instruction[31:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.i_instruction[31:0]
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.i_pc_select
+TOP.tb_top.u_rv.u_core.u_st1_fetch.i_pc_select
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.i_pc_target[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.i_pc_target[21:1]
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.i_ebreak
+TOP.tb_top.u_rv.u_core.u_st1_fetch.i_ebreak
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.i_pc_trap[21:1]
-TOP.top.u_rv.u_core.u_st1_fetch.o_addr[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.i_pc_trap[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.o_addr[21:1]
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.o_cyc
-TOP.top.u_rv.u_core.u_st1_fetch.push
+TOP.tb_top.u_rv.u_core.u_st1_fetch.o_cyc
+TOP.tb_top.u_rv.u_core.u_st1_fetch.push
 @800200
 -ADDR
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.pc_select
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc_select
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.pc_target[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc_target[21:1]
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.move_pc
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.change_pc
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.update_pc
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.move_pc
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.change_pc
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.update_pc
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.pc_incr[21:1]
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.pc_sum[21:1]
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.pc_next[21:1]
-TOP.top.u_rv.u_core.u_st1_fetch.u_addr.pc[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc_incr[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc_sum[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc_next[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc[21:1]
 @1000200
 -ADDR
 @c00200
 -BUF
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.i_reset_n
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.i_reset_n
 @800022
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
 @28
-(0)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
-(1)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
-(2)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
-(3)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
-(4)TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
+(0)TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
+(1)TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
+(2)TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
+(3)TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
+(4)TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
 @1001200
 -group_end
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.is_head_next_0
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.g_data[0].h_next
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.g_data[0].d_latch_new
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head_next_0
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.g_data[0].h_next
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.g_data[0].d_latch_new
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[0][31:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[1][31:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[2][31:0]
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.data[3][31:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.data[0][31:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.data[1][31:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.data[2][31:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.data[3][31:0]
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.latch_dn
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.latch_up
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.latch_m_dn
-TOP.top.u_rv.u_core.u_st1_fetch.u_buf.latch_m_up
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_dn
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_up
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_m_dn
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_m_up
 @1401200
 -BUF
 @22
-TOP.top.u_rv.u_core.u_st1_fetch.o_instruction[31:0]
-TOP.top.u_rv.u_core.u_st1_fetch.o_pc[21:1]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.o_instruction[31:0]
+TOP.tb_top.u_rv.u_core.u_st1_fetch.o_pc[21:1]
 @28
-TOP.top.u_rv.u_core.u_st1_fetch.o_ready
+TOP.tb_top.u_rv.u_core.u_st1_fetch.o_ready
 @1401200
 -ST1 FETCH
 @800200
 -ST2 DECODE
 @28
-TOP.top.u_rv.u_core.u_st2_decode.i_stall
-TOP.top.u_rv.u_core.u_st2_decode.i_flush
+TOP.tb_top.u_rv.u_core.u_st2_decode.i_stall
+TOP.tb_top.u_rv.u_core.u_st2_decode.i_flush
 @820
-TOP.top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
+TOP.tb_top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
 @28
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_csr_req
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_write
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_set
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_read
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_clear
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_imm_sel
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_csr_req
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_write
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_set
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_read
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_clear
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_imm_sel
 @22
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_idx[11:0]
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_imm[4:0]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_idx[11:0]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_imm[4:0]
 @28
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_ebreak
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_ebreak
 @22
-TOP.top.u_rv.u_core.u_st2_decode.o_csr_pc_next[21:1]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_pc_next[21:1]
 @28
-TOP.top.u_rv.u_core.u_st2_decode.o_funct3[2:0]
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_branch
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_jal
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_jalr
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_mret
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_store
-TOP.top.u_rv.u_core.u_st2_decode.o_reg_write
-TOP.top.u_rv.u_core.u_st2_decode.o_inst_supported
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_funct3[2:0]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_branch
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_jal
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_jalr
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_mret
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_store
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_reg_write
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_supported
 @22
-TOP.top.u_rv.u_core.u_st2_decode.o_rd[4:0]
-TOP.top.u_rv.u_core.u_st2_decode.o_pc[21:1]
-TOP.top.u_rv.u_core.u_st2_decode.o_pc_next[21:1]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_rd[4:0]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_pc[21:1]
+TOP.tb_top.u_rv.u_core.u_st2_decode.o_pc_next[21:1]
 @1000200
 -ST2 DECODE
 @c00200
 -ST3 ALU1
 @28
-TOP.top.u_rv.u_core.u_st3_alu1.i_flush
-TOP.top.u_rv.u_core.u_st3_alu1.o_funct3[2:0]
-TOP.top.u_rv.u_core.u_st3_alu1.o_inst_branch
-TOP.top.u_rv.u_core.u_st3_alu1.o_inst_jal_jalr
+TOP.tb_top.u_rv.u_core.u_st3_alu1.i_flush
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_funct3[2:0]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_inst_branch
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_inst_jal_jalr
 @22
-TOP.top.u_rv.u_core.u_st3_alu1.o_op1[31:0]
-TOP.top.u_rv.u_core.u_st3_alu1.o_op2[31:0]
-TOP.top.u_rv.u_core.u_st3_alu1.o_pc[21:1]
-TOP.top.u_rv.u_core.u_st3_alu1.o_pc_next[21:1]
-TOP.top.u_rv.u_core.u_st3_alu1.o_pc_target[21:1]
-TOP.top.u_rv.u_core.u_st3_alu1.o_rd[4:0]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_op1[31:0]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_op2[31:0]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_pc[21:1]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_pc_next[21:1]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_pc_target[21:1]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_rd[4:0]
 @28
-TOP.top.u_rv.u_core.u_st3_alu1.o_reg_write
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_reg_write
 @22
-TOP.top.u_rv.u_core.u_st3_alu1.o_rs1[4:0]
-TOP.top.u_rv.u_core.u_st3_alu1.o_rs2[4:0]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_rs1[4:0]
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_rs2[4:0]
 @28
-TOP.top.u_rv.u_core.u_st3_alu1.o_store
-TOP.top.u_rv.u_core.u_st3_alu1.o_to_trap
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_store
+TOP.tb_top.u_rv.u_core.u_st3_alu1.o_to_trap
 @1401200
 -ST3 ALU1
 @c00200
 -ST4 ALU2
 @28
-TOP.top.u_rv.u_core.u_st4_alu2.i_csr_read
+TOP.tb_top.u_rv.u_core.u_st4_alu2.i_csr_read
 @22
-TOP.top.u_rv.u_core.u_st4_alu2.i_csr_data[31:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.i_csr_data[31:0]
 @28
-TOP.top.u_rv.u_core.u_st4_alu2.i_flush
+TOP.tb_top.u_rv.u_core.u_st4_alu2.i_flush
 @22
-TOP.top.u_rv.u_core.u_st4_alu2.op1[31:0]
-TOP.top.u_rv.u_core.u_st4_alu2.op2[31:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.op1[31:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.op2[31:0]
 @28
-TOP.top.u_rv.u_core.u_st4_alu2.o_pc_select
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_pc_select
 @22
-TOP.top.u_rv.u_core.u_st4_alu2.o_pc_target[21:1]
-TOP.top.u_rv.u_core.u_st4_alu2.o_add[31:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_pc_target[21:1]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_add[31:0]
 @28
-TOP.top.u_rv.u_core.u_st4_alu2.o_funct3[2:0]
-TOP.top.u_rv.u_core.u_st4_alu2.o_instr_jal_jalr_branch
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_funct3[2:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_instr_jal_jalr_branch
 @22
-TOP.top.u_rv.u_core.u_st4_alu2.o_rd[4:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_rd[4:0]
 @28
-TOP.top.u_rv.u_core.u_st4_alu2.o_ready
-TOP.top.u_rv.u_core.u_st4_alu2.o_reg_write
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_ready
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_reg_write
 @22
-TOP.top.u_rv.u_core.u_st4_alu2.o_result[31:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_result[31:0]
 @28
-TOP.top.u_rv.u_core.u_st4_alu2.o_store
-TOP.top.u_rv.u_core.u_st4_alu2.o_to_trap
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_store
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_to_trap
 @22
-TOP.top.u_rv.u_core.u_st4_alu2.o_wdata[31:0]
-TOP.top.u_rv.u_core.u_st4_alu2.o_wsel[3:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_wdata[31:0]
+TOP.tb_top.u_rv.u_core.u_st4_alu2.o_wsel[3:0]
 @1401200
 -ST4 ALU2
 @c00200
 -ST5 WRITE
 @28
-TOP.top.u_rv.u_core.u_st5_write.i_flush
+TOP.tb_top.u_rv.u_core.u_st5_write.i_flush
 @22
-TOP.top.u_rv.u_core.u_st5_write.o_data[31:0]
-TOP.top.u_rv.u_core.u_st5_write.o_rd[4:0]
+TOP.tb_top.u_rv.u_core.u_st5_write.o_data[31:0]
+TOP.tb_top.u_rv.u_core.u_st5_write.o_rd[4:0]
 @28
-TOP.top.u_rv.u_core.u_st5_write.o_write_op
+TOP.tb_top.u_rv.u_core.u_st5_write.o_write_op
 @1401200
 -ST5 WRITE
 @28
-TOP.top.u_rv.u_core.ctrl_need_pause
+TOP.tb_top.u_rv.u_core.ctrl_need_pause
 @800200
 -CSR
 @28
-TOP.top.u_rv.csr_clear
-TOP.top.u_rv.g_csr.u_st3_csr.clear
-TOP.top.u_rv.csr_masked
-TOP.top.u_rv.csr_read
-TOP.top.u_rv.g_csr.u_st3_csr.buf_read
-TOP.top.u_rv.g_csr.u_st3_csr.read
-TOP.top.u_rv.csr_to_trap
+TOP.tb_top.u_rv.csr_clear
+TOP.tb_top.u_rv.g_csr.u_st3_csr.clear
+TOP.tb_top.u_rv.csr_masked
+TOP.tb_top.u_rv.csr_read
+TOP.tb_top.u_rv.g_csr.u_st3_csr.buf_read
+TOP.tb_top.u_rv.g_csr.u_st3_csr.read
+TOP.tb_top.u_rv.csr_to_trap
 @29
-TOP.top.u_rv.csr_write
+TOP.tb_top.u_rv.csr_write
 @28
-TOP.top.u_rv.g_csr.u_st3_csr.write
+TOP.tb_top.u_rv.g_csr.u_st3_csr.write
 @22
-TOP.top.u_rv.g_csr.u_st3_csr.i_reg_data[31:0]
-TOP.top.u_rv.g_csr.u_st3_csr.idx[11:0]
-TOP.top.u_rv.g_csr.u_st3_csr.imm[4:0]
-TOP.top.u_rv.g_csr.u_st3_csr.write_value[31:0]
-TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_cycle[63:0]
-TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_inst_ret[63:0]
-TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_time[63:0]
-TOP.top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.o_data[31:0]
-TOP.top.u_rv.g_csr.u_st3_csr.u_machine.mtvec_data[31:0]
-TOP.top.u_rv.g_csr.u_st3_csr.o_data[31:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.i_reg_data[31:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.idx[11:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.imm[4:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.write_value[31:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_cycle[63:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_inst_ret[63:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_time[63:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.o_data[31:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.mtvec_data[31:0]
+TOP.tb_top.u_rv.g_csr.u_st3_csr.o_data[31:0]
 @1000200
 -CSR
 @800200
 -REG
 @28
-TOP.top.u_rv.u_core.u_regs.i_write
+TOP.tb_top.u_rv.u_core.u_regs.i_write
 @22
-TOP.top.u_rv.u_core.u_regs.i_data[31:0]
-TOP.top.u_rv.u_core.u_regs.i_rd[4:0]
-TOP.top.u_rv.u_core.u_regs.reg_data[6][31:0]
-TOP.top.u_rv.u_core.u_regs.reg_data[7][31:0]
-TOP.top.u_rv.u_core.u_regs.reg_data[29][31:0]
-TOP.top.u_rv.u_core.u_regs.reg_data[30][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.i_data[31:0]
+TOP.tb_top.u_rv.u_core.u_regs.i_rd[4:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[6][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[7][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[29][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[30][31:0]
 @1000200
 -REG
 [pattern_trace] 1

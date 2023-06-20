@@ -9,7 +9,10 @@ else
 	make -C ./fw/$(fw) sim=1 clean all
 endif
 endif
-	make -C sim $(target)
+	make -C $(MAKECMDGOALS) $(target)
+
+tb_%:
+	make -C sim $@
 
 arch:
 	@echo ">>> Run architecture tests <<<"

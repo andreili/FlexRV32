@@ -1,13 +1,1 @@
 include ../../sim_common/Makefile.include
-
-vrf_%: obj_dir/V%
-	@echo "--- Test $@ running ---"
-	obj_dir/Vmath_int $(SIM_ARGS)
-ifneq ($(trace),)
-	mv logs_$*/wave.fst ../$@.fst
-endif
-	rm -rf logs_$* obj_dir
-	@echo "--- Test $@ finished ---"
-ifneq ($(trace),)
-	gtkwave -a ../$@.gtkw -6 -7 $(GTK_FLAGS) ../$@.fst
-endif

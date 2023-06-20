@@ -3,7 +3,7 @@ GTK_FLAGS = --rcfile=../gtkwaverc
 all:
 	make -C run -f ../Makefile.main GTK_FLAGS=$(GTK_FLAGS) $(MAKECMDGOALS)
 
-vrf_%:
+tb_%:
 	make -C run -f ../Makefile.main GTK_FLAGS=$(GTK_FLAGS) $(MAKECMDGOALS)
 
 tests_i:
