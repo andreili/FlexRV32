@@ -36,7 +36,6 @@ module rv_decode
     output  wire                        o_csr_clear,
     output  wire                        o_csr_read,
     output  wire                        o_csr_ebreak,
-    output  wire[IADDR_SPACE_BITS-1:1]  o_csr_pc_next,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
     output  wire[4:0]                   o_rs1,
@@ -54,8 +53,7 @@ module rv_decode
     output  wire                        o_inst_jal,
     output  wire                        o_inst_branch,
     output  wire                        o_inst_store,
-    output  wire                        o_inst_supported,
-    output  wire                        o_inst_csr_req
+    output  wire                        o_inst_supported
 );
 
     logic[31:0] instruction_c;
@@ -212,10 +210,10 @@ module rv_decode
     // system
     logic   inst_grp_sys;
     logic   inst_grp_trap, inst_ecall, inst_ebreak;
-    logic   inst_mret, inst_csr_req;
+    logic   inst_mret, inst_csr_rd;
     assign  inst_grp_sys  = (op == RV32_OPC_SYSTEM) & inst_full;
     assign  inst_grp_trap = inst_grp_sys  & !(|funct3);
-    assign  inst_csr_req  = inst_grp_sys  &  (|funct3) & EXTENSION_Zicsr;
+    assign  inst_csr_rd   = inst_grp_sys  &  (|funct3) & EXTENSION_Zicsr;
     assign  inst_ecall    = inst_grp_trap & (!funct7[3]) && (!rs2[0]);
     assign  inst_ebreak   = inst_grp_trap & (!funct7[3]) &&   rs2[0];
     assign  inst_mret     = inst_grp_trap &   funct7[4]  && (rs2[2:1] == 2'b01);
@@ -271,9 +269,8 @@ module rv_decode
     assign  o_csr_write   = inst_grp_sys & (funct3[1:0] == 2'b01);
     assign  o_csr_set     = inst_grp_sys & (funct3[1:0] == 2'b10);
     assign  o_csr_clear   = inst_grp_sys & (funct3[1:0] == 2'b11);
-    assign  o_csr_read    = inst_grp_sys & (|funct3);
+    assign  o_csr_read    = inst_csr_rd;
     assign  o_csr_ebreak  = inst_ebreak;
-    assign  o_csr_pc_next = pc_next;
     assign  o_inst_mret   = inst_mret;
     assign  o_reg_write   = inst_full & ((op[3:1] != 3'b100) | op[0]);
     assign  o_rd          = rd;
@@ -300,7 +297,6 @@ module rv_decode
 `ifdef TO_SIM
     assign  o_instr        = instruction;
 `endif
-    assign  o_inst_csr_req = inst_csr_req;
 
     assign  o_inst_supported =
             (!valid_input) |
@@ -317,7 +313,7 @@ module rv_decode
         `ifdef EXTENSION_Zihintntl
             | inst_ntl_p1 | inst_ntl_pall | inst_ntl_s1 | inst_ntl_all
         `endif
-            | inst_csr_req | (inst_mret & EXTENSION_Zicsr)
+            | inst_csr_rd | (inst_mret & EXTENSION_Zicsr)
             ;
 
 `ifdef EXTENSION_Zifencei

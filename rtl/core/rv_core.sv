@@ -152,7 +152,6 @@ module rv_core
     logic[31:0] decode_instr;
 `endif
     logic       decode_to_trap;
-    logic       decode_inst_csr_req;
 
     rv_decode
     #(
@@ -185,7 +184,6 @@ module rv_core
         .o_csr_clear                    (o_csr_clear),
         .o_csr_read                     (o_csr_read),
         .o_csr_ebreak                   (o_csr_ebreak),
-        .o_csr_pc_next                  (o_csr_pc_next),
         .o_pc                           (decode_pc),
         .o_pc_next                      (decode_pc_next),
         .o_rs1                          (decode_rs1),
@@ -203,12 +201,12 @@ module rv_core
         .o_inst_jal                     (decode_inst_jal),
         .o_inst_branch                  (decode_inst_branch),
         .o_inst_store                   (decode_inst_store),
-        .o_inst_supported               (decode_inst_supported),
-        .o_inst_csr_req                 (decode_inst_csr_req)
+        .o_inst_supported               (decode_inst_supported)
     );
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
     assign  o_csr_masked = decode_flush | decode_stall;
+    assign  o_csr_pc_next = decode_pc_next;
 
     logic[4:0]  alu1_rs1;
     logic[4:0]  alu1_rs2;
@@ -408,7 +406,7 @@ module rv_core
 
     logic   inv_inst;
     logic   ctrl_need_pause;
-    assign  ctrl_need_pause = decode_inst_csr_req &
+    assign  ctrl_need_pause = o_csr_read &
                               (alu1_inst_jal_jalr | alu1_inst_branch | alu2_instr_jal_jalr_branch);
     rv_ctrl
     u_ctrl
