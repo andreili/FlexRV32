@@ -4,8 +4,8 @@
 `include "../rv_structs.vh"
 `include "rv_opcodes.vh"
 
-`ifdef USE_SCHEMATIC
 /* verilator lint_off UNUSEDPARAM */
+`ifdef USE_SCHEMATIC
 `endif
 
 module rv_core
@@ -153,6 +153,47 @@ module rv_core
 `endif
     logic       decode_to_trap;
 
+`ifdef USE_SYN
+    rv_decode_syn
+    u_st2_decode
+    (
+        .i_clk                          (i_clk),
+        .i_stall                        (decode_stall),
+        .i_flush                        (decode_flush),
+        .i_instruction                  (fetch_instruction),
+        .i_ready                        (fetch_ready),
+        .i_pc                           (fetch_pc[15:1]),
+        .i_pc_next                      (fetch_pc_next[15:1]),
+        .o_csr_idx                      (o_csr_idx),
+        .o_csr_imm                      (o_csr_imm),
+        .o_csr_write                    (o_csr_write),
+        .o_csr_set                      (o_csr_set),
+        .o_csr_clear                    (o_csr_clear),
+        .o_csr_read                     (o_csr_read),
+        .o_csr_ebreak                   (o_csr_ebreak),
+        .o_pc                           (decode_pc[15:1]),
+        .o_pc_next                      (decode_pc_next[15:1]),
+        .o_rs1                          (decode_rs1),
+        .o_rs2                          (decode_rs2),
+        .o_rd                           (decode_rd),
+        .o_imm_i                        (decode_imm_i),
+        .o_funct3                       (decode_funct3),
+        .o_alu_ctrl                     (decode_alu_ctrl),
+        .o_res_src                      (decode_res_src),
+        .o_reg_write                    (decode_reg_write),
+        .o_op1_src                      (decode_op1_src),
+        .o_op2_src                      (decode_op2_src),
+        .o_inst_mret                    (decode_inst_mret),
+        .o_inst_jalr                    (decode_inst_jalr),
+        .o_inst_jal                     (decode_inst_jal),
+        .o_inst_branch                  (decode_inst_branch),
+        .o_inst_store                   (decode_inst_store),
+        .o_inst_supported               (decode_inst_supported)
+    );
+    assign decode_instr = '0;
+    assign decode_pc[21:16] = fetch_pc[21:16];
+    assign decode_pc_next[21:16] = fetch_pc_next[21:16];
+`else
     rv_decode
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
@@ -178,7 +219,6 @@ module rv_core
 `endif
         .o_csr_idx                      (o_csr_idx),
         .o_csr_imm                      (o_csr_imm),
-        .o_csr_imm_sel                  (o_csr_imm_sel),
         .o_csr_write                    (o_csr_write),
         .o_csr_set                      (o_csr_set),
         .o_csr_clear                    (o_csr_clear),
@@ -203,9 +243,11 @@ module rv_core
         .o_inst_store                   (decode_inst_store),
         .o_inst_supported               (decode_inst_supported)
     );
+`endif
 
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
     assign  o_csr_masked = decode_flush | decode_stall;
+    assign  o_csr_imm_sel = decode_funct3[2];
     assign  o_csr_pc_next = decode_pc_next;
 
     logic[4:0]  alu1_rs1;
@@ -482,5 +524,5 @@ module rv_core
 endmodule
 
 `ifdef USE_SCHEMATIC
-/* verilator lint_on UNUSEDPARAM */
 `endif
+/* verilator lint_on UNUSEDPARAM */

@@ -30,7 +30,6 @@ module rv_decode
     // CSR interface
     output  wire[11:0]                  o_csr_idx,
     output  wire[4:0]                   o_csr_imm,
-    output  wire                        o_csr_imm_sel,
     output  wire                        o_csr_write,
     output  wire                        o_csr_set,
     output  wire                        o_csr_clear,
@@ -265,7 +264,6 @@ module rv_decode
     assign  o_alu_ctrl.div_mux      = ariph_m & funct3[2];
     assign  o_csr_idx     = instruction[31:20];
     assign  o_csr_imm     = instruction[19:15];
-    assign  o_csr_imm_sel = funct3[2];
     assign  o_csr_write   = inst_grp_sys & (funct3[1:0] == 2'b01);
     assign  o_csr_set     = inst_grp_sys & (funct3[1:0] == 2'b10);
     assign  o_csr_clear   = inst_grp_sys & (funct3[1:0] == 2'b11);
