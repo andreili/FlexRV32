@@ -62,8 +62,6 @@ module rv_core
     logic[31:0] reg_rdata1, reg_rdata2;
 
     logic[31:0] fetch_instruction;
-    logic[IADDR_SPACE_BITS-1:1] fetch_pc;
-    logic[IADDR_SPACE_BITS-1:1] fetch_pc_next;
     logic       fetch_ready;
     logic       fetch_stall;
     logic       alu2_to_trap;
@@ -73,6 +71,8 @@ module rv_core
 
 `ifdef USE_SCHEMATIC
 /* verilator lint_off UNUSEDSIGNAL */
+    logic[31:1] fetch_pc;
+    logic[31:1] fetch_pc_next;
     logic[9:0] fetch_pc_hi;
     logic[9:0] fetch_pc_next_hi;
     logic[9:0] fetch_addr_hi;
@@ -94,11 +94,13 @@ module rv_core
         .o_addr                         ({fetch_addr_hi, o_instr_addr }),
         .o_cyc                          (o_instr_req),
         .o_instruction                  (fetch_instruction),
-        .o_pc                           ({ fetch_pc_hi, fetch_pc }),
-        .o_pc_next                      ({ fetch_pc_next_hi, fetch_pc_next }),
+        .o_pc                           (fetch_pc),
+        .o_pc_next                      (fetch_pc_next),
         .o_ready                        (fetch_ready)
     );
 `else
+    logic[IADDR_SPACE_BITS-1:1] fetch_pc;
+    logic[IADDR_SPACE_BITS-1:1] fetch_pc_next;
     rv_fetch
     #(
         .RESET_ADDR                     (RESET_ADDR),
@@ -130,8 +132,6 @@ module rv_core
 
     logic       decode_stall;
     logic       decode_flush;
-    logic[IADDR_SPACE_BITS-1:1] decode_pc;
-    logic[IADDR_SPACE_BITS-1:1] decode_pc_next;
     logic[4:0]  decode_rs1;
     logic[4:0]  decode_rs2;
     logic[4:0]  decode_rd;
@@ -153,8 +153,13 @@ module rv_core
 `endif
     logic       decode_to_trap;
 
-`ifdef USE_SYN
-    rv_decode_syn
+`ifdef USE_SCHEMATIC
+/* verilator lint_off UNUSEDSIGNAL */
+    logic[31:1] decode_pc;
+    logic[31:1] decode_pc_next;
+/* verilator lint_on UNUSEDSIGNAL */
+
+    rv_decode_sch
     u_st2_decode
     (
         .i_clk                          (i_clk),
@@ -162,8 +167,8 @@ module rv_core
         .i_flush                        (decode_flush),
         .i_instruction                  (fetch_instruction),
         .i_ready                        (fetch_ready),
-        .i_pc                           (fetch_pc[15:1]),
-        .i_pc_next                      (fetch_pc_next[15:1]),
+        .i_pc                           (fetch_pc),
+        .i_pc_next                      (fetch_pc_next),
         .o_csr_idx                      (o_csr_idx),
         .o_csr_imm                      (o_csr_imm),
         .o_csr_write                    (o_csr_write),
@@ -171,8 +176,8 @@ module rv_core
         .o_csr_clear                    (o_csr_clear),
         .o_csr_read                     (o_csr_read),
         .o_csr_ebreak                   (o_csr_ebreak),
-        .o_pc                           (decode_pc[15:1]),
-        .o_pc_next                      (decode_pc_next[15:1]),
+        .o_pc                           (decode_pc),
+        .o_pc_next                      (decode_pc_next),
         .o_rs1                          (decode_rs1),
         .o_rs2                          (decode_rs2),
         .o_rd                           (decode_rd),
@@ -191,9 +196,10 @@ module rv_core
         .o_inst_supported               (decode_inst_supported)
     );
     assign decode_instr = '0;
-    assign decode_pc[21:16] = fetch_pc[21:16];
-    assign decode_pc_next[21:16] = fetch_pc_next[21:16];
 `else
+    logic[IADDR_SPACE_BITS-1:1] decode_pc;
+    logic[IADDR_SPACE_BITS-1:1] decode_pc_next;
+
     rv_decode
     #(
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
@@ -248,7 +254,7 @@ module rv_core
     assign  decode_to_trap = i_csr_to_trap; // TODO - interrupts
     assign  o_csr_masked = decode_flush | decode_stall;
     assign  o_csr_imm_sel = decode_funct3[2];
-    assign  o_csr_pc_next = decode_pc_next;
+    assign  o_csr_pc_next = decode_pc_next[IADDR_SPACE_BITS-1:1];
 
     logic[4:0]  alu1_rs1;
     logic[4:0]  alu1_rs2;
@@ -312,8 +318,8 @@ module rv_core
         .i_reset_n                      (i_reset_n),
         .i_flush                        (alu1_flush),
         .i_stall                        (alu1_stall),
-        .i_pc                           (decode_pc),
-        .i_pc_next                      (decode_pc_next),
+        .i_pc                           (decode_pc[IADDR_SPACE_BITS-1:1]),
+        .i_pc_next                      (decode_pc_next[IADDR_SPACE_BITS-1:1]),
         .i_rs1                          (decode_rs1),
         .i_rs2                          (decode_rs2),
         .i_rd                           (decode_rd),
@@ -482,7 +488,7 @@ module rv_core
     (
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
-        .i_pc                           (decode_pc),
+        .i_pc                           (decode_pc[IADDR_SPACE_BITS-1:1]),
         .i_instr                        (decode_instr),
         .i_bus_data                     (i_data_rdata),
         .i_mem_addr                     (alu2_add),
