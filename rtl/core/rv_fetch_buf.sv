@@ -63,7 +63,7 @@ module rv_fetch_buf
             begin
                 assign h_next = i_reset_n & !(
                                     !(latch_m_up & is_head[i]) &
-                                    !(!latch_m_dn & !latch_m_up & is_head[i + 1])
+                                    !(!latch_m_dn & is_head[i + 1])
                                  );
                 assign d_next = ~(
                                   ~({32{d_latch_new}} & i_data) &
