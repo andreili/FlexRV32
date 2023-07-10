@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Tue Jun 20 20:33:53 2023
+[*] Mon Jul 10 17:22:36 2023
 [*]
 [dumpfile] "/media/FlexRV32/sim/top.fst"
-[dumpfile_mtime] "Tue Jun 20 20:33:50 2023"
-[dumpfile_size] 642826
+[dumpfile_mtime] "Mon Jul 10 17:22:34 2023"
+[dumpfile_size] 642857
 [savefile] "/media/FlexRV32/sim/top.gtkw"
-[timestart] 589
+[timestart] 5860
 [size] 1720 1356
 [pos] 1720 0
-*-4.470626 636 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.470626 5912 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.tb_top.
 [treeopen] TOP.tb_top.u_rv.
@@ -17,6 +17,7 @@
 [treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.
 [treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.
 [treeopen] TOP.tb_top.u_rv.u_core.
+[treeopen] TOP.tb_top.u_rv.u_core.u_st1_fetch.
 [treeopen] TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.
 [sst_width] 212
 [signals_width] 644
@@ -73,7 +74,7 @@ TOP.tb_top.u_rv.data_ack
 TOP.tb_top.u_rv.data_rdata[31:0]
 @1401200
 -TOP WB
-@c00200
+@800200
 -ST1 FETCH
 @28
 TOP.tb_top.u_rv.u_core.u_st1_fetch.i_ack
@@ -108,10 +109,14 @@ TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc_next[21:1]
 TOP.tb_top.u_rv.u_core.u_st1_fetch.u_addr.pc[21:1]
 @1000200
 -ADDR
-@c00200
+@800200
 -BUF
 @28
 TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.i_reset_n
+@29
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.g_data[3].h_next
+@28
+TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.g_data[2].h_next
 @800022
 TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.is_head[4:0]
 @28
@@ -136,37 +141,36 @@ TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_dn
 TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_up
 TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_m_dn
 TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.latch_m_up
-@1401200
+@1000200
 -BUF
 @22
 TOP.tb_top.u_rv.u_core.u_st1_fetch.o_instruction[31:0]
 TOP.tb_top.u_rv.u_core.u_st1_fetch.o_pc[21:1]
 @28
 TOP.tb_top.u_rv.u_core.u_st1_fetch.o_ready
-@1401200
+@1000200
 -ST1 FETCH
 @800200
 -ST2 DECODE
 @28
 TOP.tb_top.u_rv.u_core.u_st2_decode.i_stall
 TOP.tb_top.u_rv.u_core.u_st2_decode.i_flush
+TOP.tb_top.u_rv.u_core.u_st2_decode.i_ready
+@22
+TOP.tb_top.u_rv.u_core.u_st2_decode.i_instruction[31:0]
+TOP.tb_top.u_rv.u_core.u_st2_decode.instruction[31:0]
 @820
 TOP.tb_top.u_rv.u_core.u_st2_decode.dbg_ascii_instr[127:0]
 @28
-TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_csr_req
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_write
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_set
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_read
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_clear
-TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_imm_sel
 @22
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_idx[11:0]
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_imm[4:0]
 @28
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_ebreak
-@22
-TOP.tb_top.u_rv.u_core.u_st2_decode.o_csr_pc_next[21:1]
-@28
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_funct3[2:0]
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_branch
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_inst_jal
@@ -253,6 +257,40 @@ TOP.tb_top.u_rv.u_core.u_st5_write.o_write_op
 @28
 TOP.tb_top.u_rv.u_core.ctrl_need_pause
 @800200
+-CTRL
+@28
+TOP.tb_top.u_rv.u_core.u_ctrl.i_reset_n
+TOP.tb_top.u_rv.u_core.u_ctrl.i_pc_change
+TOP.tb_top.u_rv.u_core.u_ctrl.i_need_pause
+TOP.tb_top.u_rv.u_core.u_ctrl.i_decode_inst_sup
+@22
+TOP.tb_top.u_rv.u_core.u_ctrl.i_decode_rs1[4:0]
+TOP.tb_top.u_rv.u_core.u_ctrl.i_decode_rs2[4:0]
+@28
+TOP.tb_top.u_rv.u_core.u_ctrl.i_alu1_mem_rd
+TOP.tb_top.u_rv.u_core.u_ctrl.i_alu2_ready
+@22
+TOP.tb_top.u_rv.u_core.u_ctrl.i_alu1_rd[4:0]
+@28
+TOP.tb_top.u_rv.u_core.u_ctrl.i_alu2_ready
+TOP.tb_top.u_rv.u_core.u_ctrl.global_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.decode_stall
+TOP.tb_top.u_rv.u_core.u_ctrl.alu1_stall
+TOP.tb_top.u_rv.u_core.u_ctrl.alu1_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.write_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.inst_sup[1:0]
+TOP.tb_top.u_rv.u_core.u_ctrl.need_mem_data1
+TOP.tb_top.u_rv.u_core.u_ctrl.o_fetch_stall
+TOP.tb_top.u_rv.u_core.u_ctrl.o_decode_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.o_decode_stall
+TOP.tb_top.u_rv.u_core.u_ctrl.o_alu1_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.o_alu1_stall
+TOP.tb_top.u_rv.u_core.u_ctrl.o_alu2_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.o_write_flush
+TOP.tb_top.u_rv.u_core.u_ctrl.o_inv_inst
+@1000200
+-CTRL
+@c00200
 -CSR
 @28
 TOP.tb_top.u_rv.csr_clear
@@ -262,9 +300,7 @@ TOP.tb_top.u_rv.csr_read
 TOP.tb_top.u_rv.g_csr.u_st3_csr.buf_read
 TOP.tb_top.u_rv.g_csr.u_st3_csr.read
 TOP.tb_top.u_rv.csr_to_trap
-@29
 TOP.tb_top.u_rv.csr_write
-@28
 TOP.tb_top.u_rv.g_csr.u_st3_csr.write
 @22
 TOP.tb_top.u_rv.g_csr.u_st3_csr.i_reg_data[31:0]
@@ -277,20 +313,47 @@ TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_time[63:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.o_data[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.mtvec_data[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.o_data[31:0]
-@1000200
+@1401200
 -CSR
-@800200
+@c00200
 -REG
 @28
 TOP.tb_top.u_rv.u_core.u_regs.i_write
 @22
 TOP.tb_top.u_rv.u_core.u_regs.i_data[31:0]
 TOP.tb_top.u_rv.u_core.u_regs.i_rd[4:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[0][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[1][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[2][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[3][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[4][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[5][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[6][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[7][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[8][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[9][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[10][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[11][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[12][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[13][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[14][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[15][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[16][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[17][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[18][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[19][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[20][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[21][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[22][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[23][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[24][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[25][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[26][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[27][31:0]
+TOP.tb_top.u_rv.u_core.u_regs.reg_data[28][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[29][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[30][31:0]
-@1000200
+@1401200
 -REG
 [pattern_trace] 1
 [pattern_trace] 0
