@@ -2,7 +2,7 @@ SRCS += $(RTL_DIR)/rv_top_wb.sv
 SRCS += $(RTL_DIR)/tcm.sv
 SRCS += $(RTL_DIR)/nic.sv
 SRCS += $(RTL_DIR)/debounce.sv
-SRCS += $(RTL_DIR)/../vrf/top.sv
+SRCS += $(RTL_DIR)/../vrf/tb_top.sv
 SRCS += $(RTL_DIR)/core/rv_core.sv
 SRCS += $(RTL_DIR)/core/rv_ctrl.sv
 SRCS += $(RTL_DIR)/core/rv_regs.sv
@@ -27,10 +27,10 @@ SRCS += $(RTL_DIR)/csr/rv_csr.sv
 SRCS += $(RTL_DIR)/csr/rv_csr_cntr.sv
 SRCS += $(RTL_DIR)/csr/rv_csr_machine.sv
 SRCS += $(RTL_DIR)/csr/rv_csr_reg.sv
-SRCS += $(RTL_DIR)/lib_fpga/reg_e.sv
-SRCS += $(RTL_DIR)/lib_fpga/reg_s.sv
+#SRCS += $(RTL_DIR)/lib_fpga/reg_e.sv
+#SRCS += $(RTL_DIR)/lib_fpga/reg_s.sv
 SRCS += $(RTL_DIR)/peripheral/uart/cmsdk_wb_uart.v
 
 # platform-depedent files
 SRCS += $(PROJ_DIR)/ips/pll/pll.v
-SRCS += $(PROJ_DIR)/ips/pll//pll/pll_0002.v
+#SRCS += $(PROJ_DIR)/ips/pll//pll/pll_0002.v

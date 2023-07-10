@@ -195,7 +195,9 @@ module rv_core
         .o_inst_store                   (decode_inst_store),
         .o_inst_supported               (decode_inst_supported)
     );
+  `ifdef TO_SIM
     assign decode_instr = '0;
+  `endif
 `else
     logic[IADDR_SPACE_BITS-1:1] decode_pc;
     logic[IADDR_SPACE_BITS-1:1] decode_pc_next;
