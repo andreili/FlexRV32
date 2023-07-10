@@ -13,4 +13,4 @@
     `define TCM_ADDR_WIDTH              12
 `endif
 
-`define USE_SCHEMATIC
+//`define USE_SCHEMATIC
