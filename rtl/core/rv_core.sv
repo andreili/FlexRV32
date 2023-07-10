@@ -279,8 +279,6 @@ module rv_core
         .i_clk                          (i_clk),
         .i_alu_rs1                      (alu1_rs1),
         .i_alu_rs2                      (alu1_rs2),
-        .i_alu2_rd                      (alu2_rd),
-        .i_alu2_reg_write               (alu2_reg_write),
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
         .i_reg_data1                    (reg_rdata1),
@@ -360,6 +358,8 @@ module rv_core
     );
 
     logic[31:0] alu2_add;
+    logic[31:0] alu2_ext_data;
+    logic       alu2_is_ext;
     logic       alu2_store;
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
@@ -399,6 +399,8 @@ module rv_core
         .o_pc_select                    (alu2_pc_select),
         .o_result                       (alu2_result),
         .o_add                          (alu2_add),
+        .o_ext_data                     (alu2_ext_data),
+        .o_is_ext                       (alu2_is_ext),
         .o_store                        (alu2_store),
         .o_reg_write                    (alu2_reg_write),
         .o_rd                           (alu2_rd),
@@ -422,6 +424,8 @@ module rv_core
         .i_funct3                       (alu2_funct3),
         .i_alu_result                   (dh_alu2_result),
         .i_reg_write                    (alu2_reg_write),
+        .i_alu_ext                      (alu2_ext_data),
+        .i_alu_is_ext                   (alu2_is_ext),
         .i_rd                           (alu2_rd),
         .i_res_src                      (alu2_res_src),
         .i_data                         (i_data_rdata),
@@ -467,7 +471,7 @@ module rv_core
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
-        .i_alu1_mem_rd                  (alu1_res_src.memory),
+        //.i_alu1_mem_rd                  (alu1_res_src.memory),
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_ready                   (alu2_ready),
         .i_need_pause                   (ctrl_need_pause),

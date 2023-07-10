@@ -73,6 +73,8 @@ module rv_alu1
         if ((!i_reset_n) | i_flush)
         begin
             rd <= '0;
+            rs1 <= '0;
+            rs2 <= '0;
             inst_jal <= '0;
             inst_jalr <= '0;
             inst_branch <= '0;

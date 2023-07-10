@@ -34,6 +34,8 @@ module rv_alu2
     output  wire                        o_pc_select,
     output  wire[31:0]                  o_result,
     output  wire[31:0]                  o_add,
+    output  wire[31:0]                  o_ext_data,
+    output  wire                        o_is_ext,
     output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
@@ -260,7 +262,6 @@ module rv_alu2
     );
 
     logic[31:0] alu_result;
-    logic[31:0] result;
     alu_mux
     #(
         .EXTENSION_M                    (EXTENSION_M)
@@ -294,17 +295,21 @@ module rv_alu2
         .o_wsel                         (o_wsel)
     );
 
-    assign  result = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next, 1'b0 } :
-                     (i_csr_read & EXTENSION_Zicsr) ? i_csr_data :
-                     alu_result;
+    logic[31:0] ext_data;
+    logic       is_ext_data;
+    assign  ext_data = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next, 1'b0 } :
+                       i_csr_data;
+    assign  is_ext_data = res_src.pc_next | (i_csr_read & EXTENSION_Zicsr);
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
     assign  dummy = shr[32] & alu_ctrl.div_mux;
 /* verilator lint_on UNUSEDSIGNAL */
 
-    assign  o_result = result;
+    assign  o_result = alu_result;
     assign  o_add = add[31:0];
+    assign  o_ext_data = ext_data;
+    assign  o_is_ext = is_ext_data;
     assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;

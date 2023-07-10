@@ -17,8 +17,20 @@ module tcm
 );
 
     localparam  int MemSize = 2 ** MEM_ADDR_WIDTH;
-    logic[31:0] r_out;
+    //logic[31:0] r_out;
     logic       r_ack;
+    logic[(MEM_ADDR_WIDTH+1):2] addr;
+    logic[3:0]                  sel;
+    logic[31:0]                 wdata;
+    logic                       write;
+
+    always_ff @(posedge i_clk)
+    begin
+        addr <= i_addr;
+        sel <= i_sel;
+        wdata <= i_data;
+        write <= i_write;
+    end
 
 `ifdef QUARTUS
     `define MEM_DEF [3:0][7:0]
@@ -39,14 +51,14 @@ module tcm
     always_ff @(posedge i_clk)
     begin
         begin
-            if (i_write & i_dev_sel)
+            if (write & r_ack)
             begin
-                if (i_sel[0]) r_mem[i_addr][`QUADRANT_0] <= i_data[ 0+:8];
-                if (i_sel[1]) r_mem[i_addr][`QUADRANT_1] <= i_data[ 8+:8];
-                if (i_sel[2]) r_mem[i_addr][`QUADRANT_2] <= i_data[16+:8];
-                if (i_sel[3]) r_mem[i_addr][`QUADRANT_3] <= i_data[24+:8];
+                if (sel[0]) r_mem[addr][`QUADRANT_0] <= wdata[ 0+:8];
+                if (sel[1]) r_mem[addr][`QUADRANT_1] <= wdata[ 8+:8];
+                if (sel[2]) r_mem[addr][`QUADRANT_2] <= wdata[16+:8];
+                if (sel[3]) r_mem[addr][`QUADRANT_3] <= wdata[24+:8];
             end
-            r_out <= r_mem[i_addr];
+            //r_out <= r_mem[i_addr];
         end;
     end
 
@@ -55,7 +67,7 @@ module tcm
         r_ack <= i_dev_sel;
     end
 
-    assign o_data = r_out;
+    assign o_data = r_mem[addr];
     assign  o_ack = r_ack;
 
     initial

@@ -9,6 +9,8 @@ module rv_write
     input   wire                        i_flush,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_alu_result,
+    input   wire[31:0]                  i_alu_ext,
+    input   wire                        i_alu_is_ext,
     input   wire                        i_reg_write,
     input   wire[4:0]                   i_rd,
     input   res_src_t                   i_res_src,
@@ -19,6 +21,8 @@ module rv_write
 );
 
     logic[31:0] alu_result;
+    logic[31:0] alu_ext;
+    logic       alu_is_ext;
     res_src_t   res_src;
     logic       reg_write;
     logic[4:0]  rd;
@@ -34,12 +38,18 @@ module rv_write
         else
         begin
             alu_result <= i_alu_result;
+            alu_ext <= i_alu_ext;
+            alu_is_ext <= i_alu_is_ext;
             res_src <= i_res_src;
             reg_write <= i_reg_write;
             rd <= i_rd;
             funct3 <= i_funct3;
         end
     end
+
+    logic[31:0] in_data;
+
+    assign  in_data = alu_is_ext ? alu_ext : alu_result;
 
     logic[7:0]  write_byte;
     logic[15:0] write_half_word;
@@ -80,6 +90,7 @@ module rv_write
     begin
         case (1'b1)
         res_src.memory: data = write_rdata;
+        alu_is_ext    : data = in_data;
         default       : data = alu_result;
         endcase
     end
