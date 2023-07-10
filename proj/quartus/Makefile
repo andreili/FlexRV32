@@ -31,7 +31,7 @@ all: clean assignment ip_gen map fit asm sta
 
 assignment:
 	$(info RTL: Generate Quartus project files)
-	$(QUARTUS_SH) --64bit --prepare -f $(FAMILY) -t top $(PROJECT) > /dev/null
+	$(QUARTUS_SH) --64bit --prepare -f $(FAMILY) -t tb_top $(PROJECT) > /dev/null
 	cat $(SDC) > $(PROJECT).sdc
 	cat $(BOARDFILE) > $(PROJECT).qsf
 
