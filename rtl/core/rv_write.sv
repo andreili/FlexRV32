@@ -7,6 +7,7 @@ module rv_write
 (
     input   wire                        i_clk,
     input   wire                        i_flush,
+    input   wire                        i_stall,
     input   wire[2:0]                   i_funct3,
     input   wire[31:0]                  i_alu_result,
     input   wire[31:0]                  i_alu_ext,
@@ -35,7 +36,7 @@ module rv_write
             res_src <= '0;
             reg_write <= '0;
         end
-        else
+        else if (!i_stall)
         begin
             alu_result <= i_alu_result;
             alu_ext <= i_alu_ext;
@@ -102,6 +103,6 @@ module rv_write
 
     assign  o_data = data;
     assign  o_rd = rd;
-    assign  o_write_op = reg_write;
+    assign  o_write_op = reg_write & !i_stall;
 
 endmodule

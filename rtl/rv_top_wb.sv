@@ -179,9 +179,18 @@ module rv_top_wb
         end
     endgenerate
 
+`ifdef NONE
+    always_ff @(posedge i_clk)
+    begin
+        data_rdata <= i_wb_dat;
+        data_ack   <= i_wb_ack & (!instr_ack) & data_req;
+    end
+`else
+    assign data_rdata = i_wb_dat;
+    assign data_ack   = i_wb_ack & (!instr_ack);
+`endif
+
     assign  instr_data = i_wb_dat;
-    assign  data_rdata = i_wb_dat;
-    assign  data_ack = i_wb_ack & (!instr_ack);
     assign  instr_ack = i_wb_ack & (!data_req) & instr_req;
 
     assign o_wb_adr = data_req ? data_addr : { RESET_ADDR[31:IADDR_SPACE_BITS], instr_addr, 1'b0 };

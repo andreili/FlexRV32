@@ -14,6 +14,7 @@ module rv_alu2
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire                        i_flush,
+    input   wire                        i_stall,
     input   wire[31:0]                  i_op1,
     input   wire[31:0]                  i_op2,
     input   wire                        i_store,
@@ -127,7 +128,7 @@ module rv_alu2
             res_src <= '0;
             to_trap <= '0;
         end
-        else if (ready)
+        else if (ready & !i_stall)
         begin
             op1 <= i_op1;
             op2 <= i_op2;
@@ -148,7 +149,7 @@ module rv_alu2
             to_trap <= i_to_trap;
             cmp_inv <= cmp_inv_next;
         end
-        else
+        else if (!ready)
         begin
             op2 <= alu_ctrl.div_mux ? { op2[30:0], 1'b0 } : { 1'b0, op2[31:1] };
         end

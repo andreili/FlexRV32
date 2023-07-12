@@ -20,10 +20,12 @@ module rv_trace
     input   wire                        i_mem_write,
     input   wire                        i_mem_read,
     input   wire                        i_exec2_flush,
+    input   wire                        i_exec2_stall,
     input   wire                        i_exec2_ready,
     input   wire                        i_exec_flush,
     input   wire                        i_exec_stall,
     input   wire                        i_write_flush,
+    input   wire                        i_write_stall,
     output  wire[4:0]                   o_rd,
     input   wire[31:0]                  i_rd
 );
@@ -318,7 +320,7 @@ module rv_trace
             print_event("Reset de-asserted");
         if (w_reset_rising)
             print_event("Reset asserted");
-        if (|r_instr_wr)
+        if (|r_instr_wr & !i_write_stall)
             print_decode(r_addr_wr, r_instr_wr, r_pc_wr, r_mem_read_wr, r_mem_write_wr);
     end
 
@@ -352,7 +354,7 @@ module rv_trace
             r_mem_write_exec2 <= '0;
             r_mem_read_exec2 <= '0;
         end
-        else if (i_exec2_ready)
+        else if (i_exec2_ready & !i_exec2_stall)
         begin
             r_pc_exec2 <= r_pc_exec;
             r_instr_exec2 <= r_instr_exec;
@@ -372,7 +374,7 @@ module rv_trace
             r_mem_write_wr <= '0;
             r_mem_read_wr <= '0;
         end
-        else
+        else if (!i_write_stall)
         begin
             r_pc_wr <= r_pc_exec2;
             r_instr_wr <= r_instr_exec2;

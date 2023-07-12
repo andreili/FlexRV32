@@ -279,6 +279,10 @@ module rv_core
         .i_clk                          (i_clk),
         .i_alu_rs1                      (alu1_rs1),
         .i_alu_rs2                      (alu1_rs2),
+    `ifndef ALU2_ISOLATED
+        .i_alu2_rd                      (alu2_rd),
+        .i_alu2_reg_write               (alu2_reg_write),
+    `endif
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
         .i_reg_data1                    (reg_rdata1),
@@ -364,6 +368,7 @@ module rv_core
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
+    logic       alu2_stall;
     logic       alu2_ready;
     logic       alu2_instr_jal_jalr_branch;
 
@@ -379,6 +384,7 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_flush                        (alu2_flush),
+        .i_stall                        (alu2_stall),
         .i_op1                          (alu1_op1),
         .i_op2                          (alu1_op2),
         .i_store                        (alu1_store),
@@ -414,13 +420,14 @@ module rv_core
         .o_ready                        (alu2_ready)
     );
 
-    logic write_flush;
+    logic write_flush, write_stall;
 
     rv_write
     u_st5_write
     (
         .i_clk                          (i_clk),
         .i_flush                        (write_flush),
+        .i_stall                        (write_stall),
         .i_funct3                       (alu2_funct3),
         .i_alu_result                   (dh_alu2_result),
         .i_reg_write                    (alu2_reg_write),
@@ -468,11 +475,15 @@ module rv_core
         .i_clk                          (i_clk),
         .i_reset_n                      (i_reset_n),
         .i_pc_change                    (fetch_pc_change),
+        .i_data_ack                     (i_data_ack),
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
-        //.i_alu1_mem_rd                  (alu1_res_src.memory),
+    `ifndef ALU2_ISOLATED
+        .i_alu1_mem_rd                  (alu1_res_src.memory),
+    `endif
         .i_alu1_rd                      (alu1_rd),
+        .i_alu2_mem_rd                  (alu2_res_src.memory & !alu2_flush),
         .i_alu2_ready                   (alu2_ready),
         .i_need_pause                   (ctrl_need_pause),
         .o_fetch_stall                  (fetch_stall),
@@ -481,7 +492,9 @@ module rv_core
         .o_alu1_flush                   (alu1_flush),
         .o_alu1_stall                   (alu1_stall),
         .o_alu2_flush                   (alu2_flush),
+        .o_alu2_stall                   (alu2_stall),
         .o_write_flush                  (write_flush),
+        .o_write_stall                  (write_stall),
         .o_inv_inst                     (inv_inst)
     );
 
@@ -505,17 +518,19 @@ module rv_core
         .i_mem_read                     (decode_res_src.memory),
         .i_reg_data                     (write_data),
         .i_exec2_flush                  (alu2_flush),
+        .i_exec2_stall                  (alu2_stall),
         .i_exec2_ready                  (alu2_ready),
         .i_exec_flush                   (alu1_flush),
         .i_exec_stall                   (alu1_stall),
         .i_write_flush                  (write_flush),
+        .i_write_stall                  (write_stall),
         .o_rd                           (trace_rd),
         .i_rd                           (trace_rd_data)
     );
 `endif
 
     logic   data_req;
-    assign  data_req = (alu2_res_src.memory | alu2_store);
+    assign  data_req = (alu2_res_src.memory | alu2_store) & !(alu2_flush | alu2_stall);
 
     assign  o_data_req = data_req;
     assign  o_data_write = alu2_store;
@@ -527,11 +542,6 @@ module rv_core
     assign  o_debug[0] = inv_inst;
     assign  o_debug[31:1] = '0;
 `endif
-
-/* verilator lint_off UNUSEDSIGNAL */
-    logic   dummy;
-    assign  dummy = i_data_ack;
-/* verilator lint_on UNUSEDSIGNAL */
 
 endmodule
 

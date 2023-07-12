@@ -13,4 +13,5 @@
     `define TCM_ADDR_WIDTH              12
 `endif
 
+//`define ALU2_ISOLATED
 //`define USE_SCHEMATIC

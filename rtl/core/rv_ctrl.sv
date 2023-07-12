@@ -2,16 +2,21 @@
 
 `include "../rv_defines.vh"
 
+/* verilator lint_off UNUSEDSIGNAL */
 module rv_ctrl
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire                        i_pc_change,
+    input   wire                        i_data_ack,
     input   wire                        i_decode_inst_sup,
     input   wire[4:0]                   i_decode_rs1,
     input   wire[4:0]                   i_decode_rs2,
-    //input   wire                        i_alu1_mem_rd,
+`ifndef ALU2_ISOLATED
+    input   wire                        i_alu1_mem_rd,
+`endif
     input   wire[4:0]                   i_alu1_rd,
+    input   wire                        i_alu2_mem_rd,
     input   wire                        i_alu2_ready,
     input   wire                        i_need_pause,
     output  wire                        o_fetch_stall,
@@ -20,21 +25,36 @@ module rv_ctrl
     output  wire                        o_alu1_flush,
     output  wire                        o_alu1_stall,
     output  wire                        o_alu2_flush,
+    output  wire                        o_alu2_stall,
     output  wire                        o_write_flush,
+    output  wire                        o_write_stall,
     output  wire                        o_inv_inst
 );
+/* verilator lint_on UNUSEDSIGNAL */
 
     logic   need_mem_data1;
-    assign  need_mem_data1 = /*i_alu1_mem_rd   &*/ (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
+    logic   wait_mem_data, need_mem_data2;
+    assign  need_mem_data1 =
+`ifndef ALU2_ISOLATED
+                            i_alu1_mem_rd   &
+`endif
+                            (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
                              (i_decode_rs2 == i_alu1_rd  ));
+    always_ff @(posedge i_clk)
+    begin
+        wait_mem_data <= i_alu2_mem_rd & !i_data_ack;
+    end
+    assign  need_mem_data2 = wait_mem_data;
 
-    logic   decode_stall, alu1_stall;
-    assign  decode_stall = need_mem_data1 | i_need_pause | (!i_alu2_ready);
-    assign  alu1_stall   = !i_alu2_ready;
+    logic   decode_stall, alu1_stall, alu2_stall, write_stall;
+    assign  decode_stall = need_mem_data1 | i_need_pause | (!i_alu2_ready) | need_mem_data2;
+    assign  alu1_stall   = !i_alu2_ready | need_mem_data2;
+    assign  alu2_stall   = need_mem_data2;
+    assign  write_stall  = need_mem_data2;
 
     logic   global_flush, alu1_flush, alu2_flush, write_flush;
     assign  global_flush = (!i_reset_n) | i_pc_change;
-    assign  alu1_flush   = global_flush | (decode_stall & i_alu2_ready);
+    assign  alu1_flush   = global_flush | (decode_stall & i_alu2_ready & !need_mem_data2);
     assign  alu2_flush   = global_flush;
     assign  write_flush  = global_flush | !i_alu2_ready;
 
@@ -53,7 +73,9 @@ module rv_ctrl
     assign  o_alu1_flush  = alu1_flush;
     assign  o_alu1_stall  = alu1_stall;
     assign  o_alu2_flush  = alu2_flush;
+    assign  o_alu2_stall  = alu2_stall;
     assign  o_write_flush = write_flush;
+    assign  o_write_stall = write_stall;
 
     assign  o_inv_inst = !inst_sup[1];
 
