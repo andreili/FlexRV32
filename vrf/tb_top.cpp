@@ -3,7 +3,12 @@
 #include <ctime> 
 #include "tb.h"
 
-double sc_time_stamp() { return 0; }
+uint64_t cur_ts;
+
+double sc_time_stamp()
+{
+    return cur_ts * 1.d;
+}
 
 #define TICK_TIME 10
 #define TICK_PERIOD (TICK_TIME / 2)
@@ -17,6 +22,7 @@ bool initialized;
 
 int on_step_cb(uint64_t time, TOP_CLASS* p_top)
 {
+    cur_ts = time;
     if ((time % SIM_PULSE_DELTA) == 0)
     {
         printf("SIM: running, time %ld ticks, WB_ADDR=0x%08x\n", time, p_top->o_wb_addr);

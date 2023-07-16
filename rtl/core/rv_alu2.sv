@@ -17,7 +17,7 @@ module rv_alu2
     input   wire                        i_stall,
     input   wire[31:0]                  i_op1,
     input   wire[31:0]                  i_op2,
-    input   wire                        i_store,
+    //input   wire                        i_store,
     input   wire                        i_reg_write,
     input   wire[4:0]                   i_rd,
     input   wire                        i_inst_jal_jalr,
@@ -28,22 +28,20 @@ module rv_alu2
     input   res_src_t                   i_res_src,
     input   wire[2:0]                   i_funct3,
     input   alu_ctrl_t                  i_alu_ctrl,
-    input   wire[31:0]                  i_reg_data2,
+    //input   wire[31:0]                  i_reg_data2,
     input   wire                        i_csr_read,
     input   wire[31:0]                  i_csr_data,
     input   wire                        i_to_trap,
     output  wire                        o_pc_select,
     output  wire[31:0]                  o_result,
-    output  wire[31:0]                  o_add,
+    //output  wire[31:0]                  o_add,
     output  wire[31:0]                  o_ext_data,
     output  wire                        o_is_ext,
-    output  wire                        o_store,
+    //output  wire                        o_store,
     output  wire                        o_reg_write,
     output  wire[4:0]                   o_rd,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc_target,
     output  res_src_t                   o_res_src,
-    output  wire[31:0]                  o_wdata,
-    output  wire[3:0]                   o_wsel,
     output  wire[2:0]                   o_funct3,
     output  wire                        o_to_trap,
     output  wire                        o_instr_jal_jalr_branch,
@@ -51,7 +49,7 @@ module rv_alu2
 );
 
     logic[31:0] op1, op2;
-    logic       store;
+    //logic       store;
     logic       reg_write;
     logic[4:0]  rd;
     logic       inst_jal_jalr, inst_branch;
@@ -61,7 +59,7 @@ module rv_alu2
     res_src_t   res_src;
     logic[2:0]  funct3;
     alu_ctrl_t  alu_ctrl;
-    logic[31:0] reg_data2;
+    //logic[31:0] reg_data2;
     //logic       csr_read;
     //logic[31:0] csr_data;
     logic       to_trap;
@@ -123,7 +121,7 @@ module rv_alu2
             rd <= '0;
             inst_jal_jalr <= '0;
             inst_branch <= '0;
-            store <= '0;
+            //store <= '0;
             reg_write <= '0;
             res_src <= '0;
             to_trap <= '0;
@@ -132,7 +130,7 @@ module rv_alu2
         begin
             op1 <= i_op1;
             op2 <= i_op2;
-            store <= i_store;
+            //store <= i_store;
             reg_write <= i_reg_write;
             rd <= i_rd;
             inst_jal_jalr <= i_inst_jal_jalr;
@@ -143,7 +141,7 @@ module rv_alu2
             res_src <= i_res_src;
             funct3 <= i_funct3;
             alu_ctrl <= i_alu_ctrl;
-            reg_data2 <= i_reg_data2;
+            //reg_data2 <= i_reg_data2;
             //csr_read <= i_csr_read;
             //csr_data <= i_csr_data;
             to_trap <= i_to_trap;
@@ -286,16 +284,6 @@ module rv_alu2
         .o_out                          (alu_result)
     );
 
-    wr_mux
-    u_wr_mux
-    (
-        .i_funct3                       (funct3[1:0]),
-        .i_add_lo                       (add[1:0]),
-        .i_reg_data2                    (reg_data2),
-        .o_wdata                        (o_wdata),
-        .o_wsel                         (o_wsel)
-    );
-
     logic[31:0] ext_data;
     logic       is_ext_data;
     assign  ext_data = res_src.pc_next ? { {(32-IADDR_SPACE_BITS){1'b0}}, pc_next, 1'b0 } :
@@ -308,10 +296,10 @@ module rv_alu2
 /* verilator lint_on UNUSEDSIGNAL */
 
     assign  o_result = alu_result;
-    assign  o_add = add[31:0];
+    //assign  o_add = add[31:0];
     assign  o_ext_data = ext_data;
     assign  o_is_ext = is_ext_data;
-    assign  o_store = store;
+    //assign  o_store = store;
     assign  o_reg_write = reg_write;
     assign  o_rd = rd;
     assign  o_res_src = res_src;

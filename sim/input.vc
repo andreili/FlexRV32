@@ -10,4 +10,5 @@
 -y ../../asic/blocks/rv_decode/simulation/
 -y ../../asic/blocks/openlane/
 -y ../../asic/cells_sim/
---timing
+--timescale-override "1ps/1ps"
+--no-timing

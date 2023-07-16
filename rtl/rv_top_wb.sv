@@ -15,7 +15,7 @@ module rv_top_wb
     parameter int INSTR_BUF_ADDR_SIZE   = 2,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
-    parameter logic EXTENSION_M         = 1,
+    parameter logic EXTENSION_M         = 0,
     parameter logic EXTENSION_Zicsr     = 1,
     parameter logic EXTENSION_Zicntr    = 1,
     parameter logic EXTENSION_Zihpm     = 0
@@ -179,7 +179,7 @@ module rv_top_wb
         end
     endgenerate
 
-`ifdef NONE
+`ifndef NONE
     always_ff @(posedge i_clk)
     begin
         data_rdata <= i_wb_dat;

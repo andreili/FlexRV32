@@ -44,8 +44,10 @@ module rv_alu1
     output  wire                        o_inst_branch,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc,
     output  wire[IADDR_SPACE_BITS-1:1]  o_pc_next,
-    output  wire[IADDR_SPACE_BITS-1:1]  o_pc_target,
+    output  wire[31:0]                  o_pc_target,
     output  res_src_t                   o_res_src,
+    output  wire[31:0]                  o_wdata,
+    output  wire[3:0]                   o_wsel,
     output  wire[2:0]                   o_funct3,
     output  alu_ctrl_t                  o_alu_ctrl,
     output  wire                        o_to_trap
@@ -117,16 +119,16 @@ module rv_alu1
                   //alu_ctrl.div_mux ? i_reg1_data :
                   i_reg2_data;
 
-    logic[IADDR_SPACE_BITS-1:1] pc_target_base, pc_target_offset, pc_target;
+    logic[31:0] pc_target_base, pc_target_offset, pc_target;
 
-    assign  pc_target_base   = inst_mret ? i_ret_addr :
-                               inst_jalr ? i_reg1_data[IADDR_SPACE_BITS-1:1] :
-                               pc;
-    assign  pc_target_offset = inst_mret ? '0 : imm_i[IADDR_SPACE_BITS-1:1];
+    assign  pc_target_base   = inst_mret ? { {(32-IADDR_SPACE_BITS){1'b0}}, i_ret_addr, 1'b0 } :
+                               (inst_jalr | store | res_src.memory) ? i_reg1_data :
+                               { {(32-IADDR_SPACE_BITS){1'b0}}, pc, 1'b0 };
+    assign  pc_target_offset = inst_mret ? '0 : imm_i;
 /* verilator lint_off PINCONNECTEMPTY */
     add
     #(
-        .WIDTH                          (IADDR_SPACE_BITS - 1)
+        .WIDTH                          (32)
     )
     u_pc_inc
     (
@@ -137,6 +139,16 @@ module rv_alu1
         .o_carry                        ()
     );
 /* verilator lint_on  PINCONNECTEMPTY */
+
+    wr_mux
+    u_wr_mux
+    (
+        .i_funct3                       (funct3[1:0]),
+        .i_add_lo                       (pc_target[1:0]),
+        .i_reg_data2                    (i_reg2_data),
+        .o_wdata                        (o_wdata),
+        .o_wsel                         (o_wsel)
+    );
 
     assign  o_op1 = op1;
     assign  o_op2 = op2;
