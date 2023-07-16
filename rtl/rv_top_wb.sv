@@ -1,6 +1,7 @@
 `timescale 1ps/1ps
 
 `include "rv_defines.vh"
+/* verilator lint_off GENUNNAMED */
 
 module rv_top_wb
 #(
@@ -203,4 +204,5 @@ module rv_top_wb
 initial
     instr_data = '0;
 
+/* verilator lint_on GENUNNAMED */
 endmodule

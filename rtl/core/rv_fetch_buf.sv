@@ -60,7 +60,7 @@ module rv_fetch_buf
             logic  d_latch_new;
             logic[31:0] d_next;
             if (i == (QSize-1))
-            begin
+            begin : g_last
                 assign h_next = i_reset_n & !(
                                     !(latch_m_up & is_head[i]) &
                                     !(!latch_m_dn & is_head[i + 1])
@@ -71,7 +71,7 @@ module rv_fetch_buf
                                  );
             end
             else
-            begin
+            begin : g_not_last
                 assign h_next = i_reset_n & !(
                                   !(latch_m_dn & is_head[i + 2]) &
                                   !(latch_m_up & is_head[i]) &

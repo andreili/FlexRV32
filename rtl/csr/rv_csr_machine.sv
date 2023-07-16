@@ -199,9 +199,13 @@ module rv_csr_machine
     logic   ext_c_supp;
     generate
         if (EXTENSION_C)
+        begin : g_c_supp
             assign ext_c_supp = 1'b1;
+        end
         else
+        begin : g_c_unsupp
             assign ext_c_supp = 1'b0;
+        end
     endgenerate
 
     logic[31:0] misa_data;
@@ -251,7 +255,9 @@ module rv_csr_machine
             assign  mcounteren_lo = mcounteren_lo_data;
         end
         else
+        begin : g_cntr_dummy
             assign mcounteren_lo = '0;
+        end
 
         if (EXTENSION_Zihpm)
         begin : g_hpm
@@ -259,7 +265,9 @@ module rv_csr_machine
             assign  mcounteren_hi = { mcounteren_hi_data[28:0], 3'b0 };
         end
         else
+        begin : g_hpm_dummy
             assign mcounteren_hi = '0;
+        end
     endgenerate
 
     logic[11:0] mip_data;

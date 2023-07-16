@@ -38,7 +38,9 @@ module rv_csr_reg
 
     generate
         if (WIDTH == 32)
+        begin : g_out32
             assign  o_data = data;
+        end
         else
         begin : g_out
             assign  o_data = { {(32-WIDTH){1'b0}}, data};
