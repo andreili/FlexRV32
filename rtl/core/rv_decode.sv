@@ -66,7 +66,7 @@ module rv_decode
     assign  instruction_c = i_ready ? i_instruction : '0;
     generate
         if (EXTENSION_C)
-        begin
+        begin : g_unroll
             /* verilator lint_off PINCONNECTEMPTY */
             rv_decode_comp
             u_comp
@@ -78,7 +78,7 @@ module rv_decode
             /* verilator lint_on  PINCONNECTEMPTY */
 
             if (BUFFERED)
-            begin
+            begin : g_buf
                 always_ff @(posedge i_clk)
                 begin
                     if (i_flush)
@@ -96,7 +96,7 @@ module rv_decode
                 end
             end
             else
-            begin
+            begin : g_unbuf
                 assign instruction = instruction_unc;
                 assign pc = i_pc;
                 assign pc_next = i_pc_next;
@@ -104,7 +104,7 @@ module rv_decode
             end
         end
         else
-        begin
+        begin : g_out
             assign instruction = instruction_c;
             assign pc = i_pc;
             assign pc_next = i_pc_next;

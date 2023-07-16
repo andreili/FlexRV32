@@ -125,7 +125,9 @@ module rv_csr
             );
         end
         else
+        begin : g_cntr_dummy
             assign rdata_user = '0;
+        end
     endgenerate
 
     logic[31:1] ret_addr, trap_pc;
