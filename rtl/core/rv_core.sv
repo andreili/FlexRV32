@@ -530,7 +530,11 @@ module rv_core
 `endif
 
     logic   data_req;
-    assign  data_req = (alu1_res_src.memory | alu1_store);// & !(alu1_flush | alu1_stall);
+    always_ff @(posedge i_clk)
+    begin
+        data_req <= (decode_res_src.memory | decode_inst_store) & !(alu1_flush | alu2_pc_select);
+    end
+    //assign  data_req = (alu1_res_src.memory | alu1_store) & !(alu1_flush);// & !(alu1_flush | alu1_stall);
 
     assign  o_data_req = data_req;
     assign  o_data_write = alu1_store;
