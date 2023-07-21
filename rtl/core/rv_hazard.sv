@@ -53,25 +53,37 @@ module rv_hazard
     assign  rs2_on_write   = i_write_reg_write & (|i_alu_rs2) & (!(|(i_alu_rs2 ^ i_write_rd)));
     assign  rs2_on_wr_back = wr_back_op        & (|i_alu_rs2) & (!(|(i_alu_rs2 ^ wr_back_rd)));
 
-    logic   rs1_alu2_sel, rs1_wr_sel, rs1_wrb_sel, rs1_dir_sel;
+`ifndef ALU2_ISOLATED
+    logic   rs1_alu2_sel;
     assign  rs1_alu2_sel = rs1_on_alu2;
+`endif
+    logic   rs1_wr_sel, rs1_wrb_sel, rs1_dir_sel;
     assign  rs1_wr_sel   = !rs1_on_alu2 & rs1_on_write;
     assign  rs1_wrb_sel  = !rs1_on_alu2 & !rs1_on_write & rs1_on_wr_back;
     assign  rs1_dir_sel  = !rs1_on_alu2 & !rs1_on_write & !rs1_on_wr_back;
 
-    logic   rs2_alu2_sel, rs2_wr_sel, rs2_wrb_sel, rs2_dir_sel;
+`ifndef ALU2_ISOLATED
+    logic   rs2_alu2_sel;
     assign  rs2_alu2_sel = rs2_on_alu2;
+`endif
+    logic   rs2_wr_sel, rs2_wrb_sel, rs2_dir_sel;
     assign  rs2_wr_sel   = !rs2_on_alu2 & rs2_on_write;
     assign  rs2_wrb_sel  = !rs2_on_alu2 & !rs2_on_write & rs2_on_wr_back;
     assign  rs2_dir_sel  = !rs2_on_alu2 & !rs2_on_write & !rs2_on_wr_back;
 
     logic[31:0] data1, data2;
 
-    assign data1 = ({ 32{rs1_alu2_sel} } & i_alu2_data   ) |
+    assign data1 =
+`ifndef ALU2_ISOLATED
+                   ({ 32{rs1_alu2_sel} } & i_alu2_data   ) |
+`endif
                    ({ 32{rs1_wr_sel  } } & i_wr_data   ) |
                    ({ 32{rs1_wrb_sel } } & wr_back_data) |
                    ({ 32{rs1_dir_sel } } & i_reg_data1 );
-    assign data2 = ({ 32{rs2_alu2_sel} } & i_alu2_data   ) |
+    assign data2 =
+`ifndef ALU2_ISOLATED
+                   ({ 32{rs2_alu2_sel} } & i_alu2_data   ) |
+`endif
                    ({ 32{rs2_wr_sel  } } & i_wr_data   ) |
                    ({ 32{rs2_wrb_sel } } & wr_back_data) |
                    ({ 32{rs2_dir_sel } } & i_reg_data2 );
