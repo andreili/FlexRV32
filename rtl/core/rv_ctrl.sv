@@ -34,7 +34,7 @@ module rv_ctrl
     logic[1:0]  need_mem_data;
     logic       wait_write;
 
-    assign  need_mem_data[0] = 
+    assign  need_mem_data[0] =
 `ifndef ALU2_ISOLATED
                             i_alu1_mem_rd   &
 `endif
@@ -42,17 +42,29 @@ module rv_ctrl
                             ((i_decode_rs1 == i_alu1_rd  ) |
                              (i_decode_rs2 == i_alu1_rd  ));
     assign  need_mem_data[1] =
+`ifdef ALU2_ISOLATED
                             i_alu2_mem_rd   &
                             (|i_alu2_rd  ) &
                             ((i_decode_rs1 == i_alu2_rd  ) |
                              (i_decode_rs2 == i_alu2_rd  ));
+`else
+                            '0;
+`endif
     always_ff @(posedge i_clk)
     begin
+    `ifdef ALU2_ISOLATED
         wait_write <= i_alu2_mem_rd;
+    `else
+        wait_write <= '0;
+    `endif
     end
 
     logic   decode_stall, alu1_stall, alu2_stall, write_stall;
-    assign  decode_stall = need_mem_data[0] | i_need_pause | (!i_alu2_ready) | need_mem_data[1] | i_alu1_mem_rd;
+    assign  decode_stall = need_mem_data[0] | i_need_pause | (!i_alu2_ready) | need_mem_data[1]
+`ifdef ALU2_ISOLATED
+                            | i_alu1_mem_rd
+`endif
+                            ;
     assign  alu1_stall   = !i_alu2_ready;
     assign  alu2_stall   = '0;
     assign  write_stall  = wait_write;
