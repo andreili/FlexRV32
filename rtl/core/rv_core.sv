@@ -484,6 +484,7 @@ module rv_core
     `endif
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_mem_rd                  (alu2_res_src.memory & !alu2_flush),
+        .i_alu2_rd                      (alu2_rd),
         .i_alu2_ready                   (alu2_ready),
         .i_need_pause                   (ctrl_need_pause),
         .o_fetch_stall                  (fetch_stall),
@@ -542,6 +543,14 @@ module rv_core
     assign  o_debug[0] = inv_inst;
     assign  o_debug[31:1] = '0;
 `endif
+
+/* verilator lint_off UNUSEDSIGNAL */
+`ifdef TO_SIM
+    logic   dp_check_wr_to_dh1, dp_check_wr_to_dh2;
+    assign  dp_check_wr_to_dh1 = alu2_res_src.memory & u_dhz.rs1_wr_sel;
+    assign  dp_check_wr_to_dh2 = alu2_res_src.memory & u_dhz.rs2_wr_sel;
+`endif
+/* verilator lint_on UNUSEDSIGNAL */
 
 endmodule
 
