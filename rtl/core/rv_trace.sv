@@ -46,7 +46,8 @@ module rv_trace
     int f;
 
     function static real get_ts();
-        real ts = $time;
+        real ts;
+        ts = $time;
         return ts / 1000.0;
     endfunction
 
