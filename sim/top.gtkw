@@ -1,12 +1,12 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sun Jul 16 18:00:32 2023
+[*] Fri Jul 21 22:38:39 2023
 [*]
 [dumpfile] "/media/FlexRV32/sim/top.fst"
-[dumpfile_mtime] "Sun Jul 16 18:00:23 2023"
-[dumpfile_size] 255289
+[dumpfile_mtime] "Fri Jul 21 22:38:36 2023"
+[dumpfile_size] 689512
 [savefile] "/media/FlexRV32/sim/top.gtkw"
-[timestart] 6644
+[timestart] 1
 [size] 1720 1356
 [pos] 1720 0
 *-4.918702 6770 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
@@ -251,10 +251,6 @@ TOP.tb_top.u_rv.u_core.u_st3_alu1.i_reg2_data[31:0]
 @28
 TOP.tb_top.u_rv.u_core.u_st3_alu1.store
 TOP.tb_top.u_rv.u_core.u_st3_alu1.res_src.memory
-@22
-TOP.tb_top.u_rv.u_core.u_st3_alu1.pc_target_base[31:0]
-TOP.tb_top.u_rv.u_core.u_st3_alu1.pc_target_offset[31:0]
-@28
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_funct3[2:0]
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_inst_branch
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_inst_jal_jalr
@@ -263,7 +259,6 @@ TOP.tb_top.u_rv.u_core.u_st3_alu1.o_op1[31:0]
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_op2[31:0]
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_pc[21:1]
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_pc_next[21:1]
-TOP.tb_top.u_rv.u_core.u_st3_alu1.o_pc_target[31:0]
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_rd[4:0]
 @28
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_reg_write
@@ -342,15 +337,12 @@ TOP.tb_top.u_rv.u_core.u_ctrl.i_alu1_rd[4:0]
 TOP.tb_top.u_rv.u_core.u_ctrl.i_alu2_mem_rd
 TOP.tb_top.u_rv.u_core.u_ctrl.i_alu2_ready
 TOP.tb_top.u_rv.u_core.u_ctrl.i_data_ack
-TOP.tb_top.u_rv.u_core.u_ctrl.wait_mem_data
 TOP.tb_top.u_rv.u_core.u_ctrl.global_flush
 TOP.tb_top.u_rv.u_core.u_ctrl.decode_stall
 TOP.tb_top.u_rv.u_core.u_ctrl.alu1_stall
 TOP.tb_top.u_rv.u_core.u_ctrl.alu1_flush
 TOP.tb_top.u_rv.u_core.u_ctrl.write_flush
 TOP.tb_top.u_rv.u_core.u_ctrl.inst_sup[1:0]
-TOP.tb_top.u_rv.u_core.u_ctrl.need_mem_data1
-TOP.tb_top.u_rv.u_core.u_ctrl.need_mem_data2
 TOP.tb_top.u_rv.u_core.u_ctrl.o_fetch_stall
 TOP.tb_top.u_rv.u_core.u_ctrl.o_decode_flush
 TOP.tb_top.u_rv.u_core.u_ctrl.o_decode_stall

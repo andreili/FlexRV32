@@ -12,11 +12,10 @@ module rv_ctrl
     input   wire                        i_decode_inst_sup,
     input   wire[4:0]                   i_decode_rs1,
     input   wire[4:0]                   i_decode_rs2,
-`ifndef ALU2_ISOLATED
     input   wire                        i_alu1_mem_rd,
-`endif
     input   wire[4:0]                   i_alu1_rd,
     input   wire                        i_alu2_mem_rd,
+    input   wire[4:0]                   i_alu2_rd,
     input   wire                        i_alu2_ready,
     input   wire                        i_need_pause,
     output  wire                        o_fetch_stall,
@@ -32,29 +31,47 @@ module rv_ctrl
 );
 /* verilator lint_on UNUSEDSIGNAL */
 
-    logic   need_mem_data1;
-    logic   wait_mem_data, need_mem_data2;
-    assign  need_mem_data1 =
+    logic[1:0]  need_mem_data;
+    logic       wait_write;
+
+    assign  need_mem_data[0] =
 `ifndef ALU2_ISOLATED
                             i_alu1_mem_rd   &
 `endif
-                            (|i_alu1_rd  ) & ((i_decode_rs1 == i_alu1_rd  ) |
+                            (|i_alu1_rd  ) &
+                            ((i_decode_rs1 == i_alu1_rd  ) |
                              (i_decode_rs2 == i_alu1_rd  ));
+    assign  need_mem_data[1] =
+`ifdef ALU2_ISOLATED
+                            i_alu2_mem_rd   &
+                            (|i_alu2_rd  ) &
+                            ((i_decode_rs1 == i_alu2_rd  ) |
+                             (i_decode_rs2 == i_alu2_rd  ));
+`else
+                            '0;
+`endif
     always_ff @(posedge i_clk)
     begin
-        wait_mem_data <= i_alu2_mem_rd & !i_data_ack;
+    `ifdef ALU2_ISOLATED
+        wait_write <= i_alu2_mem_rd;
+    `else
+        wait_write <= '0;
+    `endif
     end
-    assign  need_mem_data2 = wait_mem_data;
 
     logic   decode_stall, alu1_stall, alu2_stall, write_stall;
-    assign  decode_stall = need_mem_data1 | i_need_pause | (!i_alu2_ready) | need_mem_data2;
-    assign  alu1_stall   = !i_alu2_ready | need_mem_data2;
-    assign  alu2_stall   = need_mem_data2;
-    assign  write_stall  = need_mem_data2;
+    assign  decode_stall = need_mem_data[0] | i_need_pause | (!i_alu2_ready) | need_mem_data[1]
+`ifdef ALU2_ISOLATED
+                            | i_alu1_mem_rd
+`endif
+                            ;
+    assign  alu1_stall   = !i_alu2_ready;
+    assign  alu2_stall   = '0;
+    assign  write_stall  = wait_write;
 
     logic   global_flush, alu1_flush, alu2_flush, write_flush;
     assign  global_flush = (!i_reset_n) | i_pc_change;
-    assign  alu1_flush   = global_flush | (decode_stall & i_alu2_ready & !need_mem_data2);
+    assign  alu1_flush   = global_flush | (decode_stall & i_alu2_ready);
     assign  alu2_flush   = global_flush;
     assign  write_flush  = global_flush | !i_alu2_ready;
 

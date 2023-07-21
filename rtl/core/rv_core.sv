@@ -271,7 +271,7 @@ module rv_core
     logic[31:0] dh_data2;
     logic[31:0] dh_alu2_result;
     logic[31:0] dh_write_data;
-    //logic[31:0] dh_data2_alu2;
+    logic[31:0] dh_data2_alu2;
 
     rv_hazard
     u_dhz
@@ -292,8 +292,8 @@ module rv_core
         .o_data1                        (dh_data1),
         .o_data2                        (dh_data2),
         .o_alu2_data                    (dh_alu2_result),
-        .o_write_data                   (dh_write_data)
-        //.o_data2_ex                     (dh_data2_alu2)
+        .o_write_data                   (dh_write_data),
+        .o_data2_ex                     (dh_data2_alu2)
     );
 
     logic[31:0] alu1_op1;
@@ -304,7 +304,7 @@ module rv_core
     logic       alu1_inst_branch;
     logic[IADDR_SPACE_BITS-1:1] alu1_pc;
     logic[IADDR_SPACE_BITS-1:1] alu1_pc_next;
-    logic[31:0] alu1_pc_target;
+    logic[IADDR_SPACE_BITS-1:1] alu1_pc_target;
     res_src_t   alu1_res_src;
     logic[2:0]  alu1_funct3;
     alu_ctrl_t  alu1_alu_ctrl;
@@ -355,18 +355,16 @@ module rv_core
         .o_pc                           (alu1_pc),
         .o_pc_next                      (alu1_pc_next),
         .o_pc_target                    (alu1_pc_target),
-        .o_wdata                        (o_data_wdata),
-        .o_wsel                         (o_data_sel),
         .o_res_src                      (alu1_res_src),
         .o_funct3                       (alu1_funct3),
         .o_alu_ctrl                     (alu1_alu_ctrl),
         .o_to_trap                      (alu1_to_trap)
     );
 
-    //logic[31:0] alu2_add;
+    logic[31:0] alu2_add;
     logic[31:0] alu2_ext_data;
     logic       alu2_is_ext;
-    //logic       alu2_store;
+    logic       alu2_store;
     res_src_t   alu2_res_src;
     logic[2:0]  alu2_funct3;
     logic       alu2_flush;
@@ -389,31 +387,33 @@ module rv_core
         .i_stall                        (alu2_stall),
         .i_op1                          (alu1_op1),
         .i_op2                          (alu1_op2),
-        //.i_store                        (alu1_store),
+        .i_store                        (alu1_store),
         .i_reg_write                    (alu1_reg_write),
         .i_rd                           (alu1_rd),
         .i_inst_jal_jalr                (alu1_inst_jal_jalr),
         .i_inst_branch                  (alu1_inst_branch),
         .i_pc                           (alu1_pc),
         .i_pc_next                      (alu1_pc_next),
-        .i_pc_target                    (alu1_pc_target[IADDR_SPACE_BITS-1:1]),
+        .i_pc_target                    (alu1_pc_target),
         .i_res_src                      (alu1_res_src),
         .i_funct3                       (alu1_funct3),
         .i_alu_ctrl                     (alu1_alu_ctrl),
-        //.i_reg_data2                    (dh_data2_alu2),
+        .i_reg_data2                    (dh_data2_alu2),
         .i_csr_read                     (i_csr_read),
         .i_csr_data                     (i_csr_data),
         .i_to_trap                      (alu1_to_trap),
         .o_pc_select                    (alu2_pc_select),
         .o_result                       (alu2_result),
-        //.o_add                          (alu2_add),
+        .o_add                          (alu2_add),
         .o_ext_data                     (alu2_ext_data),
         .o_is_ext                       (alu2_is_ext),
-        //.o_store                        (alu2_store),
+        .o_store                        (alu2_store),
         .o_reg_write                    (alu2_reg_write),
         .o_rd                           (alu2_rd),
         .o_pc_target                    (alu2_pc_target),
         .o_res_src                      (alu2_res_src),
+        .o_wdata                        (o_data_wdata),
+        .o_wsel                         (o_data_sel),
         .o_funct3                       (alu2_funct3),
         .o_instr_jal_jalr_branch        (alu2_instr_jal_jalr_branch),
         .o_to_trap                      (alu2_to_trap),
@@ -479,11 +479,10 @@ module rv_core
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
-    `ifndef ALU2_ISOLATED
         .i_alu1_mem_rd                  (alu1_res_src.memory),
-    `endif
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_mem_rd                  (alu2_res_src.memory & !alu2_flush),
+        .i_alu2_rd                      (alu2_rd),
         .i_alu2_ready                   (alu2_ready),
         .i_need_pause                   (ctrl_need_pause),
         .o_fetch_stall                  (fetch_stall),
@@ -510,7 +509,7 @@ module rv_core
         .i_pc                           (decode_pc[IADDR_SPACE_BITS-1:1]),
         .i_instr                        (decode_instr),
         .i_bus_data                     (i_data_rdata),
-        .i_mem_addr                     (alu1_pc_target),
+        .i_mem_addr                     (alu2_add),
         .i_mem_sel                      (o_data_sel),
         .i_mem_data                     (o_data_wdata),
         .i_reg_write                    (decode_reg_write),
@@ -530,15 +529,15 @@ module rv_core
 `endif
 
     logic   data_req;
-    always_ff @(posedge i_clk)
+    /*always_ff @(posedge i_clk)
     begin
         data_req <= (decode_res_src.memory | decode_inst_store) & !(alu1_flush | alu2_pc_select);
-    end
-    //assign  data_req = (alu1_res_src.memory | alu1_store) & !(alu1_flush);// & !(alu1_flush | alu1_stall);
+    end*/
+    assign  data_req = (alu2_res_src.memory | alu2_store) & !(alu2_flush | alu2_stall);
 
     assign  o_data_req = data_req;
-    assign  o_data_write = alu1_store;
-    assign  o_data_addr = alu1_pc_target;
+    assign  o_data_write = alu2_store;
+    assign  o_data_addr = alu2_add;
     assign  o_instr_issued = (data_req | alu2_reg_write);
     assign  o_reg_rdata1 = dh_data1;
 
@@ -546,6 +545,14 @@ module rv_core
     assign  o_debug[0] = inv_inst;
     assign  o_debug[31:1] = '0;
 `endif
+
+/* verilator lint_off UNUSEDSIGNAL */
+`ifdef TO_SIM
+    logic   dp_check_wr_to_dh1, dp_check_wr_to_dh2;
+    assign  dp_check_wr_to_dh1 = alu2_res_src.memory & u_dhz.rs1_wr_sel;
+    assign  dp_check_wr_to_dh2 = alu2_res_src.memory & u_dhz.rs2_wr_sel;
+`endif
+/* verilator lint_on UNUSEDSIGNAL */
 
 endmodule
 
