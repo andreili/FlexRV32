@@ -180,7 +180,7 @@ module rv_top_wb
         end
     endgenerate
 
-`ifdef NONE
+`ifdef ALU2_ISOLATED
     always_ff @(posedge i_clk)
     begin
         data_rdata <= i_wb_dat;

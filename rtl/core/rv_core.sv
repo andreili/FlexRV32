@@ -479,9 +479,7 @@ module rv_core
         .i_decode_inst_sup              (decode_inst_supported),
         .i_decode_rs1                   (decode_rs1),
         .i_decode_rs2                   (decode_rs2),
-    `ifndef ALU2_ISOLATED
         .i_alu1_mem_rd                  (alu1_res_src.memory),
-    `endif
         .i_alu1_rd                      (alu1_rd),
         .i_alu2_mem_rd                  (alu2_res_src.memory & !alu2_flush),
         .i_alu2_rd                      (alu2_rd),

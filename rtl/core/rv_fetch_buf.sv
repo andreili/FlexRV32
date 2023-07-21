@@ -29,7 +29,7 @@ module rv_fetch_buf
     logic[WIDTH-1:0]    data[QSize];
     logic[QSize:0]      is_head;
 
-    assign  not_full  = !is_head[QSize] & !(is_head[QSize-1] & i_push & !pop);
+    assign  not_full  = !is_head[QSize] & !(is_head[QSize-1] & i_push & (!pop | (pop & is_comp)));
     assign  pop       = !i_stall & !is_head[0];
 
     logic  latch_dn, latch_up;
