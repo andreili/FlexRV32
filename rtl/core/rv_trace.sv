@@ -38,9 +38,9 @@ module rv_trace
     logic[31:0] r_instr_exec2;
     logic[IADDR_SPACE_BITS-1:0] r_pc_exec2;
     logic       r_reg_write_exec2, r_mem_write_exec2, r_mem_read_exec2;
-    logic[31:0] r_instr_wr, r_wdata_wr, r_wdata_wr2, r_addr_wr, r_addr_wr2;
+    logic[31:0] r_instr_wr, r_wdata_wr, r_addr_wr;
     logic[IADDR_SPACE_BITS-1:0] r_pc_wr;
-    logic[3:0]  r_sel_wr, r_sel_wr2;
+    logic[3:0]  r_sel_wr;
     logic       r_reg_write_wr, r_mem_write_wr, r_mem_read_wr;
 
     int f;
@@ -362,9 +362,6 @@ module rv_trace
             r_reg_write_exec2 <= r_reg_write_exec;
             r_mem_write_exec2 <= r_mem_write_exec;
             r_mem_read_exec2 <= r_mem_read_exec;
-            r_addr_wr2 <= i_mem_addr;
-            r_sel_wr2 <= i_mem_sel;
-            r_wdata_wr2 <= i_mem_data;
         end
     end
 
@@ -385,9 +382,9 @@ module rv_trace
             r_reg_write_wr <= r_reg_write_exec2;
             r_mem_write_wr <= r_mem_write_exec2;
             r_mem_read_wr <= r_mem_read_exec2;
-            r_wdata_wr <= r_wdata_wr2;
-            r_addr_wr <= r_addr_wr2;
-            r_sel_wr <= r_sel_wr2;
+            r_wdata_wr <= i_mem_data;
+            r_addr_wr <= i_mem_addr;
+            r_sel_wr <= i_mem_sel;
         end
     end
 
