@@ -3,383 +3,383 @@
         {
             "name": "test_add-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:24.111443"
+            "last_run": "2023-07-22T21:42:57.723755"
         },
         {
             "name": "test_addi-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:24.386559"
+            "last_run": "2023-07-22T21:42:58.028897"
         },
         {
             "name": "test_and-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:24.700749"
+            "last_run": "2023-07-22T21:42:58.360120"
         },
         {
             "name": "test_andi-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:24.962718"
+            "last_run": "2023-07-22T21:42:58.639002"
         },
         {
             "name": "test_auipc-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:25.053942"
+            "last_run": "2023-07-22T21:42:58.744210"
         },
         {
             "name": "test_beq-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:25.461455"
+            "last_run": "2023-07-22T21:42:59.148989"
         },
         {
             "name": "test_bge-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:25.913079"
+            "last_run": "2023-07-22T21:42:59.614332"
         },
         {
             "name": "test_bgeu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:26.448096"
+            "last_run": "2023-07-22T21:43:00.153507"
         },
         {
             "name": "test_blt-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:26.877387"
+            "last_run": "2023-07-22T21:43:00.601568"
         },
         {
             "name": "test_bltu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:27.390465"
+            "last_run": "2023-07-22T21:43:01.132977"
         },
         {
             "name": "test_bne-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:27.848022"
+            "last_run": "2023-07-22T21:43:01.618002"
         },
         {
             "name": "test_fence-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:27.916663"
+            "last_run": "2023-07-22T21:43:01.699721"
         },
         {
             "name": "test_jal-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.148936"
+            "last_run": "2023-07-22T21:43:01.942633"
         },
         {
             "name": "test_jalr-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.237815"
+            "last_run": "2023-07-22T21:43:02.045246"
         },
         {
             "name": "test_lb-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.314145"
+            "last_run": "2023-07-22T21:43:02.119827"
         },
         {
             "name": "test_lbu-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.388629"
+            "last_run": "2023-07-22T21:43:02.196675"
         },
         {
             "name": "test_lh-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.468044"
+            "last_run": "2023-07-22T21:43:02.274226"
         },
         {
             "name": "test_lhu-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.542074"
+            "last_run": "2023-07-22T21:43:02.346778"
         },
         {
             "name": "test_lui-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.624557"
+            "last_run": "2023-07-22T21:43:02.429031"
         },
         {
             "name": "test_lw-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.698515"
+            "last_run": "2023-07-22T21:43:02.507237"
         },
         {
             "name": "test_or-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:29.098486"
+            "last_run": "2023-07-22T21:43:02.917310"
         },
         {
             "name": "test_ori-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:29.371593"
+            "last_run": "2023-07-22T21:43:03.205186"
         },
         {
             "name": "test_sb-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:29.453630"
+            "last_run": "2023-07-22T21:43:03.302163"
         },
         {
             "name": "test_sh-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:29.537673"
+            "last_run": "2023-07-22T21:43:03.391228"
         },
         {
             "name": "test_sll-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:29.630219"
+            "last_run": "2023-07-22T21:43:03.489887"
         },
         {
             "name": "test_slli-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:29.725054"
+            "last_run": "2023-07-22T21:43:03.584824"
         },
         {
             "name": "test_slt-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:30.007846"
+            "last_run": "2023-07-22T21:43:03.881294"
         },
         {
             "name": "test_slti-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:30.245101"
+            "last_run": "2023-07-22T21:43:04.136157"
         },
         {
             "name": "test_sltiu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:30.525696"
+            "last_run": "2023-07-22T21:43:04.444029"
         },
         {
             "name": "test_sltu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:30.866675"
+            "last_run": "2023-07-22T21:43:04.783351"
         },
         {
             "name": "test_sra-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:30.964897"
+            "last_run": "2023-07-22T21:43:04.884318"
         },
         {
             "name": "test_srai-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:31.067904"
+            "last_run": "2023-07-22T21:43:04.975525"
         },
         {
             "name": "test_srl-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:31.164709"
+            "last_run": "2023-07-22T21:43:05.073253"
         },
         {
             "name": "test_srli-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:31.268197"
+            "last_run": "2023-07-22T21:43:05.170950"
         },
         {
             "name": "test_sub-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:31.604812"
+            "last_run": "2023-07-22T21:43:05.508798"
         },
         {
             "name": "test_sw-align-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:31.686384"
+            "last_run": "2023-07-22T21:43:05.605919"
         },
         {
             "name": "test_xor-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:32.020063"
+            "last_run": "2023-07-22T21:43:05.949418"
         },
         {
             "name": "test_xori-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:32.295354"
+            "last_run": "2023-07-22T21:43:06.236179"
         },
         {
             "name": "test_cadd-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:32.635883"
+            "last_run": "2023-07-22T21:43:06.585780"
         },
         {
             "name": "test_caddi-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:32.850345"
+            "last_run": "2023-07-22T21:43:06.787427"
         },
         {
             "name": "test_caddi16sp-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:32.943922"
+            "last_run": "2023-07-22T21:43:06.874759"
         },
         {
             "name": "test_caddi4spn-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.018589"
+            "last_run": "2023-07-22T21:43:06.946838"
         },
         {
             "name": "test_cand-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.339209"
+            "last_run": "2023-07-22T21:43:07.263510"
         },
         {
             "name": "test_candi-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.530172"
+            "last_run": "2023-07-22T21:43:07.452867"
         },
         {
             "name": "test_cbeqz-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.628764"
+            "last_run": "2023-07-22T21:43:07.552008"
         },
         {
             "name": "test_cbnez-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.735215"
+            "last_run": "2023-07-22T21:43:07.661870"
         },
         {
             "name": "test_cebreak-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.808809"
+            "last_run": "2023-07-22T21:43:07.736471"
         },
         {
             "name": "test_cj-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.891557"
+            "last_run": "2023-07-22T21:43:07.810212"
         },
         {
             "name": "test_cjal-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:33.967880"
+            "last_run": "2023-07-22T21:43:07.890228"
         },
         {
             "name": "test_cjalr-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.050058"
+            "last_run": "2023-07-22T21:43:07.975714"
         },
         {
             "name": "test_cjr-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.130526"
+            "last_run": "2023-07-22T21:43:08.060308"
         },
         {
             "name": "test_cli-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.210253"
+            "last_run": "2023-07-22T21:43:08.136032"
         },
         {
             "name": "test_clui-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.285141"
+            "last_run": "2023-07-22T21:43:08.210796"
         },
         {
             "name": "test_clw-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.354293"
+            "last_run": "2023-07-22T21:43:08.281385"
         },
         {
             "name": "test_clwsp-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.426901"
+            "last_run": "2023-07-22T21:43:08.355390"
         },
         {
             "name": "test_cmv-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.521585"
+            "last_run": "2023-07-22T21:43:08.448448"
         },
         {
             "name": "test_cnop-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.592003"
+            "last_run": "2023-07-22T21:43:08.522514"
         },
         {
             "name": "test_cor-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:34.941706"
+            "last_run": "2023-07-22T21:43:08.862166"
         },
         {
             "name": "test_cslli-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:35.034321"
+            "last_run": "2023-07-22T21:43:08.954881"
         },
         {
             "name": "test_csrai-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:35.131075"
+            "last_run": "2023-07-22T21:43:09.049158"
         },
         {
             "name": "test_csrli-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:35.225905"
+            "last_run": "2023-07-22T21:43:09.141966"
         },
         {
             "name": "test_csub-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:35.557942"
+            "last_run": "2023-07-22T21:43:09.480574"
         },
         {
             "name": "test_csw-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:35.639821"
+            "last_run": "2023-07-22T21:43:09.567104"
         },
         {
             "name": "test_cswsp-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:35.726120"
+            "last_run": "2023-07-22T21:43:09.648330"
         },
         {
             "name": "test_cxor-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:36.067235"
+            "last_run": "2023-07-22T21:43:09.988594"
         },
         {
             "name": "test_div-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:36.642842"
+            "last_run": "2023-07-22T21:43:10.559657"
         },
         {
             "name": "test_divu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:37.310174"
+            "last_run": "2023-07-22T21:43:11.235540"
         },
         {
             "name": "test_mul-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:37.886280"
+            "last_run": "2023-07-22T21:43:11.822772"
         },
         {
             "name": "test_mulh-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:38.440520"
+            "last_run": "2023-07-22T21:43:12.375571"
         },
         {
             "name": "test_mulhsu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:39.041434"
+            "last_run": "2023-07-22T21:43:12.972747"
         },
         {
             "name": "test_mulhu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:39.704996"
+            "last_run": "2023-07-22T21:43:13.652321"
         },
         {
             "name": "test_rem-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:40.273273"
+            "last_run": "2023-07-22T21:43:14.220509"
         },
         {
             "name": "test_remu-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:40.970519"
+            "last_run": "2023-07-22T21:43:14.898724"
         },
         {
             "name": "test_misalign1-jalr-01",
             "result": "Pass",
-            "last_run": "2023-07-22T00:39:28.767218"
+            "last_run": "2023-07-22T21:43:02.576031"
         }
     ],
     "timings": {
         "Fmax": [
             {
                 "Model": "Slow 1200mV 85C",
-                "fmax": "101.58 MHz"
+                "fmax": "82.49 MHz"
             },
             {
                 "Model": "Slow 1200mV 0C",
-                "fmax": "111.0 MHz"
+                "fmax": "86.91 MHz"
             }
         ]
     }

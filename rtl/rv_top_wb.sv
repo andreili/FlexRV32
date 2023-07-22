@@ -14,6 +14,7 @@ module rv_top_wb
     parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 3,
     parameter int INSTR_BUF_ADDR_SIZE   = 2,
+    parameter logic ALU2_ISOLATED       = 1,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
     parameter logic EXTENSION_M         = 1,
@@ -89,6 +90,7 @@ module rv_top_wb
         .BRANCH_PREDICTION              (BRANCH_PREDICTION),
         .BRANCH_TABLE_SIZE_BITS         (BRANCH_TABLE_SIZE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
+        .ALU2_ISOLATED                  (ALU2_ISOLATED),
         .EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_F                    (EXTENSION_F),
         .EXTENSION_M                    (EXTENSION_M),
@@ -178,18 +180,21 @@ module rv_top_wb
                             csr_write | csr_set | csr_clear | csr_read | csr_ebreak |
                             (|csr_pc_next) | instr_issued;
         end
-    endgenerate
 
-`ifdef ALU2_ISOLATED
-    always_ff @(posedge i_clk)
-    begin
-        data_rdata <= i_wb_dat;
-        data_ack   <= i_wb_ack & (!instr_ack) & data_req;
-    end
-`else
-    assign data_rdata = i_wb_dat;
-    assign data_ack   = i_wb_ack & (!instr_ack);
-`endif
+        if (ALU2_ISOLATED)
+        begin
+            always_ff @(posedge i_clk)
+            begin
+                data_rdata <= i_wb_dat;
+                data_ack   <= i_wb_ack & (!instr_ack) & data_req;
+            end
+        end
+        else
+        begin
+            assign data_rdata = i_wb_dat;
+            assign data_ack   = i_wb_ack & (!instr_ack);
+        end
+    endgenerate
 
     assign  instr_data = i_wb_dat;
     assign  instr_ack = i_wb_ack & (!data_req) & instr_req;

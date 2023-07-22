@@ -15,6 +15,7 @@ module rv_core
     parameter logic BRANCH_PREDICTION   = 0,
     parameter int BRANCH_TABLE_SIZE_BITS= 2,
     parameter int INSTR_BUF_ADDR_SIZE   = 2, // buffer size is 2**N words (32 bit)
+    parameter logic ALU2_ISOLATED       = 0,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 1,
     parameter logic EXTENSION_M         = 1,
@@ -106,6 +107,7 @@ module rv_core
         .RESET_ADDR                     (RESET_ADDR),
         .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
         .INSTR_BUF_ADDR_SIZE            (INSTR_BUF_ADDR_SIZE),
+        .ALU2_ISOLATED                  (ALU2_ISOLATED),
         //.EXTENSION_C                    (EXTENSION_C),
         .EXTENSION_Zicsr                (EXTENSION_Zicsr)
     )
@@ -274,15 +276,16 @@ module rv_core
     logic[31:0] dh_data2_alu2;
 
     rv_hazard
+    #(
+        .ALU2_ISOLATED                  (ALU2_ISOLATED)
+    )
     u_dhz
     (
         .i_clk                          (i_clk),
         .i_alu_rs1                      (alu1_rs1),
         .i_alu_rs2                      (alu1_rs2),
-    `ifndef ALU2_ISOLATED
         .i_alu2_rd                      (alu2_rd),
         .i_alu2_reg_write               (alu2_reg_write),
-    `endif
         .i_write_rd                     (write_rd),
         .i_write_reg_write              (write_op),
         .i_reg_data1                    (reg_rdata1),
@@ -470,6 +473,9 @@ module rv_core
     assign  ctrl_need_pause = o_csr_read &
                               (alu1_inst_jal_jalr | alu1_inst_branch | alu2_instr_jal_jalr_branch);
     rv_ctrl
+    #(
+        .ALU2_ISOLATED                  (ALU2_ISOLATED)
+    )
     u_ctrl
     (
         .i_clk                          (i_clk),

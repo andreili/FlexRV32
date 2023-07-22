@@ -4,7 +4,8 @@ module rv_fetch_buf
 #(
     parameter int IADDR_SPACE_BITS      = 16,
     parameter int WIDTH                 = 32,
-    parameter int DEPTH_BITS            = 2
+    parameter int DEPTH_BITS            = 2,
+    parameter logic ALU2_ISOLATED       = 0
 )
 (
     input   wire                        i_clk,
@@ -29,11 +30,7 @@ module rv_fetch_buf
     logic[WIDTH-1:0]    data[QSize];
     logic[QSize:0]      is_head;
 
-`ifdef ALU2_ISOLATED
-    assign  not_full  = !is_head[QSize] & !(is_head[QSize-1] & i_push & (!pop | (pop & is_comp)));
-`else
-    assign  not_full  = !is_head[QSize] & !(is_head[QSize-1] & i_push & !pop);
-`endif
+    assign  not_full  = !is_head[QSize] & !(is_head[QSize-1] & i_push & (!pop | (pop & is_comp & ALU2_ISOLATED)));
     assign  pop       = !i_stall & !is_head[0];
 
     logic  latch_dn, latch_up;
