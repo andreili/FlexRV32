@@ -3,13 +3,19 @@
 `include "../rv_defines.vh"
 
 module rv_csr_cntr
+#(
+    parameter logic TIMER_ENABLE        = 0
+)
+/* verilator lint_off UNUSEDSIGNAL */
 (
     input   wire                        i_clk,
     input   wire                        i_reset_n,
     input   wire[7:0]                   i_idx,
     input   wire                        i_instr_issued,
+    input   wire                        i_timer_tick,
     output  wire[31:0]                  o_data
 );
+/* verilator lint_on UNUSEDSIGNAL */
 
     logic   sel_cycle;
     logic   sel_time;
@@ -32,14 +38,9 @@ module rv_csr_cntr
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
-        begin
             cntr_cycle <= '0;
-            cntr_time <= '0;
-        end
         else
-        begin
             cntr_cycle <= cntr_cycle + 1'b1;
-        end
     end
 
     always_ff @(posedge i_clk)
@@ -49,6 +50,23 @@ module rv_csr_cntr
         else if (i_instr_issued)
             cntr_inst_ret <= cntr_inst_ret + 1'b1;
     end
+
+    generate
+        if (TIMER_ENABLE)
+        begin : g_timer
+            always_ff @(posedge i_clk)
+            begin
+                if (!i_reset_n)
+                    cntr_time <= '0;
+                else if (i_timer_tick)
+                    cntr_time <= cntr_time + 1'b1;
+            end
+        end
+        else
+        begin : g_timer_dummy
+            assign cntr_time = '0;
+        end
+    endgenerate
 
     assign  o_data =
                     sel_cycle ? cntr_cycle[31:0] :

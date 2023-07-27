@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Sat Jul 22 19:42:27 2023
+[*] Thu Jul 27 22:06:46 2023
 [*]
-[dumpfile] "/media/FlexRV32/sim/top.fst"
-[dumpfile_mtime] "Sat Jul 22 19:42:23 2023"
-[dumpfile_size] 746886
+[dumpfile] "/media/FlexRV32/sim/run/test_cebreak-01.fst"
+[dumpfile_mtime] "Thu Jul 27 21:59:42 2023"
+[dumpfile_size] 166696
 [savefile] "/media/FlexRV32/sim/top.gtkw"
-[timestart] 459
+[timestart] 3676
 [size] 1720 1356
 [pos] 1720 0
-*-4.918702 511 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.918702 3799 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.tb_top.
 [treeopen] TOP.tb_top.u_rv.
@@ -64,7 +64,7 @@ TOP.tb_top.u_rv.o_wb_adr[31:0]
 -group_end
 @22
 TOP.tb_top.u_rv.o_wb_dat[31:0]
-@820
+@821
 TOP.tb_top.u_rv.o_wb_dat[31:0]
 @c00022
 TOP.tb_top.u_rv.o_wb_sel[3:0]
@@ -100,7 +100,7 @@ TOP.tb_top.u_tcm.o_data[31:0]
 TOP.tb_top.u_tcm.o_data[31:0]
 @1401200
 -TCM
-@800200
+@c00200
 -TOP WB
 @28
 TOP.tb_top.u_rv.i_wb_ack
@@ -120,7 +120,7 @@ TOP.tb_top.u_rv.data_req
 TOP.tb_top.u_rv.instr_req
 TOP.tb_top.u_rv.instr_ack
 TOP.tb_top.u_rv.u_core.alu1_res_src.memory
-@1000200
+@1401200
 -TOP WB
 @c00200
 -ST1 FETCH
@@ -199,7 +199,7 @@ TOP.tb_top.u_rv.u_core.u_st1_fetch.o_pc[21:1]
 TOP.tb_top.u_rv.u_core.u_st1_fetch.o_ready
 @1401200
 -ST1 FETCH
-@800200
+@c00200
 -ST2 DECODE
 @28
 TOP.tb_top.u_rv.u_core.u_st2_decode.i_stall
@@ -236,9 +236,9 @@ TOP.tb_top.u_rv.u_core.u_st2_decode.o_rs2[4:0]
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_rd[4:0]
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_pc[21:1]
 TOP.tb_top.u_rv.u_core.u_st2_decode.o_pc_next[21:1]
-@1000200
+@1401200
 -ST2 DECODE
-@800200
+@c00200
 -ST3 ALU1
 @28
 TOP.tb_top.u_rv.u_core.u_st3_alu1.i_flush
@@ -266,7 +266,7 @@ TOP.tb_top.u_rv.u_core.u_st3_alu1.o_rs2[4:0]
 @28
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_store
 TOP.tb_top.u_rv.u_core.u_st3_alu1.o_to_trap
-@1000200
+@1401200
 -ST3 ALU1
 @c00200
 -ST4 ALU2
@@ -312,9 +312,8 @@ TOP.tb_top.u_rv.u_core.u_st5_write.o_rd[4:0]
 TOP.tb_top.u_rv.u_core.u_st5_write.o_write_op
 @1401200
 -ST5 WRITE
-@29
-TOP.tb_top.u_rv.u_core.ctrl_need_pause
 @28
+TOP.tb_top.u_rv.u_core.ctrl_need_pause
 TOP.tb_top.u_rv.u_core.alu1_store
 TOP.tb_top.u_rv.u_core.alu2_res_src.memory
 @c00200
@@ -354,7 +353,7 @@ TOP.tb_top.u_rv.u_core.u_ctrl.o_write_stall
 TOP.tb_top.u_rv.u_core.u_ctrl.o_inv_inst
 @1401200
 -CTRL
-@800200
+@c00200
 -DHZ
 @22
 TOP.tb_top.u_rv.u_core.u_dhz.i_alu_rs1[4:0]
@@ -381,16 +380,15 @@ TOP.tb_top.u_rv.u_core.u_dhz.rs2_wrb_sel
 @22
 TOP.tb_top.u_rv.u_core.u_dhz.o_data1[31:0]
 TOP.tb_top.u_rv.u_core.u_dhz.o_data2[31:0]
-@1000200
+@1401200
 -DHZ
-@c00200
+@800200
 -CSR
 @28
 TOP.tb_top.u_rv.csr_clear
 TOP.tb_top.u_rv.g_csr.u_st3_csr.clear
 TOP.tb_top.u_rv.csr_masked
 TOP.tb_top.u_rv.csr_read
-TOP.tb_top.u_rv.g_csr.u_st3_csr.buf_read
 TOP.tb_top.u_rv.g_csr.u_st3_csr.read
 TOP.tb_top.u_rv.csr_to_trap
 TOP.tb_top.u_rv.csr_write
@@ -402,13 +400,12 @@ TOP.tb_top.u_rv.g_csr.u_st3_csr.imm[4:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.write_value[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_cycle[63:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_inst_ret[63:0]
-TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_time[63:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.o_data[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.mtvec_data[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.o_data[31:0]
-@1401200
+@1000200
 -CSR
-@800200
+@c00200
 -REG
 @28
 TOP.tb_top.u_rv.u_core.u_regs.i_write
@@ -483,7 +480,16 @@ TOP.tb_top.u_rv.u_core.u_regs.reg_data[27][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[28][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[29][31:0]
 TOP.tb_top.u_rv.u_core.u_regs.reg_data[30][31:0]
-@1000200
+@1401200
 -REG
+@c00200
+-TRACE
+@22
+TOP.tb_top.u_rv.u_core.u_trace.i_bus_data[31:0]
+TOP.tb_top.u_rv.u_core.u_trace.r_instr_exec[31:0]
+TOP.tb_top.u_rv.u_core.u_trace.r_instr_exec2[31:0]
+TOP.tb_top.u_rv.u_core.u_trace.r_instr_wr[31:0]
+@1401200
+-TRACE
 [pattern_trace] 1
 [pattern_trace] 0

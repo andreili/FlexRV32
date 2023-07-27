@@ -8,6 +8,7 @@
 module rv_csr_machine
 #(
     parameter logic EXTENSION_C         = 1,
+    parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicntr    = 1,
     parameter logic EXTENSION_Zihpm     = 0
 )
@@ -75,8 +76,8 @@ module rv_csr_machine
     assign  sel_mtval      = i_sel && (i_idx[7:0] == 8'h43);
     assign  sel_mip        = i_sel && (i_idx[7:0] == 8'h44);
 
-    `CSR_REG(mstatus, 32, sel_mstatus)
-    `CSR_REG(mstatush, 32, sel_mstatush)
+    //`CSR_REG(mstatus, 32, sel_mstatus)
+    //`CSR_REG(mstatush, 32, sel_mstatush)
     `CSR_REG(mie, 12, sel_mie)  // Machine Interrupt Enable
     `CSR_REG(mtvec, 32, sel_mtvec)
     `CSR_REG(mscratch, 32, sel_mscratch)
@@ -151,14 +152,40 @@ module rv_csr_machine
     end
 
     logic   xPP_next;
-    assign  xPP_next = (cur_mode == MODE_M) ?
+    assign  xPP_next = (cur_mode == MODE_M) ?*/
 
+    // Machine mode interrupt enable
+    logic   MIE;
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+            MIE <= '0;
+        else if (sel_mstatus & i_write)
+            MIE  <= i_data[3];
+    end
+
+    // Current mode interrupt enable
+/* verilator lint_off UNUSEDSIGNAL */
     logic   xIE;
 `ifdef S_MODE
     assign  xIE = (cur_mode == MODE_M) ? MIE : SIE;
 `else
     assign  xIE = MIE;
-`endif*/
+`endif
+/* verilator lint_on UNUSEDSIGNAL */
+
+    logic[31:0] mstatus_data;
+    assign mstatus_data =
+        {
+            28'b0,
+            MIE,
+            3'b000
+        };
+    logic[31:0] mstatush_data;
+    assign mstatush_data =
+        {
+            32'b0
+        };
 
     logic[31:1] mepc_data;
     always_ff @(posedge i_clk)
@@ -173,15 +200,15 @@ module rv_csr_machine
 
     logic[31:0] mcause_data;
     logic       mcause_is_int;
-    logic[7:0]  mcause_code;
-    assign      mcause_data = { mcause_is_int, {(32-1-8){1'b0}}, mcause_code };
+    logic[3:0]  mcause_code;
+    assign      mcause_data = { mcause_is_int, {(32-1-4){1'b0}}, mcause_code };
 
     logic       mcause_is_int_next;
-    logic[7:0]  mcause_code_next;
+    logic[3:0]  mcause_code_next;
     assign      mcause_is_int_next = 1'b0;
     assign      mcause_code_next =
-                i_ebreak ? 8'h3 :
-                '0;
+                    i_ebreak ? 4'h3 :
+                    '0;
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
@@ -195,18 +222,6 @@ module rv_csr_machine
             mcause_code <= mcause_code_next;
         end
     end
-
-    logic   ext_c_supp;
-    generate
-        if (EXTENSION_C)
-        begin : g_c_supp
-            assign ext_c_supp = 1'b1;
-        end
-        else
-        begin : g_c_unsupp
-            assign ext_c_supp = 1'b0;
-        end
-    endgenerate
 
     logic[31:0] misa_data;
     assign  misa_data = {
@@ -225,7 +240,7 @@ module rv_csr_machine
             1'b0,   // P ext
             1'b0,   // O ext
             1'b0,   // N ext
-            1'b0,   // M ext
+            EXTENSION_M,
             1'b0,   // L ext
             1'b0,   // K ext
             1'b0,   // J ext
@@ -235,7 +250,7 @@ module rv_csr_machine
             1'b0,   // F ext
             1'b0,   // E ext
             1'b0,   // D ext
-            ext_c_supp,
+            EXTENSION_C,
             1'b0,   // B ext
             1'b0    // A ext
             };

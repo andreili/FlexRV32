@@ -15,6 +15,7 @@ module rv_top_wb
     parameter int BRANCH_TABLE_SIZE_BITS= 3,
     parameter int INSTR_BUF_ADDR_SIZE   = 2,
     parameter logic ALU2_ISOLATED       = 1,
+    parameter logic TIMER_ENABLE        = 0,
     parameter logic EXTENSION_C         = 1,
     parameter logic EXTENSION_F         = 0,
     parameter logic EXTENSION_M         = 1,
@@ -139,7 +140,9 @@ module rv_top_wb
             rv_csr
             #(
                 .IADDR_SPACE_BITS               (IADDR_SPACE_BITS),
+                .TIMER_ENABLE                   (TIMER_ENABLE),
                 .EXTENSION_C                    (EXTENSION_C),
+                .EXTENSION_M                    (EXTENSION_M),
                 .EXTENSION_Zicntr               (EXTENSION_Zicntr),
                 .EXTENSION_Zihpm                (EXTENSION_Zihpm)
             )
@@ -159,6 +162,7 @@ module rv_top_wb
                 .i_ebreak                       (csr_ebreak),
                 .i_pc_next                      (csr_pc_next),
                 .i_instr_issued                 (instr_issued),
+                .i_timer_tick                   (1'b0),
                 .o_read                         (csr_oread),
                 .o_ret_addr                     (ret_addr),
                 .o_csr_to_trap                  (csr_to_trap),

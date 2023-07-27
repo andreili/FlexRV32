@@ -9,7 +9,9 @@
 module rv_csr
 #(
     parameter int IADDR_SPACE_BITS      = 32,
+    parameter logic TIMER_ENABLE        = 0,
     parameter logic EXTENSION_C         = 1,
+    parameter logic EXTENSION_M         = 1,
     parameter logic EXTENSION_Zicntr    = 1,
     parameter logic EXTENSION_Zihpm     = 0
 )
@@ -27,6 +29,7 @@ module rv_csr
     input   wire                        i_masked,
     input   wire                        i_ebreak,
     input   wire                        i_instr_issued,
+    input   wire                        i_timer_tick,
     input   wire[IADDR_SPACE_BITS-1:1]  i_pc_next,
     output  wire[31:0]                  o_data,
     output  wire[IADDR_SPACE_BITS-1:1]  o_ret_addr,
@@ -35,58 +38,42 @@ module rv_csr
     output  wire                        o_read
 );
 
-    logic[11:0] idx, buf_idx;
-    logic[4:0]  imm, buf_imm;
-    logic       imm_sel, buf_imm_sel;
-    logic       write, buf_write;
-    logic       set, buf_set;
-    logic       clear, buf_clear;
-    logic       read, buf_read;
-    logic       ebreak, buf_ebreak;
-    logic[IADDR_SPACE_BITS-1:1] pc, buf_pc;
-    logic[31:0] reg_data;//, buf_reg_data;
+    logic[11:0] idx;
+    logic[4:0]  imm;
+    logic       imm_sel;
+    logic       write;
+    logic       set;
+    logic       clear;
+    logic       read;
+    logic       ebreak;
+    logic[IADDR_SPACE_BITS-1:1] pc;
 
     always_ff @(posedge i_clk)
     begin
         if (!i_masked)
         begin
-            buf_write <= i_write;
-            buf_set <= i_set;
-            buf_clear <= i_clear;
-            buf_read <= i_read;
+            write <= i_write;
+            set <= i_set;
+            clear <= i_clear;
+            read <= i_read;
         end
         else
         begin
-            buf_write <= '0;
-            buf_set <= '0;
-            buf_clear <= '0;
-            buf_read <= '0;
+            write <= '0;
+            set <= '0;
+            clear <= '0;
+            read <= '0;
         end
-        buf_idx <= i_idx;
-        buf_imm <= i_imm;
-        buf_imm_sel <= i_imm_sel;
-        buf_pc <= i_pc_next;
-        buf_ebreak <= i_ebreak;
-        //buf_reg_data <= i_reg_data;
-    end
-
-    always_ff @(posedge i_clk)
-    begin
-        write <= buf_write;
-        set <= buf_set;
-        clear <= buf_clear;
-        read <= buf_read;
-        idx <= buf_idx;
-        imm <= buf_imm;
-        imm_sel <= buf_imm_sel;
-        pc <= buf_pc;
-        ebreak <= buf_ebreak;
-        reg_data <= i_reg_data;
+        idx <= i_idx;
+        imm <= i_imm;
+        imm_sel <= i_imm_sel;
+        pc <= i_pc_next;
+        ebreak <= i_ebreak;
     end
 
     logic[31:0] write_value;
 
-    assign  write_value = imm_sel ? { {27{1'b0}}, imm } : reg_data;
+    assign  write_value = imm_sel ? { {27{1'b0}}, imm } : i_reg_data;
 
     logic[1:0]  idx_category;
     logic[1:0]  idx_sub_category;
@@ -115,12 +102,16 @@ module rv_csr
         if (EXTENSION_Zicntr)
         begin : g_cntr
             rv_csr_cntr
+            #(
+                .TIMER_ENABLE                   (TIMER_ENABLE)
+            )
             u_cntr
             (
                 .i_clk                          (i_clk),
                 .i_reset_n                      (i_reset_n),
                 .i_idx                          (idx[7:0]),
                 .i_instr_issued                 (i_instr_issued),
+                .i_timer_tick                   (i_timer_tick),
                 .o_data                         (rdata_user)
             );
         end
@@ -135,6 +126,7 @@ module rv_csr
     rv_csr_machine
     #(
         .EXTENSION_C                    (EXTENSION_C),
+        .EXTENSION_M                    (EXTENSION_M),
         .EXTENSION_Zicntr               (EXTENSION_Zicntr),
         .EXTENSION_Zihpm                (EXTENSION_Zihpm)
     )
@@ -159,12 +151,23 @@ module rv_csr
 
     assign  o_ret_addr = ret_addr[IADDR_SPACE_BITS-1:1];
     assign  o_trap_pc = trap_pc[IADDR_SPACE_BITS-1:1];
-    assign  o_csr_to_trap = i_ebreak;
-    assign  o_data = user_level_category ? rdata_user :
-                     supervisor_level_category ? rdata_supervisor :
-                     hypervisor_level_category ? rdata_hypervisor :
-                     rdata_machine;
-    assign  o_read = read;
+    logic[31:0] data;
+    assign  data = user_level_category ? rdata_user :
+                   supervisor_level_category ? rdata_supervisor :
+                   hypervisor_level_category ? rdata_hypervisor :
+                   rdata_machine;
+                
+    logic[31:0] r_data;
+    logic       r_read, r_trap;
+    always_ff @(posedge i_clk)
+    begin
+        r_data <= data;
+        r_read <= read;
+        r_trap <= i_ebreak;
+    end
+    assign  o_data = r_data;
+    assign  o_read = r_read;
+    assign  o_csr_to_trap = r_trap;
 
 /* verilator lint_off UNUSEDSIGNAL */
     logic   dummy;
