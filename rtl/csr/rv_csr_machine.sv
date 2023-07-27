@@ -61,7 +61,7 @@ module rv_csr_machine
     logic   sel_mscratch;
     logic   sel_mepc;
     logic   sel_mcause;
-    logic   sel_mtval;
+    //logic   sel_mtval;
     logic   sel_mip;
 
     assign  sel_mstatus    = i_sel && (i_idx[7:0] == 8'h00);
@@ -73,12 +73,12 @@ module rv_csr_machine
     assign  sel_mscratch   = i_sel && (i_idx[7:0] == 8'h40);
     assign  sel_mepc       = i_sel && (i_idx[7:0] == 8'h41);
     assign  sel_mcause     = i_sel && (i_idx[7:0] == 8'h42);
-    assign  sel_mtval      = i_sel && (i_idx[7:0] == 8'h43);
+    //assign  sel_mtval      = i_sel && (i_idx[7:0] == 8'h43);
     assign  sel_mip        = i_sel && (i_idx[7:0] == 8'h44);
 
     `CSR_REG(mtvec, 32, sel_mtvec)          // Machine Trap Vector Base Address Register
     `CSR_REG(mscratch, 32, sel_mscratch)
-    `CSR_REG(mtval, 32, sel_mtval)
+    //`CSR_REG(mtval, 32, sel_mtval)
 
     /*logic[1:0]  cur_mode;
     always_ff @(posedge i_clk)
@@ -295,7 +295,7 @@ module rv_csr_machine
                      sel_mscratch ? mscratch_data :
                      sel_mepc ? { mepc_data, 1'b0 } :
                      sel_mcause ? mcause_data :
-                     sel_mtval ? mtval_data :
+                     //sel_mtval ? mtval_data :
                      sel_mip ? { {20{1'b0}}, mip_data } :
                      '0;
 
