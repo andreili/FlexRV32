@@ -41,16 +41,9 @@ typedef struct packed
 
 typedef struct packed
 {
-    logic   enable_external;
-    logic   enable_timer;
-    logic   enable_soft;
-} int_ctrl_csr_t;
-
-typedef struct packed
-{
-    logic   pending_external;
-    logic   pending_timer;
-    logic   pending_soft;
-} int_ctrl_state_csr_t;
+    logic   external;
+    logic   timer;
+    logic   soft_;
+} int_csr_t;
 
 `endif // __RV_STRUCTS__

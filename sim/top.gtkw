@@ -1,19 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
-[*] Thu Jul 27 22:06:46 2023
+[*] Thu Jul 27 22:42:33 2023
 [*]
 [dumpfile] "/media/FlexRV32/sim/run/test_cebreak-01.fst"
-[dumpfile_mtime] "Thu Jul 27 21:59:42 2023"
-[dumpfile_size] 166696
+[dumpfile_mtime] "Thu Jul 27 22:31:54 2023"
+[dumpfile_size] 125598
 [savefile] "/media/FlexRV32/sim/top.gtkw"
-[timestart] 3676
+[timestart] 1
 [size] 1720 1356
 [pos] 1720 0
-*-4.918702 3799 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-7.833467 456 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.tb_top.
 [treeopen] TOP.tb_top.u_rv.
+[treeopen] TOP.tb_top.u_rv.g_csr.
+[treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.
 [treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.
+[treeopen] TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.
 [treeopen] TOP.tb_top.u_rv.u_core.
 [treeopen] TOP.tb_top.u_rv.u_core.u_st1_fetch.u_buf.
 [sst_width] 212
@@ -64,7 +67,7 @@ TOP.tb_top.u_rv.o_wb_adr[31:0]
 -group_end
 @22
 TOP.tb_top.u_rv.o_wb_dat[31:0]
-@821
+@820
 TOP.tb_top.u_rv.o_wb_dat[31:0]
 @c00022
 TOP.tb_top.u_rv.o_wb_sel[3:0]
@@ -392,6 +395,7 @@ TOP.tb_top.u_rv.csr_read
 TOP.tb_top.u_rv.g_csr.u_st3_csr.read
 TOP.tb_top.u_rv.csr_to_trap
 TOP.tb_top.u_rv.csr_write
+@29
 TOP.tb_top.u_rv.g_csr.u_st3_csr.write
 @22
 TOP.tb_top.u_rv.g_csr.u_st3_csr.i_reg_data[31:0]
@@ -403,6 +407,9 @@ TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.cntr_inst_ret[63:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.g_cntr.u_cntr.o_data[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.mtvec_data[31:0]
 TOP.tb_top.u_rv.g_csr.u_st3_csr.o_data[31:0]
+@28
+TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.xIE
+TOP.tb_top.u_rv.g_csr.u_st3_csr.u_machine.MSIE
 @1000200
 -CSR
 @c00200

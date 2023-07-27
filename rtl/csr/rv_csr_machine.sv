@@ -21,10 +21,10 @@ module rv_csr_machine
     input   wire                        i_write,
     input   wire                        i_set,
     input   wire                        i_clear,
-    input   int_ctrl_state_csr_t        i_int_ctr_state,
     input   wire[31:1]                  i_pc,
     input   wire                        i_ebreak,
-    output  int_ctrl_csr_t              o_int_ctr,
+    input   wire                        i_int_timer,
+    input   wire                        i_int_ext,
     output  wire[31:1]                  o_ret_addr,
     output  wire[31:1]                  o_trap_pc,
     output  wire[31:0]                  o_data
@@ -48,9 +48,9 @@ module rv_csr_machine
         .o_data                         (name``_data)  \
     );
 
-    /*localparam  MODE_U = 2'b00;
-    localparam  MODE_S = 2'b01;
-    localparam  MODE_M = 2'b11;*/
+    //localparam  MODE_U = 2'b00;
+    //localparam  MODE_S = 2'b01;
+    //localparam  MODE_M = 2'b11;
 
     logic   sel_mstatus;
     logic   sel_misa;
@@ -76,83 +76,16 @@ module rv_csr_machine
     assign  sel_mtval      = i_sel && (i_idx[7:0] == 8'h43);
     assign  sel_mip        = i_sel && (i_idx[7:0] == 8'h44);
 
-    //`CSR_REG(mstatus, 32, sel_mstatus)
-    //`CSR_REG(mstatush, 32, sel_mstatush)
-    `CSR_REG(mie, 12, sel_mie)  // Machine Interrupt Enable
-    `CSR_REG(mtvec, 32, sel_mtvec)
+    `CSR_REG(mtvec, 32, sel_mtvec)          // Machine Trap Vector Base Address Register
     `CSR_REG(mscratch, 32, sel_mscratch)
-    //`CSR_REG(mepc, 32, sel_mepc)
-    //`CSR_REG(mcause, 32, sel_mcause)
     `CSR_REG(mtval, 32, sel_mtval)
-    //`CSR_REG(mip, 12, sel_mip)  // Machine Interrupt Pending
 
     /*logic[1:0]  cur_mode;
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
             cur_mode <= MODE_M;
-    end
-
-    logic[31:0] mstatus_data;
-    logic[31:0] mstatush_data;
-    logic       SD, TSR, TW, TVM, MXR, SUM, MPRV, MPIE, UBE, MIE, MBE;
-    logic[1:0]  XS, FS, MPP, VS;
-    assign  mstatus_data[31] = SD;
-    assign  mstatus_data[30:23] = '0;
-    assign  mstatus_data[22] = TSR;
-    assign  mstatus_data[21] = TW;
-    assign  mstatus_data[20] = TVM;
-    assign  mstatus_data[19] = MXR;
-    assign  mstatus_data[18] = SUM;
-    assign  mstatus_data[17] = MPRV;
-    assign  mstatus_data[16:15] = XS;
-    assign  mstatus_data[14:13] = FS;
-    assign  mstatus_data[12:11] = MPP;
-    assign  mstatus_data[10: 9] = VS;
-    assign  mstatus_data[ 7] = MPIE;
-    assign  mstatus_data[ 6] = UBE;
-    assign  mstatus_data[ 4] = '0;
-    assign  mstatus_data[ 3] = MIE;     // M-mode interrupt enable
-    assign  mstatus_data[ 2] = '0;
-    assign  mstatus_data[ 0] = '0;
-    assign  mstatush_data[31:6] = '0;
-    assign  mstatush_data[5] = MBE;
-    assign  mstatush_data[3:0] = '0;
-`ifdef S_MODE
-    logic       SPP, SPIE, SIE, SBE;
-    assign  mstatus_data[ 8] = SPP;
-    assign  mstatus_data[ 5] = SPIE;
-    assign  mstatus_data[ 1] = SIE;     // S-mode interrupt enable
-    assign  mstatush_data[4] = SBE;
-`else
-    assign  mstatus_data[ 8] = '0;
-    assign  mstatus_data[ 5] = '0;
-    assign  mstatus_data[ 1] = '0;
-    assign  mstatush_data[4] = '0;
-`endif
-    always_ff @(posedge i_clk)
-    begin
-        if (!i_reset_n)
-        begin
-            MPIE <= '0;
-            MIE <= '0;
-`ifdef S_MODE
-            SPIE <= '0;
-            SIE <= '0;
-`endif
-        end
-        else if (sel_mstatus & i_write)
-        begin
-            MIE  <= i_data[ 3];
-`ifdef S_MODE
-            SPIE <= i_data[ 5];
-            SIE  <= i_data[ 1];
-`endif
-        end
-    end
-
-    logic   xPP_next;
-    assign  xPP_next = (cur_mode == MODE_M) ?*/
+    end*/
 
     // Machine mode interrupt enable
     logic   MIE;
@@ -161,18 +94,16 @@ module rv_csr_machine
         if (!i_reset_n)
             MIE <= '0;
         else if (sel_mstatus & i_write)
-            MIE  <= i_data[3];
+            MIE <= i_data[3];
     end
 
     // Current mode interrupt enable
-/* verilator lint_off UNUSEDSIGNAL */
     logic   xIE;
 `ifdef S_MODE
     assign  xIE = (cur_mode == MODE_M) ? MIE : SIE;
 `else
     assign  xIE = MIE;
 `endif
-/* verilator lint_on UNUSEDSIGNAL */
 
     logic[31:0] mstatus_data;
     assign mstatus_data =
@@ -187,27 +118,73 @@ module rv_csr_machine
             32'b0
         };
 
+    // Machine mode External interrupt enable
+    logic   MEIE;
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+            MEIE <= '0;
+        else if (sel_mie & i_write)
+            MEIE <= i_data[11];
+    end
+
+    // Machine mode Timer interrupt enable
+    logic   MTIE;
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+            MTIE <= '0;
+        else if (sel_mie & i_write)
+            MTIE <= i_data[7];
+    end
+
+    // Machine mode Software interrupt enable
+    logic   MSIE;
+    always_ff @(posedge i_clk)
+    begin
+        if (!i_reset_n)
+            MSIE <= '0;
+        else if (sel_mie & i_write)
+            MSIE <= i_data[3];
+    end
+
+    logic[31:0] mie_data;
+    assign mie_data =
+        {
+            20'b0,
+            MEIE,
+            3'b000,
+            MTIE,
+            3'b000,
+            MSIE,
+            3'b000
+        };
+
+    logic  int_soft, int_timer, int_ext;
+    assign int_soft  = i_ebreak | (1'b0 & & xIE & MSIE); // TODO - software
+    assign int_timer = (i_int_timer & & xIE & MTIE);
+    assign int_ext   = (i_int_ext & & xIE & MEIE);
+
     logic[31:1] mepc_data;
     always_ff @(posedge i_clk)
     begin
         if (!i_reset_n)
             mepc_data <= '0;
-        else if (i_ebreak)
+        else if (int_soft)
             mepc_data <= i_pc;
         else if (sel_mepc & i_write)
             mepc_data <= i_data[31:1];
     end
 
     logic[31:0] mcause_data;
-    logic       mcause_is_int;
-    logic[3:0]  mcause_code;
+    logic       mcause_is_int, mcause_is_int_next;
+    logic[3:0]  mcause_code, mcause_code_next;
     assign      mcause_data = { mcause_is_int, {(32-1-4){1'b0}}, mcause_code };
-
-    logic       mcause_is_int_next;
-    logic[3:0]  mcause_code_next;
     assign      mcause_is_int_next = 1'b0;
     assign      mcause_code_next =
-                    i_ebreak ? 4'h3 :
+                    int_soft  ? 4'd3  :
+                    int_timer ? 4'd7  :
+                    int_ext   ? 4'd11 :
                     '0;
     always_ff @(posedge i_clk)
     begin
@@ -216,7 +193,7 @@ module rv_csr_machine
             mcause_is_int <= '0;
             mcause_code <= '0;
         end
-        else if (i_ebreak)
+        else if (int_soft)
         begin
             mcause_is_int <= mcause_is_int_next;
             mcause_code <= mcause_code_next;
@@ -287,26 +264,19 @@ module rv_csr_machine
 
     logic[11:0] mip_data;
     assign  mip_data = {
-            i_int_ctr_state.pending_external,   // 11, MEIP
+            i_int_ext,      // 11, MEIP
             1'b0,   // 10
             1'b0,   //  9 SEIP
             1'b0,   //  8
-            i_int_ctr_state.pending_timer,      //  7 MTIP
+            i_int_timer,    //  7 MTIP
             1'b0,   //  6
             1'b0,   //  5 STIP
             1'b0,   //  4
-            i_int_ctr_state.pending_soft,       //  3 MSIP
+            1'b0,   //  3 MSIP - not implemented, TODO?
             1'b0,   //  2
             1'b0,   //  1 SSIP
             1'b0    //  0
             };
-
-    assign  o_int_ctr.enable_external = mie_data[11]; // 11, MEIE
-    // 9 SEIE
-    assign  o_int_ctr.enable_timer    = mie_data[ 7]; //  7 MTIE
-    //  5 STIE
-    assign  o_int_ctr.enable_soft     = mie_data[ 3]; //  3 MSIE
-    //  1 SSIE
 
     logic[31:1] cause_pc;
 

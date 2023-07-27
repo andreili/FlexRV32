@@ -122,7 +122,6 @@ module rv_csr
     endgenerate
 
     logic[31:1] ret_addr, trap_pc;
-    int_ctrl_csr_t o_int_ctr; // TODO
     rv_csr_machine
     #(
         .EXTENSION_C                    (EXTENSION_C),
@@ -140,10 +139,10 @@ module rv_csr
         .i_write                        (write),
         .i_set                          (set),
         .i_clear                        (clear),
-        .i_int_ctr_state                ('0),
         .i_pc                           ({ {(32-IADDR_SPACE_BITS){1'b0}}, pc }),
         .i_ebreak                       (ebreak),
-        .o_int_ctr                      (o_int_ctr),
+        .i_int_timer                    ('0),   // TODO
+        .i_int_ext                      ('0),   // TODO
         .o_ret_addr                     (ret_addr),
         .o_trap_pc                      (trap_pc),
         .o_data                         (rdata_machine)
@@ -173,7 +172,7 @@ module rv_csr
     logic   dummy;
 
     assign  dummy = user_level_category | supervisor_level_category | hypervisor_level_category |
-                    (|o_int_ctr) | (|ret_addr) | (|trap_pc);
+                    (|ret_addr) | (|trap_pc);
 /* verilator lint_on UNUSEDSIGNAL */
 
 endmodule
