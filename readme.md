@@ -13,7 +13,7 @@ All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA sy
 Pipelined core:
 |Type|LEs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|RV32IC+PB(2)|1856|82|217836|123.98|1.060|
+|RV32IC+PB(2)|1924|82|217836|123.98|1.060|
 |RV32IC+PB(2)+ALU2_isol|1856|110|190206|108.25|0.925|
 |RV32IMC+PB(2)+ALU2_isol|2567|90|190206|108.25|0.925|
 |PB(2)+BTB|833|120|261880|149.05|1.242|
