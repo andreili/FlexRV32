@@ -375,11 +375,11 @@
         "Fmax": [
             {
                 "Model": "Slow 1200mV 85C",
-                "fmax": "95.81 MHz"
+                "fmax": "110.77 MHz"
             },
             {
                 "Model": "Slow 1200mV 0C",
-                "fmax": "102.43 MHz"
+                "fmax": "117.38 MHz"
             }
         ]
     }

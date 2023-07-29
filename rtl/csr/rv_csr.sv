@@ -175,4 +175,9 @@ module rv_csr
                     (|ret_addr) | (|trap_pc);
 /* verilator lint_on UNUSEDSIGNAL */
 
+/*
+* TODO:
+*  WFI
+*/
+
 endmodule
