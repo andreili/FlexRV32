@@ -2,30 +2,20 @@
 # RISC-V core
 This is my hobby project for deeper study of SystemVerilog and CPU architecture
 
-# Overviev
-Core supported one modes - staged. On staged mode, one instruction executed on 5 ticks of main clock.
-Piplined mode must be implemented on future, after finished all extensions and features on staged mode.
-
 # Dependencies
 - RISC-V GCC >= 12 (riscv64-unknown-elf)
 - Verilator >= 4.226
 - Make
 
 # Performance
-All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - 5CSEMA5F31C6).
-
-Multi-cycle core, for comparasion only:
-|Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
-|-|-|-|-|-|-|
-|Minimal|510|182|87226|49.64|0.273|
-|Prefetch(2)|645|187|89622|51.01|0.273|
-|C|621|171|78026|44.41|0.260|
-|Prefetch(2)+C|733|177|83156|47.33|0.267|
+All performance measured on simulation (DHRYSTONE test), Fmax checked on FPGA synthesis (target - EP4CE6F17C8).
 
 Pipelined core:
-|Type|ALMs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
+|Type|LEs|Fmax,MHz|Dhrystone/sec|DMIPS|DMIPS/MHz|
 |-|-|-|-|-|-|
-|RV32I+PB(2)|647|117|228|129.78|1.109|
+|RV32IC+PB(2)|1856|82|217836|123.98|1.060|
+|RV32IC+PB(2)+ALU2_isol|1856|110|190206|108.25|0.925|
+|RV32IMC+PB(2)+ALU2_isol|2567|90|190206|108.25|0.925|
 |PB(2)+BTB|833|120|261880|149.05|1.242|
 
 Agenda:
@@ -36,11 +26,11 @@ Agenda:
 - Prefetch buffer - need to pipelined architecture for more performance.
 - Extensions:
   - C extension.
+  - Zicsr extension (with Zicntr and Zihpm features).
+  - M extension (need to optimize).
  
 # TODO
 - Extensions:
-  - Zicsr extension (with Zicntr and Zihpm features, WIP).
-  - M extension.
   - F extension.
   - Interrupts.
 
